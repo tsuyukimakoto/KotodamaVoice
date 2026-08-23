@@ -1,0 +1,1408 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02058CB34BB16684A868E6CA /* KotodamaCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487C3D2C28A272E278E75399 /* KotodamaCore.swift */; };
+		061B45C4249559749743808E /* ModelManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223537F87A638A6A25C0A009 /* ModelManifestTests.swift */; };
+		073244A5D4F1D6E902063E3E /* CarbonHotKeyBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78A93F0ED7F6F8FF212E907 /* CarbonHotKeyBackend.swift */; };
+		157B69F84BB0F25B95410600 /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D2617C6E95C214AAC1D1D7 /* ShortcutRecorder.swift */; };
+		1A0F8B8B417591DA047128A5 /* RuntimeMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E810038EE1C18220EF3B0F /* RuntimeMonitorView.swift */; };
+		22D2F132C4B309B8CF488321 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = E41A57AA23343E5644F31E6B /* main.swift */; };
+		3082A02AD913316B129C9ECA /* KotodamaVoiceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3797E508E9AC167BA2BF6402 /* KotodamaVoiceUITests.swift */; };
+		3B00E47141E1A066C21301A2 /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
+		473491B0408C052E808733BE /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD938F4BC6FB93AEFA3881B /* HotKey.swift */; };
+		4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */; };
+		5A2F6512F819EBD55567A21B /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
+		5B7AB2438A108AA70D054101 /* FormatterWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */; };
+		5BA78082908D0D574EC66CCC /* WorkerMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73F2EF4A4CFD5A7858E3BBA3 /* WorkerMessages.swift */; };
+		6C8BD58ADC7D3BE0AE258BC2 /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
+		7493BDF448A033A95044EC68 /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6823A96AE15E3F8E45E13555 /* Diagnostics.swift */; };
+		7529719FBEAA212F88E7295C /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		792EC659BF1FCE6DB494F089 /* WorkerConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98A0C0BBD109721E35265FF /* WorkerConnectionManager.swift */; };
+		81FFBB36BAA1E29A1051FF61 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A5D11D804A8B7BDB6C7175 /* AppRuntime.swift */; };
+		88855C43D2E9D5FF5C14B1A2 /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
+		891AEC65205E7FB96A229BD1 /* llama.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A109991F1F9EDAB8AFB2A88C /* llama.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8C2FE9AD8FED9F104EBC3B3C /* whisper.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B67FD5FD629144B705A13FF4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11761C2322787DB1CA3B22A7 /* SettingsView.swift */; };
+		B6D184B9896BD5C2ABE50377 /* KotodamaVoiceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28ACFFCE4943C9852FE83D73 /* KotodamaVoiceApp.swift */; };
+		C004EE7FE49C131969FD78A0 /* ModelManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C4E38780D1164B577359F9 /* ModelManifest.swift */; };
+		C3A2598AE024237FC31AD00A /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E1494AAD53178A1A680279 /* PipelineCoordinator.swift */; };
+		C45BA0E732C0D5B3502E28B5 /* SpeechWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D262B41A81B6E67267B0B4DF /* SpeechWorkerTests.swift */; };
+		C620873D77438120DDB5097E /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A109991F1F9EDAB8AFB2A88C /* llama.xcframework */; };
+		CB9644E56A512B65FCB66C12 /* WorkerDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */; };
+		CECAB467C0D8247D58A79E59 /* FormatterWorker.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 80A3944F2874EE16F49135C7 /* FormatterWorker.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D60389933CAB91331B8693A1 /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D9162D80A5BC57760BBBA0B5 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED90C336FE480B0ADC7CA39D /* main.swift */; };
+		E81C517201EE102E69A55314 /* SpeechWorker.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 62EE402D36D13B0EB726CBC0 /* SpeechWorker.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		EAA356300635206501250BE5 /* whisper.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */; };
+		ECC13AF7AA18EF340F087D7F /* UserDefaultsHotKeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88868843C2C55F2F234F1584 /* UserDefaultsHotKeyPreference.swift */; };
+		F23CD0326C846F04CC3DC17E /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A0521C534370D92B8A8874 /* LaunchAtLogin.swift */; };
+		F27BBEF1589B4AC40BFF515E /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510ACFE42081260B79D9FAFC /* ModelsView.swift */; };
+		F42F88FFE4D94DD92A215388 /* PipelineStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20D8C389F4413253DAAF88A /* PipelineStateMachine.swift */; };
+		F8E4E561C29A90CE16A3B548 /* KotodamaCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FBC669DE78E857852E6F506 /* KotodamaCoreTests.swift */; };
+		FA4352846E2A3EF093C3F21E /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030684945C14C6CBAA64057F /* ModelCatalog.swift */; };
+		FFBE534090CAEEA608442242 /* Models.json in Resources */ = {isa = PBXBuildFile; fileRef = 5476720C032768393BE5582A /* Models.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		007830BFC9BA2E50A31123F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DFB49847B0F71CD7D7287146;
+			remoteInfo = KotodamaVoice;
+		};
+		3ED929E3A972E27B73D5DF95 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6EB1756E50B611BB2B7C001;
+			remoteInfo = KotodamaCore;
+		};
+		473793702D253DD1576E7DAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0EF7A75C12F9019C72867BA0;
+			remoteInfo = FormatterWorker;
+		};
+		4B4AD5D969C22B23413B23F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0EF7A75C12F9019C72867BA0;
+			remoteInfo = FormatterWorker;
+		};
+		852FF8E80E07269FC88DA408 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9875826B4579930608B24E5E;
+			remoteInfo = SpeechWorker;
+		};
+		94B9B70944F04D499544E64A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6EB1756E50B611BB2B7C001;
+			remoteInfo = KotodamaCore;
+		};
+		AB0B0923697D171E74BD0729 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6EB1756E50B611BB2B7C001;
+			remoteInfo = KotodamaCore;
+		};
+		AE2061392339BECD79C4661F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DFB49847B0F71CD7D7287146;
+			remoteInfo = KotodamaVoice;
+		};
+		AEFE1394EFABEBE07E042828 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6EB1756E50B611BB2B7C001;
+			remoteInfo = KotodamaCore;
+		};
+		C25011E836974FE878816273 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568352D46B68EA038A29E0A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9875826B4579930608B24E5E;
+			remoteInfo = SpeechWorker;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		28DA8BA84458D75E5B2DDF31 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D60389933CAB91331B8693A1 /* KotodamaCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FCE100FE3341E18EA78A98E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/XPCServices";
+			dstSubfolderSpec = 16;
+			files = (
+				E81C517201EE102E69A55314 /* SpeechWorker.xpc in CopyFiles */,
+				CECAB467C0D8247D58A79E59 /* FormatterWorker.xpc in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EBEC8443CA4F7C08F27A917F /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				891AEC65205E7FB96A229BD1 /* llama.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0326059C0C0E105B57BEF7A /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				8C2FE9AD8FED9F104EBC3B3C /* whisper.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F78DFBE6B64D7D988B25660B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7529719FBEAA212F88E7295C /* KotodamaCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		030684945C14C6CBAA64057F /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalog.swift; sourceTree = "<group>"; };
+		03E1494AAD53178A1A680279 /* PipelineCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineCoordinator.swift; sourceTree = "<group>"; };
+		11761C2322787DB1CA3B22A7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		223537F87A638A6A25C0A009 /* ModelManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManifestTests.swift; sourceTree = "<group>"; };
+		28ACFFCE4943C9852FE83D73 /* KotodamaVoiceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceApp.swift; sourceTree = "<group>"; };
+		31C4E38780D1164B577359F9 /* ModelManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManifest.swift; sourceTree = "<group>"; };
+		3797E508E9AC167BA2BF6402 /* KotodamaVoiceUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceUITests.swift; sourceTree = "<group>"; };
+		3DD938F4BC6FB93AEFA3881B /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KotodamaCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		487C3D2C28A272E278E75399 /* KotodamaCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaCore.swift; sourceTree = "<group>"; };
+		510ACFE42081260B79D9FAFC /* ModelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsView.swift; sourceTree = "<group>"; };
+		5476720C032768393BE5582A /* Models.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Models.json; sourceTree = "<group>"; };
+		55C5580D51175BF134FA2936 /* KotodamaVoiceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KotodamaVoiceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		62EE402D36D13B0EB726CBC0 /* SpeechWorker.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = SpeechWorker.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
+		6823A96AE15E3F8E45E13555 /* Diagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
+		6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceTests.swift; sourceTree = "<group>"; };
+		6C6DADF77368023FCFF7197A /* KotodamaVoiceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KotodamaVoiceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		73F2EF4A4CFD5A7858E3BBA3 /* WorkerMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerMessages.swift; sourceTree = "<group>"; };
+		7AB9FE6709141882C797E153 /* SpeechWorkerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpeechWorkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D4296D37EDFA9006F91FD7E /* KotodamaCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KotodamaCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		80A3944F2874EE16F49135C7 /* FormatterWorker.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = FormatterWorker.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
+		88868843C2C55F2F234F1584 /* UserDefaultsHotKeyPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsHotKeyPreference.swift; sourceTree = "<group>"; };
+		8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = .build/runtimes/artifacts/whisper.xcframework; sourceTree = "<group>"; };
+		8FBC669DE78E857852E6F506 /* KotodamaCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaCoreTests.swift; sourceTree = "<group>"; };
+		9242674CB909AC70D26074AD /* KotodamaVoice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KotodamaVoice.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A109991F1F9EDAB8AFB2A88C /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = .build/runtimes/artifacts/llama.xcframework; sourceTree = "<group>"; };
+		A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatterWorkerTests.swift; sourceTree = "<group>"; };
+		B2A0521C534370D92B8A8874 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerDiagnostics.swift; sourceTree = "<group>"; };
+		C9D2617C6E95C214AAC1D1D7 /* ShortcutRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorder.swift; sourceTree = "<group>"; };
+		D1A5D11D804A8B7BDB6C7175 /* AppRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntime.swift; sourceTree = "<group>"; };
+		D262B41A81B6E67267B0B4DF /* SpeechWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechWorkerTests.swift; sourceTree = "<group>"; };
+		E41A57AA23343E5644F31E6B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		E7A002F56BBCAE14AD65120F /* FormatterWorkerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FormatterWorkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E98A0C0BBD109721E35265FF /* WorkerConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerConnectionManager.swift; sourceTree = "<group>"; };
+		ED90C336FE480B0ADC7CA39D /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		F20D8C389F4413253DAAF88A /* PipelineStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineStateMachine.swift; sourceTree = "<group>"; };
+		F2E810038EE1C18220EF3B0F /* RuntimeMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeMonitorView.swift; sourceTree = "<group>"; };
+		F78A93F0ED7F6F8FF212E907 /* CarbonHotKeyBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonHotKeyBackend.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0B7C3198E879020F12BFFB9F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A2F6512F819EBD55567A21B /* KotodamaCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AD0A455EF4C567A6E4B1AB7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88855C43D2E9D5FF5C14B1A2 /* KotodamaCore.framework in Frameworks */,
+				EAA356300635206501250BE5 /* whisper.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3A44A577AA526A284A202275 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C8BD58ADC7D3BE0AE258BC2 /* KotodamaCore.framework in Frameworks */,
+				C620873D77438120DDB5097E /* llama.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1D111D87708FAEC8D6F0073 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B00E47141E1A066C21301A2 /* KotodamaCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		04BFE5F67B597802F84C501A /* SpeechWorker */ = {
+			isa = PBXGroup;
+			children = (
+				ED90C336FE480B0ADC7CA39D /* main.swift */,
+			);
+			path = SpeechWorker;
+			sourceTree = "<group>";
+		};
+		0681181405CD1375ADD174A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				80A3944F2874EE16F49135C7 /* FormatterWorker.xpc */,
+				E7A002F56BBCAE14AD65120F /* FormatterWorkerTests.xctest */,
+				4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */,
+				7D4296D37EDFA9006F91FD7E /* KotodamaCoreTests.xctest */,
+				9242674CB909AC70D26074AD /* KotodamaVoice.app */,
+				6C6DADF77368023FCFF7197A /* KotodamaVoiceTests.xctest */,
+				55C5580D51175BF134FA2936 /* KotodamaVoiceUITests.xctest */,
+				62EE402D36D13B0EB726CBC0 /* SpeechWorker.xpc */,
+				7AB9FE6709141882C797E153 /* SpeechWorkerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0E30034AA8334D8BED25B616 = {
+			isa = PBXGroup;
+			children = (
+				4AC2A1DAE616482A512F98CF /* Resources */,
+				F6E3256C165610B7FC2E4521 /* Sources */,
+				7F9D42CAE8C8A395060456D5 /* Tests */,
+				D1593F99FCE4D0248C3C922A /* Frameworks */,
+				0681181405CD1375ADD174A0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4AC2A1DAE616482A512F98CF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5476720C032768393BE5582A /* Models.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		4ACFAE5C3ED5127CE455188A /* KotodamaVoiceUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3797E508E9AC167BA2BF6402 /* KotodamaVoiceUITests.swift */,
+			);
+			path = KotodamaVoiceUITests;
+			sourceTree = "<group>";
+		};
+		4BF4F7BCB8897B45C5701365 /* FormatterWorkerTests */ = {
+			isa = PBXGroup;
+			children = (
+				A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */,
+			);
+			path = FormatterWorkerTests;
+			sourceTree = "<group>";
+		};
+		531D498FFF19E735A382561D /* KotodamaVoiceTests */ = {
+			isa = PBXGroup;
+			children = (
+				6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */,
+			);
+			path = KotodamaVoiceTests;
+			sourceTree = "<group>";
+		};
+		5BD4D75ECCDB4BA5E74B13D2 /* KotodamaCore */ = {
+			isa = PBXGroup;
+			children = (
+				6823A96AE15E3F8E45E13555 /* Diagnostics.swift */,
+				3DD938F4BC6FB93AEFA3881B /* HotKey.swift */,
+				487C3D2C28A272E278E75399 /* KotodamaCore.swift */,
+				31C4E38780D1164B577359F9 /* ModelManifest.swift */,
+				03E1494AAD53178A1A680279 /* PipelineCoordinator.swift */,
+				F20D8C389F4413253DAAF88A /* PipelineStateMachine.swift */,
+				E98A0C0BBD109721E35265FF /* WorkerConnectionManager.swift */,
+				73F2EF4A4CFD5A7858E3BBA3 /* WorkerMessages.swift */,
+			);
+			path = KotodamaCore;
+			sourceTree = "<group>";
+		};
+		7F9D42CAE8C8A395060456D5 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				4BF4F7BCB8897B45C5701365 /* FormatterWorkerTests */,
+				B82B0B278742548FDF9C8062 /* KotodamaCoreTests */,
+				531D498FFF19E735A382561D /* KotodamaVoiceTests */,
+				4ACFAE5C3ED5127CE455188A /* KotodamaVoiceUITests */,
+				81AD7901C4865825E098F174 /* SpeechWorkerTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		81AD7901C4865825E098F174 /* SpeechWorkerTests */ = {
+			isa = PBXGroup;
+			children = (
+				D262B41A81B6E67267B0B4DF /* SpeechWorkerTests.swift */,
+			);
+			path = SpeechWorkerTests;
+			sourceTree = "<group>";
+		};
+		B82B0B278742548FDF9C8062 /* KotodamaCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				8FBC669DE78E857852E6F506 /* KotodamaCoreTests.swift */,
+				223537F87A638A6A25C0A009 /* ModelManifestTests.swift */,
+			);
+			path = KotodamaCoreTests;
+			sourceTree = "<group>";
+		};
+		C538AA36F7322D7BC52C2C36 /* KotodamaVoice */ = {
+			isa = PBXGroup;
+			children = (
+				D1A5D11D804A8B7BDB6C7175 /* AppRuntime.swift */,
+				F78A93F0ED7F6F8FF212E907 /* CarbonHotKeyBackend.swift */,
+				28ACFFCE4943C9852FE83D73 /* KotodamaVoiceApp.swift */,
+				B2A0521C534370D92B8A8874 /* LaunchAtLogin.swift */,
+				030684945C14C6CBAA64057F /* ModelCatalog.swift */,
+				510ACFE42081260B79D9FAFC /* ModelsView.swift */,
+				F2E810038EE1C18220EF3B0F /* RuntimeMonitorView.swift */,
+				11761C2322787DB1CA3B22A7 /* SettingsView.swift */,
+				C9D2617C6E95C214AAC1D1D7 /* ShortcutRecorder.swift */,
+				88868843C2C55F2F234F1584 /* UserDefaultsHotKeyPreference.swift */,
+				B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */,
+			);
+			path = KotodamaVoice;
+			sourceTree = "<group>";
+		};
+		D1593F99FCE4D0248C3C922A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A109991F1F9EDAB8AFB2A88C /* llama.xcframework */,
+				8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E90C111D903C030A68975E84 /* FormatterWorker */ = {
+			isa = PBXGroup;
+			children = (
+				E41A57AA23343E5644F31E6B /* main.swift */,
+			);
+			path = FormatterWorker;
+			sourceTree = "<group>";
+		};
+		F6E3256C165610B7FC2E4521 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				E90C111D903C030A68975E84 /* FormatterWorker */,
+				5BD4D75ECCDB4BA5E74B13D2 /* KotodamaCore */,
+				C538AA36F7322D7BC52C2C36 /* KotodamaVoice */,
+				04BFE5F67B597802F84C501A /* SpeechWorker */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0EF7A75C12F9019C72867BA0 /* FormatterWorker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB9F7EFFB706951C06088002 /* Build configuration list for PBXNativeTarget "FormatterWorker" */;
+			buildPhases = (
+				857453F6CB4F1F77AEF36D97 /* Sources */,
+				3A44A577AA526A284A202275 /* Frameworks */,
+				EBEC8443CA4F7C08F27A917F /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D60B282C0C462148BF0BC8A /* PBXTargetDependency */,
+			);
+			name = FormatterWorker;
+			packageProductDependencies = (
+			);
+			productName = FormatterWorker;
+			productReference = 80A3944F2874EE16F49135C7 /* FormatterWorker.xpc */;
+			productType = "com.apple.product-type.xpc-service";
+		};
+		2F14D91008AE0246689D4F22 /* KotodamaVoiceUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B38E8A5F92E31EBA6D3D24C6 /* Build configuration list for PBXNativeTarget "KotodamaVoiceUITests" */;
+			buildPhases = (
+				C6C842DDFFF8F38D27CC1C34 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				75DA8E8C88AC00AF85C53519 /* PBXTargetDependency */,
+			);
+			name = KotodamaVoiceUITests;
+			packageProductDependencies = (
+			);
+			productName = KotodamaVoiceUITests;
+			productReference = 55C5580D51175BF134FA2936 /* KotodamaVoiceUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		516E10BF2C5A2E645C10AF78 /* KotodamaVoiceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23544992D431BA3C8E8E633F /* Build configuration list for PBXNativeTarget "KotodamaVoiceTests" */;
+			buildPhases = (
+				14869FD0CF90CD14330EDEC4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C71777480307AF6225708228 /* PBXTargetDependency */,
+			);
+			name = KotodamaVoiceTests;
+			packageProductDependencies = (
+			);
+			productName = KotodamaVoiceTests;
+			productReference = 6C6DADF77368023FCFF7197A /* KotodamaVoiceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		57341B135479336FAE33401B /* SpeechWorkerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4F9C2D60C720871C4AB1969 /* Build configuration list for PBXNativeTarget "SpeechWorkerTests" */;
+			buildPhases = (
+				881BD707FFF3943DBDDA301E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FD923CA8CF18AB9F280B3CA3 /* PBXTargetDependency */,
+			);
+			name = SpeechWorkerTests;
+			packageProductDependencies = (
+			);
+			productName = SpeechWorkerTests;
+			productReference = 7AB9FE6709141882C797E153 /* SpeechWorkerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9875826B4579930608B24E5E /* SpeechWorker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5CD8758EBF061C349972644C /* Build configuration list for PBXNativeTarget "SpeechWorker" */;
+			buildPhases = (
+				A8FAEDF856523A372737B6C7 /* Sources */,
+				1AD0A455EF4C567A6E4B1AB7 /* Frameworks */,
+				F0326059C0C0E105B57BEF7A /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B2BC0D3CBAEF63A7F8C29384 /* PBXTargetDependency */,
+			);
+			name = SpeechWorker;
+			packageProductDependencies = (
+			);
+			productName = SpeechWorker;
+			productReference = 62EE402D36D13B0EB726CBC0 /* SpeechWorker.xpc */;
+			productType = "com.apple.product-type.xpc-service";
+		};
+		A551D0CDDA16A256B9C781E1 /* KotodamaCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 54A5F881B08AFF08CC217E1F /* Build configuration list for PBXNativeTarget "KotodamaCoreTests" */;
+			buildPhases = (
+				AC01DE9CF64B39B48F251CE3 /* Sources */,
+				C1D111D87708FAEC8D6F0073 /* Frameworks */,
+				F78DFBE6B64D7D988B25660B /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				20C2BE32EF95F89B15346A4C /* PBXTargetDependency */,
+			);
+			name = KotodamaCoreTests;
+			packageProductDependencies = (
+			);
+			productName = KotodamaCoreTests;
+			productReference = 7D4296D37EDFA9006F91FD7E /* KotodamaCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A6EB1756E50B611BB2B7C001 /* KotodamaCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE69EE2C6CB5CFF7A4D9954D /* Build configuration list for PBXNativeTarget "KotodamaCore" */;
+			buildPhases = (
+				EEB3F4FC2B77814FD6371DBB /* Verify Core dependencies */,
+				D502B09FC5104BA587CFFF1D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KotodamaCore;
+			packageProductDependencies = (
+			);
+			productName = KotodamaCore;
+			productReference = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		DFB49847B0F71CD7D7287146 /* KotodamaVoice */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E58F22F99EE8EF1B3A26E1E /* Build configuration list for PBXNativeTarget "KotodamaVoice" */;
+			buildPhases = (
+				B0C70BE4258E85000020B5CE /* Sources */,
+				766265E0DB0F765E720D0D53 /* Resources */,
+				9FCE100FE3341E18EA78A98E /* CopyFiles */,
+				0B7C3198E879020F12BFFB9F /* Frameworks */,
+				28DA8BA84458D75E5B2DDF31 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				52098D88406D9665C25A5C65 /* PBXTargetDependency */,
+				52DBD7BE97E42CC73E50CCB4 /* PBXTargetDependency */,
+				89CE6F9F410D6DAD47B8B13C /* PBXTargetDependency */,
+			);
+			name = KotodamaVoice;
+			packageProductDependencies = (
+			);
+			productName = KotodamaVoice;
+			productReference = 9242674CB909AC70D26074AD /* KotodamaVoice.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FA5A8597454049A1729BFE85 /* FormatterWorkerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56C6CE9DC14302058C0C42EC /* Build configuration list for PBXNativeTarget "FormatterWorkerTests" */;
+			buildPhases = (
+				923F8D9BB67648EBAFD4DF0D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				813F464D50E4961193398173 /* PBXTargetDependency */,
+			);
+			name = FormatterWorkerTests;
+			packageProductDependencies = (
+			);
+			productName = FormatterWorkerTests;
+			productReference = E7A002F56BBCAE14AD65120F /* FormatterWorkerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		568352D46B68EA038A29E0A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					0EF7A75C12F9019C72867BA0 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					2F14D91008AE0246689D4F22 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+						TestTargetID = DFB49847B0F71CD7D7287146;
+					};
+					516E10BF2C5A2E645C10AF78 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					57341B135479336FAE33401B = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					9875826B4579930608B24E5E = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					A551D0CDDA16A256B9C781E1 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					A6EB1756E50B611BB2B7C001 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					DFB49847B0F71CD7D7287146 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+					FA5A8597454049A1729BFE85 = {
+						DevelopmentTeam = B7VP34NYD2;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = F2C2C46D7DBBE7278524CBCD /* Build configuration list for PBXProject "KotodamaVoice" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0E30034AA8334D8BED25B616;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0681181405CD1375ADD174A0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0EF7A75C12F9019C72867BA0 /* FormatterWorker */,
+				FA5A8597454049A1729BFE85 /* FormatterWorkerTests */,
+				A6EB1756E50B611BB2B7C001 /* KotodamaCore */,
+				A551D0CDDA16A256B9C781E1 /* KotodamaCoreTests */,
+				DFB49847B0F71CD7D7287146 /* KotodamaVoice */,
+				516E10BF2C5A2E645C10AF78 /* KotodamaVoiceTests */,
+				2F14D91008AE0246689D4F22 /* KotodamaVoiceUITests */,
+				9875826B4579930608B24E5E /* SpeechWorker */,
+				57341B135479336FAE33401B /* SpeechWorkerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		766265E0DB0F765E720D0D53 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFBE534090CAEEA608442242 /* Models.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		EEB3F4FC2B77814FD6371DBB /* Verify Core dependencies */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Verify Core dependencies";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "Scripts/verify-core-dependencies.sh";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		14869FD0CF90CD14330EDEC4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		857453F6CB4F1F77AEF36D97 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22D2F132C4B309B8CF488321 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		881BD707FFF3943DBDDA301E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C45BA0E732C0D5B3502E28B5 /* SpeechWorkerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		923F8D9BB67648EBAFD4DF0D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B7AB2438A108AA70D054101 /* FormatterWorkerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8FAEDF856523A372737B6C7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9162D80A5BC57760BBBA0B5 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC01DE9CF64B39B48F251CE3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8E4E561C29A90CE16A3B548 /* KotodamaCoreTests.swift in Sources */,
+				061B45C4249559749743808E /* ModelManifestTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0C70BE4258E85000020B5CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				81FFBB36BAA1E29A1051FF61 /* AppRuntime.swift in Sources */,
+				073244A5D4F1D6E902063E3E /* CarbonHotKeyBackend.swift in Sources */,
+				B6D184B9896BD5C2ABE50377 /* KotodamaVoiceApp.swift in Sources */,
+				F23CD0326C846F04CC3DC17E /* LaunchAtLogin.swift in Sources */,
+				FA4352846E2A3EF093C3F21E /* ModelCatalog.swift in Sources */,
+				F27BBEF1589B4AC40BFF515E /* ModelsView.swift in Sources */,
+				1A0F8B8B417591DA047128A5 /* RuntimeMonitorView.swift in Sources */,
+				B67FD5FD629144B705A13FF4 /* SettingsView.swift in Sources */,
+				157B69F84BB0F25B95410600 /* ShortcutRecorder.swift in Sources */,
+				ECC13AF7AA18EF340F087D7F /* UserDefaultsHotKeyPreference.swift in Sources */,
+				CB9644E56A512B65FCB66C12 /* WorkerDiagnostics.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C6C842DDFFF8F38D27CC1C34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3082A02AD913316B129C9ECA /* KotodamaVoiceUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D502B09FC5104BA587CFFF1D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7493BDF448A033A95044EC68 /* Diagnostics.swift in Sources */,
+				473491B0408C052E808733BE /* HotKey.swift in Sources */,
+				02058CB34BB16684A868E6CA /* KotodamaCore.swift in Sources */,
+				C004EE7FE49C131969FD78A0 /* ModelManifest.swift in Sources */,
+				C3A2598AE024237FC31AD00A /* PipelineCoordinator.swift in Sources */,
+				F42F88FFE4D94DD92A215388 /* PipelineStateMachine.swift in Sources */,
+				792EC659BF1FCE6DB494F089 /* WorkerConnectionManager.swift in Sources */,
+				5BA78082908D0D574EC66CCC /* WorkerMessages.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		20C2BE32EF95F89B15346A4C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6EB1756E50B611BB2B7C001 /* KotodamaCore */;
+			targetProxy = 94B9B70944F04D499544E64A /* PBXContainerItemProxy */;
+		};
+		4D60B282C0C462148BF0BC8A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6EB1756E50B611BB2B7C001 /* KotodamaCore */;
+			targetProxy = AEFE1394EFABEBE07E042828 /* PBXContainerItemProxy */;
+		};
+		52098D88406D9665C25A5C65 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6EB1756E50B611BB2B7C001 /* KotodamaCore */;
+			targetProxy = 3ED929E3A972E27B73D5DF95 /* PBXContainerItemProxy */;
+		};
+		52DBD7BE97E42CC73E50CCB4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9875826B4579930608B24E5E /* SpeechWorker */;
+			targetProxy = 852FF8E80E07269FC88DA408 /* PBXContainerItemProxy */;
+		};
+		75DA8E8C88AC00AF85C53519 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DFB49847B0F71CD7D7287146 /* KotodamaVoice */;
+			targetProxy = AE2061392339BECD79C4661F /* PBXContainerItemProxy */;
+		};
+		813F464D50E4961193398173 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0EF7A75C12F9019C72867BA0 /* FormatterWorker */;
+			targetProxy = 473793702D253DD1576E7DAA /* PBXContainerItemProxy */;
+		};
+		89CE6F9F410D6DAD47B8B13C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0EF7A75C12F9019C72867BA0 /* FormatterWorker */;
+			targetProxy = 4B4AD5D969C22B23413B23F7 /* PBXContainerItemProxy */;
+		};
+		B2BC0D3CBAEF63A7F8C29384 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6EB1756E50B611BB2B7C001 /* KotodamaCore */;
+			targetProxy = AB0B0923697D171E74BD0729 /* PBXContainerItemProxy */;
+		};
+		C71777480307AF6225708228 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DFB49847B0F71CD7D7287146 /* KotodamaVoice */;
+			targetProxy = 007830BFC9BA2E50A31123F3 /* PBXContainerItemProxy */;
+		};
+		FD923CA8CF18AB9F280B3CA3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9875826B4579930608B24E5E /* SpeechWorker */;
+			targetProxy = C25011E836974FE878816273 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0105D977A4371A39597095EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorkerTests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		043CD09F7A4B3DCFB283B5EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KotodamaVoice.app/Contents/MacOS/KotodamaVoice";
+			};
+			name = Release;
+		};
+		067592927722DE0E54C209C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorkerTests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		095D0AD76BE5186DC600EE42 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorkerTests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		1A5EEACD5A7CA0F0F7A2D8C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/FormatterWorker.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".build/runtimes/artifacts\"",
+				);
+				INFOPLIST_FILE = "Config/FormatterWorker-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorker;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		1DA53588AE744543D9CD6E7B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = B7VP34NYD2;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		40078CFA01311DE5FD3F99B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.CoreTests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		42FD74716154A81E5D7937A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KotodamaVoice.app/Contents/MacOS/KotodamaVoice";
+			};
+			name = Debug;
+		};
+		68AF2ACC71069C8F31F266F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = B7VP34NYD2;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		68FBDF9054497AC65FCC23F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/KotodamaVoice.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Config/KotodamaVoice-Info.plist";
+				LD_GENERATE_MAP_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6F50B387ABD8E8E351539108 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Config/KotodamaCore-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Core;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		74677E9FCE4907742DE264A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.UITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = KotodamaVoice;
+			};
+			name = Release;
+		};
+		849D4D30381C3FC066DB8E34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/KotodamaVoice.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Config/KotodamaVoice-Info.plist";
+				LD_GENERATE_MAP_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		92BE5A97198CAFEF63749C16 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.UITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = KotodamaVoice;
+			};
+			name = Debug;
+		};
+		B8DCE8561805A8870DD523FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/FormatterWorker.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".build/runtimes/artifacts\"",
+				);
+				INFOPLIST_FILE = "Config/FormatterWorker-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorker;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		C2CDF9AA5F2CB3AFEA3BEBBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.CoreTests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CD640071AFF7890DA128F1B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorkerTests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		D1B79518FEA3624AE401476E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/SpeechWorker.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".build/runtimes/artifacts\"",
+				);
+				INFOPLIST_FILE = "Config/SpeechWorker-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorker;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		E2F7085F32EE1FAD8F4C723B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/SpeechWorker.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".build/runtimes/artifacts\"",
+				);
+				INFOPLIST_FILE = "Config/SpeechWorker-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorker;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		FCE6779C1A73813B6F68670F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Config/KotodamaCore-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Core;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		23544992D431BA3C8E8E633F /* Build configuration list for PBXNativeTarget "KotodamaVoiceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				42FD74716154A81E5D7937A6 /* Debug */,
+				043CD09F7A4B3DCFB283B5EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		54A5F881B08AFF08CC217E1F /* Build configuration list for PBXNativeTarget "KotodamaCoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				40078CFA01311DE5FD3F99B0 /* Debug */,
+				C2CDF9AA5F2CB3AFEA3BEBBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		56C6CE9DC14302058C0C42EC /* Build configuration list for PBXNativeTarget "FormatterWorkerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD640071AFF7890DA128F1B7 /* Debug */,
+				0105D977A4371A39597095EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5CD8758EBF061C349972644C /* Build configuration list for PBXNativeTarget "SpeechWorker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1B79518FEA3624AE401476E /* Debug */,
+				E2F7085F32EE1FAD8F4C723B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5E58F22F99EE8EF1B3A26E1E /* Build configuration list for PBXNativeTarget "KotodamaVoice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68FBDF9054497AC65FCC23F7 /* Debug */,
+				849D4D30381C3FC066DB8E34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AE69EE2C6CB5CFF7A4D9954D /* Build configuration list for PBXNativeTarget "KotodamaCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6F50B387ABD8E8E351539108 /* Debug */,
+				FCE6779C1A73813B6F68670F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B38E8A5F92E31EBA6D3D24C6 /* Build configuration list for PBXNativeTarget "KotodamaVoiceUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92BE5A97198CAFEF63749C16 /* Debug */,
+				74677E9FCE4907742DE264A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E4F9C2D60C720871C4AB1969 /* Build configuration list for PBXNativeTarget "SpeechWorkerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				095D0AD76BE5186DC600EE42 /* Debug */,
+				067592927722DE0E54C209C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F2C2C46D7DBBE7278524CBCD /* Build configuration list for PBXProject "KotodamaVoice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68AF2ACC71069C8F31F266F8 /* Debug */,
+				1DA53588AE744543D9CD6E7B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FB9F7EFFB706951C06088002 /* Build configuration list for PBXNativeTarget "FormatterWorker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8DCE8561805A8870DD523FB /* Debug */,
+				1A5EEACD5A7CA0F0F7A2D8C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 568352D46B68EA038A29E0A1 /* Project object */;
+}

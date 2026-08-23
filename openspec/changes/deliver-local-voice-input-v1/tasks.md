@@ -1,33 +1,33 @@
 ## 1. プロジェクトと署名境界
 
-- [ ] 1.1 App、Core Framework、Speech Worker、Formatter Worker、各Test Targetを持つXcodeプロジェクトを作り、全schemeのDebug buildが成功することを確認する
-- [ ] 1.2 macOS 14、arm64、LSUIElement、Hardened Runtime、App GroupをTargetごとに設定し、build settingsとentitlementsの検査で意図した値だけが含まれることを確認する
-- [ ] 1.3 Coreの依存方向を検査するテストまたはbuild ruleを追加し、CoreがAppKit、AVFoundation、whisper、llamaへリンクしていないことを確認する
-- [ ] 1.4 Runtime lock fileと再現可能なXCFramework build scriptを作り、固定revisionからwhisperとllamaのarm64 Frameworkを生成してSHA-256検証が成功することを確認する
-- [ ] 1.5 生成Frameworkを各Workerだけへリンクし、アプリ実行ファイルがwhisperまたはllama symbolを直接参照していないことを`nm`とlink mapで確認する
+- [x] 1.1 App、Core Framework、Speech Worker、Formatter Worker、各Test Targetを持つXcodeプロジェクトを作り、全schemeのDebug buildが成功することを確認する
+- [x] 1.2 macOS 14、arm64、LSUIElement、Hardened Runtime、App GroupをTargetごとに設定し、build settingsとentitlementsの検査で意図した値だけが含まれることを確認する
+- [x] 1.3 Coreの依存方向を検査するテストまたはbuild ruleを追加し、CoreがAppKit、AVFoundation、whisper、llamaへリンクしていないことを確認する
+- [x] 1.4 Runtime lock fileと再現可能なXCFramework build scriptを作り、固定revisionからwhisperとllamaのarm64 Frameworkを生成してSHA-256検証が成功することを確認する
+- [x] 1.5 生成Frameworkを各Workerだけへリンクし、アプリ実行ファイルがwhisperまたはllama symbolを直接参照していないことを`nm`とlink mapで確認する
 
 ## 2. アプリ状態と操作
 
-- [ ] 2.1 Pipeline状態機械とrequest IDについて不正遷移、処理中の再操作、キャンセルの失敗テストを先に追加し、テストが要求どおり失敗することを確認する
-- [ ] 2.2 MainActor上のStoreとPipeline coordinatorを実装し、2.1のテストが成功することを確認する
+- [x] 2.1 Pipeline状態機械とrequest IDについて不正遷移、処理中の再操作、キャンセルの失敗テストを先に追加し、テストが要求どおり失敗することを確認する
+- [x] 2.2 MainActor上のStoreとPipeline coordinatorを実装し、2.1のテストが成功することを確認する
 - [ ] 2.3 メニューバー、状態表示、Settings、Models、Runtime Monitor、終了操作を実装し、UI Testで各画面へ到達できDockアイコンが表示されないことを確認する
 - [ ] 2.4 `RegisterEventHotKey` adapterへ登録競合とキーリピートの失敗テストを追加してから実装し、別アプリが前面でも一回の押下が一回の状態遷移になることを確認する
-- [ ] 2.5 ショートカット編集と再登録を実装し、競合時に旧設定を維持してエラーを表示することをテストする
-- [ ] 2.6 `SMAppService.mainApp`によるLaunch at Loginを実装し、設定のONとOFFで登録状態が一致することを確認する
+- [x] 2.5 ショートカット編集と再登録を実装し、競合時に旧設定を維持してエラーを表示することをテストする
+- [x] 2.6 `SMAppService.mainApp`によるLaunch at Loginを実装し、設定のONとOFFで登録状態が一致することを確認する
 
 ## 3. XPC通信基盤
 
-- [ ] 3.1 protocol version、request ID、要求、event、reply、型付きエラーをCoreへ定義し、secure codingの往復テストが成功することを確認する
+- [x] 3.1 protocol version、request ID、要求、event、reply、型付きエラーをCoreへ定義し、secure codingの往復テストが成功することを確認する
 - [ ] 3.2 Speech WorkerとFormatter Workerに最小listenerとdiagnostic echoを実装し、Appから各Workerへ別々に接続してrequest ID付き応答を取得できることを確認する
-- [ ] 3.3 Connection Managerへ中断、無効化、timeout、cancelの失敗テストを先に追加してから実装し、進行中要求が一度だけ完了または失敗することを確認する
+- [x] 3.3 Connection Managerへ中断、無効化、timeout、cancelの失敗テストを先に追加してから実装し、進行中要求が一度だけ完了または失敗することを確認する
 - [ ] 3.4 Workerをテスト中に強制終了する統合テストを作り、Appが継続し次回要求でWorkerが再起動することを確認する
 - [ ] 3.5 App Group container内の固定fixtureを各Workerからopenしてmmapできる統合テストを作り、署名済みDebug buildで成功することを確認する
-- [ ] 3.6 load、unload、state、shutdownを共通Worker lifecycleへ実装し、shutdown応答前にモデルfixtureと進行中処理が解放されることをテストする
-- [ ] 3.7 request IDを含む統一OSLogをAppとWorkerへ実装し、本文を含まないログだけで正常要求とWorker障害の段階を追跡できることを確認する
+- [x] 3.6 load、unload、state、shutdownを共通Worker lifecycleへ実装し、shutdown応答前にモデルfixtureと進行中処理が解放されることをテストする
+- [x] 3.7 request IDを含む統一OSLogをAppとWorkerへ実装し、本文を含まないログだけで正常要求とWorker障害の段階を追跡できることを確認する
 
 ## 4. Model Manager
 
-- [ ] 4.1 Manifest decoderへ必須項目不足、重複ID、許可外ファイル種別、hash不正の失敗テストを追加してから検証処理を実装する
+- [x] 4.1 Manifest decoderへ必須項目不足、重複ID、許可外ファイル種別、hash不正の失敗テストを追加してから検証処理を実装する
 - [ ] 4.2 署名対象のモデルManifestとModels画面を実装し、名称、用途、容量、取得元、ライセンス、状態がfixtureと一致することをUI Testで確認する
 - [ ] 4.3 空き容量、一時取得、resume、進捗、サイズ、SHA-256、atomic moveの失敗テストを追加してからdownload coordinatorを実装する
 - [ ] 4.4 HTTP fixture serverで成功、中断再開、hash不一致、容量不足を再現し、Installedになるのが検証成功時だけであることを確認する

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "runtimes": {
+    "whisper": {
+      "repository": "https://github.com/ggml-org/whisper.cpp.git",
+      "tag": "b4938",
+      "commit": "371b5a7561823ab2bb32142d2751e35e7534727b",
+      "binarySha256": "bea3b87667b4aa2550619636379c132cf47b5966d10b23b3a2c498ac3cf29003"
+    },
+    "llama": {
+      "repository": "https://github.com/ggml-org/llama.cpp.git",
+      "tag": "v0.2.0",
+      "commit": "bb4caa7540188872173c44d161602d9271386413",
+      "binarySha256": "219cc131d2bbcadec4d7e6b96ea6ddf608bc373c4b227d6885e62075f6384fd4"
+    }
+  }
+}

@@ -1,0 +1,228 @@
+name: KotodamaVoice
+options:
+  bundleIdPrefix: jp.tsuyuki
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  xcodeVersion: "26.0"
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    ARCHS: arm64
+    CLANG_ENABLE_MODULES: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ONLY_ACTIVE_ARCH: NO
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: B7VP34NYD2
+    CODE_SIGN_STYLE: Automatic
+targets:
+  KotodamaCore:
+    type: framework
+    platform: macOS
+    sources:
+      - Sources/KotodamaCore
+    info:
+      path: Config/KotodamaCore-Info.plist
+      properties:
+        CFBundlePackageType: FMWK
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.Core
+        DEFINES_MODULE: YES
+        SKIP_INSTALL: YES
+    preBuildScripts:
+      - name: Verify Core dependencies
+        script: Scripts/verify-core-dependencies.sh
+        basedOnDependencyAnalysis: false
+  SpeechWorker:
+    type: xpc-service
+    platform: macOS
+    sources:
+      - Sources/SpeechWorker
+    dependencies:
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/whisper.xcframework
+        embed: true
+        codeSign: true
+    info:
+      path: Config/SpeechWorker-Info.plist
+      properties:
+        CFBundleDisplayName: KotodamaVoice Speech Worker
+        CFBundlePackageType: XPC!
+        XPCService:
+          ServiceType: Application
+          RunLoopType: dispatch_main
+    entitlements:
+      path: Config/SpeechWorker.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.jp.tsuyuki.KotodamaVoice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorker
+        ENABLE_HARDENED_RUNTIME: YES
+        SKIP_INSTALL: YES
+  FormatterWorker:
+    type: xpc-service
+    platform: macOS
+    sources:
+      - Sources/FormatterWorker
+    dependencies:
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/llama.xcframework
+        embed: true
+        codeSign: true
+    info:
+      path: Config/FormatterWorker-Info.plist
+      properties:
+        CFBundleDisplayName: KotodamaVoice Formatter Worker
+        CFBundlePackageType: XPC!
+        XPCService:
+          ServiceType: Application
+          RunLoopType: dispatch_main
+    entitlements:
+      path: Config/FormatterWorker.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.jp.tsuyuki.KotodamaVoice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterWorker
+        ENABLE_HARDENED_RUNTIME: YES
+        SKIP_INSTALL: YES
+  KotodamaVoice:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/KotodamaVoice
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - target: KotodamaCore
+      - target: SpeechWorker
+        embed: true
+      - target: FormatterWorker
+        embed: true
+    info:
+      path: Config/KotodamaVoice-Info.plist
+      properties:
+        CFBundleDisplayName: KotodamaVoice
+        CFBundleName: KotodamaVoice
+        CFBundlePackageType: APPL
+        LSMinimumSystemVersion: "14.0"
+        LSUIElement: true
+        NSMicrophoneUsageDescription: 音声を文字に変換するためにマイクを使用します。
+    entitlements:
+      path: Config/KotodamaVoice.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.jp.tsuyuki.KotodamaVoice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice
+        ENABLE_HARDENED_RUNTIME: YES
+        LD_GENERATE_MAP_FILE: YES
+  KotodamaCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/KotodamaCoreTests
+    dependencies:
+      - target: KotodamaCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.CoreTests
+        GENERATE_INFOPLIST_FILE: YES
+  KotodamaVoiceTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/KotodamaVoiceTests
+    dependencies:
+      - target: KotodamaVoice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.Tests
+        GENERATE_INFOPLIST_FILE: YES
+  SpeechWorkerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/SpeechWorkerTests
+    dependencies:
+      - target: SpeechWorker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorkerTests
+        GENERATE_INFOPLIST_FILE: YES
+  FormatterWorkerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/FormatterWorkerTests
+    dependencies:
+      - target: FormatterWorker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterWorkerTests
+        GENERATE_INFOPLIST_FILE: YES
+  KotodamaVoiceUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - Tests/KotodamaVoiceUITests
+    dependencies:
+      - target: KotodamaVoice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.UITests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  KotodamaVoice:
+    build:
+      targets:
+        KotodamaVoice: all
+        KotodamaCore: all
+        SpeechWorker: all
+        FormatterWorker: all
+    test:
+      targets:
+        - KotodamaCoreTests
+        - KotodamaVoiceTests
+        - KotodamaVoiceUITests
+        - SpeechWorkerTests
+        - FormatterWorkerTests
+  KotodamaCore:
+    build:
+      targets:
+        KotodamaCore: all
+    test:
+      targets:
+        - KotodamaCoreTests
+  KotodamaVoiceUnitTests:
+    build:
+      targets:
+        KotodamaVoice: all
+        KotodamaVoiceTests: [test]
+    test:
+      targets:
+        - KotodamaVoiceTests
+  SpeechWorker:
+    build:
+      targets:
+        SpeechWorker: all
+    test:
+      targets:
+        - SpeechWorkerTests
+  FormatterWorker:
+    build:
+      targets:
+        FormatterWorker: all
+    test:
+      targets:
+        - FormatterWorkerTests
