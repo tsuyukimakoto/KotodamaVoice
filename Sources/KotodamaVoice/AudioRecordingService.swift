@@ -90,8 +90,8 @@ final class AudioRecordingService {
         isRecording = false
         removeConfigurationObserver()
 
+        defer { accumulator.reset() }
         let input = try accumulator.joinedBuffer()
-        accumulator.reset()
         return try converter.convertToMono16kHz(input)
     }
 
@@ -133,6 +133,7 @@ final class AudioBufferAccumulator: @unchecked Sendable {
     }
 
     func appendCopy(of source: AVAudioPCMBuffer) -> AudioBufferAppendResult {
+        guard source.frameLength > 0 else { return .accepted }
         lock.lock()
         let proposedFrameCount = frameCount + UInt64(source.frameLength)
         guard proposedFrameCount <= maximumFrameCount else {

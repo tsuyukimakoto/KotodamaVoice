@@ -1,4 +1,3 @@
-import AVFoundation
 import Carbon.HIToolbox
 import Foundation
 import KotodamaCore
@@ -20,11 +19,8 @@ final class AppRuntime {
     let workerDiagnostics: WorkerDiagnostics
     let modelCatalog: ModelCatalog
     let modelManager: ModelManager
-    private let speechWorker = SpeechWorkerClient()
     private let clipboardOutput = ClipboardOutput()
-    private let audioRecording = AudioRecordingService()
-    private let temporaryAudioStore = TemporaryAudioStore()
-    private var activeAudioLease: TemporaryAudioLease?
+    private let localSpeechPipeline: LocalSpeechPipeline
 
     private(set) var operationError: String?
     private let hotKeyBackend: HotKeyRegistering
@@ -33,6 +29,14 @@ final class AppRuntime {
     init(defaults: UserDefaults = .standard) {
         let pipelineStore = PipelineStore()
         let coordinator = PipelineCoordinator(store: pipelineStore)
+        let audioRecording = AudioRecordingService()
+        let localSpeechPipeline = LocalSpeechPipeline(
+            store: pipelineStore,
+            coordinator: coordinator,
+            recorder: audioRecording,
+            temporaryAudioStore: TemporaryAudioStore(),
+            speech: SpeechWorkerClient()
+        )
         let hotKeyBackend: HotKeyRegistering
 
         do {
@@ -52,6 +56,7 @@ final class AppRuntime {
 
         self.pipelineStore = pipelineStore
         self.coordinator = coordinator
+        self.localSpeechPipeline = localSpeechPipeline
         recordingStartCoordinator = RecordingStartCoordinator(
             pipeline: coordinator,
             store: pipelineStore,
@@ -68,8 +73,8 @@ final class AppRuntime {
         self.modelCatalog = modelCatalog
         modelManager = ModelManager(models: modelCatalog.models)
 
-        audioRecording.onFailure = { [weak self] _ in
-            self?.handleAudioRecordingFailure()
+        audioRecording.onFailure = { [weak self] error in
+            self?.handleAudioRecordingFailure(error)
         }
 
         hotKeyController.onPress = { [weak self] in
@@ -87,57 +92,29 @@ final class AppRuntime {
         Task {
             do {
                 if pipelineStore.state == .recording {
-                    let recording: AVAudioPCMBuffer
-                    do {
-                        recording = try audioRecording.stop()
-                    } catch {
-                        audioRecording.cancel()
-                        _ = try coordinator.cancel()
-                        _ = try coordinator.completeCancellation(requestID: nil)
-                        throw error
+                    guard let speechModel = modelManager.selectedModel(
+                        for: .speech
+                    ) else {
+                        localSpeechPipeline.cancelRecording()
+                        throw VoiceInputError.speechModelUnavailable
                     }
-                    let requestID = try coordinator.stopRecording()
-                    let speechModel: ModelManifestEntry
-                    do {
-                        guard let selectedModel = modelManager.selectedModel(
-                            for: .speech
-                        ) else {
-                            throw VoiceInputError.speechModelUnavailable
-                        }
-                        speechModel = selectedModel
-                        activeAudioLease?.release()
-                        activeAudioLease = try temporaryAudioStore.createLease(
-                            requestID: requestID,
-                            buffer: recording
+                    let transcription = try await localSpeechPipeline
+                        .stopAndTranscribe(
+                            modelID: speechModel.id
                         )
-                    } catch {
-                        _ = try coordinator.fail(requestID: requestID)
-                        throw error
-                    }
-                    guard let lease = activeAudioLease else {
-                        _ = try coordinator.fail(requestID: requestID)
-                        throw VoiceInputError.temporaryAudioUnavailable
-                    }
-                    defer {
-                        lease.release()
-                        if activeAudioLease === lease {
-                            activeAudioLease = nil
-                        }
-                    }
                     do {
-                        let text = try await speechWorker.transcribe(
-                            modelID: speechModel.id,
-                            audioInput: lease.audioInput,
-                            requestID: requestID
-                        )
                         _ = try coordinator.completeTranscription(
-                            requestID: requestID,
+                            requestID: transcription.requestID,
                             requiresFormatting: false
                         )
-                        try clipboardOutput.write(text)
-                        _ = try coordinator.completeOutput(requestID: requestID)
+                        try clipboardOutput.write(transcription.text)
+                        _ = try coordinator.completeOutput(
+                            requestID: transcription.requestID
+                        )
                     } catch {
-                        _ = try? coordinator.fail(requestID: requestID)
+                        _ = try? coordinator.fail(
+                            requestID: transcription.requestID
+                        )
                         throw error
                     }
                 } else {
@@ -153,7 +130,7 @@ final class AppRuntime {
                     let result = try await recordingStartCoordinator.beginRecording()
                     if result == .applied {
                         do {
-                            try audioRecording.start()
+                            try localSpeechPipeline.startRecording()
                         } catch {
                             _ = try coordinator.fail(requestID: nil)
                             throw error
@@ -175,22 +152,21 @@ final class AppRuntime {
         }
     }
 
-    private func handleAudioRecordingFailure() {
-        activeAudioLease?.release()
-        activeAudioLease = nil
-        do {
-            _ = try coordinator.cancel()
-            _ = try coordinator.completeCancellation(requestID: nil)
-        } catch {
-            _ = try? coordinator.fail(requestID: nil)
+    private func handleAudioRecordingFailure(_ error: Error) {
+        localSpeechPipeline.recordingDidFail(error)
+        switch error as? AudioRecordingError {
+        case .inputConfigurationChanged, .unavailableInput:
+            operationError = "入力機器が利用できなくなったため録音を中止しました"
+        case .maximumDurationExceeded:
+            operationError = "録音時間が上限に達したため録音を中止しました"
+        default:
+            operationError = "録音を継続できませんでした"
         }
-        operationError = "録音を継続できませんでした"
     }
 }
 
 private enum VoiceInputError: Error {
     case speechModelUnavailable
-    case temporaryAudioUnavailable
 }
 
 @MainActor

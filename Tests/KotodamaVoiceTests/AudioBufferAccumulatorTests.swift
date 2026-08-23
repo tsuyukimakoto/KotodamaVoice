@@ -24,6 +24,18 @@ import Testing
     }
 }
 
+@Test func audioAccumulatorTreatsZeroFramesAsEmptyRecording() throws {
+    let accumulator = AudioBufferAccumulator()
+
+    #expect(
+        accumulator.appendCopy(of: try audioBuffer(frameCount: 0))
+            == .accepted
+    )
+    #expect(throws: AudioRecordingError.emptyRecording) {
+        try accumulator.joinedBuffer()
+    }
+}
+
 private func audioBuffer(frameCount: AVAudioFrameCount) throws -> AVAudioPCMBuffer {
     let format = try #require(
         AVAudioFormat(

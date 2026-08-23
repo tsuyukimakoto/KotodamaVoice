@@ -5,29 +5,27 @@ import Testing
 @testable import KotodamaVoice
 
 @Test @MainActor
-func temporaryAudioLeaseRemovesRequestDirectoryForEveryOutcome() throws {
-    for _ in ["success", "failure", "cancel"] {
-        let rootURL = FileManager.default.temporaryDirectory.appending(
-            path: "KotodamaVoiceAudioLeaseTests-\(UUID().uuidString)",
-            directoryHint: .isDirectory
-        )
-        defer { try? FileManager.default.removeItem(at: rootURL) }
-        let store = TemporaryAudioStore(rootURL: rootURL)
-        let requestID = PipelineRequestID()
-        let lease = try store.createLease(
-            requestID: requestID,
-            buffer: try mono16kBuffer()
-        )
+func temporaryAudioLeaseReleaseIsIdempotent() throws {
+    let rootURL = FileManager.default.temporaryDirectory.appending(
+        path: "KotodamaVoiceAudioLeaseTests-\(UUID().uuidString)",
+        directoryHint: .isDirectory
+    )
+    defer { try? FileManager.default.removeItem(at: rootURL) }
+    let store = TemporaryAudioStore(rootURL: rootURL)
+    let requestID = PipelineRequestID()
+    let lease = try store.createLease(
+        requestID: requestID,
+        buffer: try mono16kBuffer()
+    )
 
-        #expect(FileManager.default.fileExists(atPath: lease.directoryURL.path))
-        #expect(lease.audioInput.sampleRate == 16_000)
-        #expect(lease.audioInput.channelCount == 1)
-        #expect(lease.audioInput.sampleCount == 16)
+    #expect(FileManager.default.fileExists(atPath: lease.directoryURL.path))
+    #expect(lease.audioInput.sampleRate == 16_000)
+    #expect(lease.audioInput.channelCount == 1)
+    #expect(lease.audioInput.sampleCount == 16)
 
-        lease.release()
-        lease.release()
-        #expect(!FileManager.default.fileExists(atPath: lease.directoryURL.path))
-    }
+    lease.release()
+    lease.release()
+    #expect(!FileManager.default.fileExists(atPath: lease.directoryURL.path))
 }
 
 private func mono16kBuffer() throws -> AVAudioPCMBuffer {
