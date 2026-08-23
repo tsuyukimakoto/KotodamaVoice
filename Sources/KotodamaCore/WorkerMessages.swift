@@ -46,6 +46,14 @@ public struct WorkerSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+public struct WorkerProcessSnapshot: Codable, Equatable, Sendable {
+    public let processIdentifier: Int32
+
+    public init(processIdentifier: Int32) {
+        self.processIdentifier = processIdentifier
+    }
+}
+
 public protocol WorkerRuntimeManaging: AnyObject {
     func load(modelID: String) throws
     func cancel(requestID: PipelineRequestID)
@@ -481,7 +489,16 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
     private func handleSerialized(_ request: WorkerRequest) -> WorkerReply {
         switch request.operation {
         case .diagnosticEcho:
-            return WorkerReply(requestID: request.requestID)
+            let snapshot = WorkerProcessSnapshot(
+                processIdentifier: ProcessInfo.processInfo.processIdentifier
+            )
+            guard let payload = try? JSONEncoder().encode(snapshot) else {
+                return invalidRequestReply(for: request.requestID)
+            }
+            return WorkerReply(
+                requestID: request.requestID,
+                payload: payload
+            )
 
         case .loadModel:
             guard lifecycleState != .shutDown,

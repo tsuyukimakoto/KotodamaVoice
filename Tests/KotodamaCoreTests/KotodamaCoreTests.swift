@@ -434,9 +434,13 @@ func workerConnectionTimesOutAndIgnoresLateReply() async {
 }
 
 @Test @MainActor
-func workerInterruptionFailsOnceButKeepsConnection() async {
-    let transport = WorkerTransportSpy()
-    let manager = WorkerConnectionManager(makeTransport: { transport })
+func workerInterruptionFailsOnceAndCreatesNewConnection() async throws {
+    let first = WorkerTransportSpy()
+    let second = WorkerTransportSpy()
+    var transports = [first, second]
+    let manager = WorkerConnectionManager(
+        makeTransport: { transports.removeFirst() }
+    )
     let request = WorkerRequest(
         requestID: PipelineRequestID(),
         operation: .diagnosticEcho
@@ -446,13 +450,27 @@ func workerInterruptionFailsOnceButKeepsConnection() async {
     }
     await Task.yield()
 
-    transport.interrupt()
+    first.interrupt()
 
     await #expect(throws: WorkerConnectionError.interrupted) {
         try await task.value
     }
-    transport.reply(to: request.requestID)
-    #expect(transport.activationCount == 1)
+    first.reply(to: request.requestID)
+
+    let retryRequest = WorkerRequest(
+        requestID: PipelineRequestID(),
+        operation: .diagnosticEcho
+    )
+    let retryTask = Task {
+        try await manager.perform(retryRequest, timeout: .seconds(1))
+    }
+    await Task.yield()
+    second.reply(to: retryRequest.requestID)
+
+    let reply = try await retryTask.value
+    #expect(reply.requestID == retryRequest.requestID)
+    #expect(first.activationCount == 1)
+    #expect(second.activationCount == 1)
 }
 
 @Test @MainActor

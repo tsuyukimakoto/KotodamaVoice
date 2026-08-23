@@ -33,7 +33,8 @@ final class WorkerDiagnosticClient {
 
     func echo(
         _ endpoint: WorkerEndpoint,
-        requestID: PipelineRequestID = PipelineRequestID()
+        requestID: PipelineRequestID = PipelineRequestID(),
+        timeout: Duration = .seconds(3)
     ) async throws -> WorkerReply {
         guard let manager = managers[endpoint] else {
             throw WorkerDiagnosticError.invalidEndpoint
@@ -43,8 +44,12 @@ final class WorkerDiagnosticClient {
                 requestID: requestID,
                 operation: .diagnosticEcho
             ),
-            timeout: .seconds(3)
+            timeout: timeout
         )
+    }
+
+    func hasActiveConnection(to endpoint: WorkerEndpoint) -> Bool {
+        managers[endpoint]?.hasActiveTransport == true
     }
 
     private func makeManager(

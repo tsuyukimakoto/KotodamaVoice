@@ -37,6 +37,10 @@ public final class WorkerConnectionManager {
     private var transportGeneration: UUID?
     private var pending: [PipelineRequestID: PendingRequest] = [:]
 
+    public var hasActiveTransport: Bool {
+        transport != nil
+    }
+
     public init(
         makeTransport: @escaping @MainActor () -> WorkerTransport,
         logger: DiagnosticLogging = NoopDiagnosticLogger()
@@ -151,6 +155,10 @@ public final class WorkerConnectionManager {
     private func handleInterruption(generation: UUID) {
         guard transportGeneration == generation else { return }
         failAll(with: .interrupted)
+        let interruptedTransport = transport
+        transport = nil
+        transportGeneration = nil
+        interruptedTransport?.invalidate()
     }
 
     private func handleInvalidation(generation: UUID) {

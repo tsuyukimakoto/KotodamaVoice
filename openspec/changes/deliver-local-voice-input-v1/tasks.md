@@ -20,7 +20,7 @@
 - [x] 3.1 protocol version、request ID、要求、event、reply、型付きエラーをCoreへ定義し、secure codingの往復テストが成功することを確認する
 - [x] 3.2 Speech WorkerとFormatter Workerに最小listenerとdiagnostic echoを実装し、Appから各Workerへ別々に接続してrequest ID付き応答を取得できることを確認する
 - [x] 3.3 Connection Managerへ中断、無効化、timeout、cancelの失敗テストを先に追加してから実装し、進行中要求が一度だけ完了または失敗することを確認する
-- [ ] 3.4 Workerをテスト中に強制終了する統合テストを作り、Appが継続し次回要求でWorkerが再起動することを確認する
+- [x] 3.4 Workerをテスト中に強制終了する統合テストを作り、Appが継続し次回要求でWorkerが再起動することを確認する
 - [ ] 3.5 App Group container内の固定fixtureを各Workerからopenしてmmapできる統合テストを作り、署名済みDebug buildで成功することを確認する
 - [x] 3.6 load、unload、state、shutdownを共通Worker lifecycleへ実装し、shutdown応答前にモデルfixtureと進行中処理が解放されることをテストする
 - [x] 3.7 request IDを含む統一OSLogをAppとWorkerへ実装し、本文を含まないログだけで正常要求とWorker障害の段階を追跡できることを確認する
