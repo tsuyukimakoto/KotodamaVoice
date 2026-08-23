@@ -87,6 +87,73 @@ struct EmbeddedWorkerIntegrationTests {
             #expect(reply.payload == fixture)
         }
     }
+
+    @Test
+    func modelFilesAreDeletedAfterEmbeddedWorkersUnload() async throws {
+        let fileManager = FileManager.default
+        let rootURL = fileManager.temporaryDirectory.appending(
+            path: "EmbeddedWorkerModelDeletion-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let suiteName = "jp.tsuyuki.EmbeddedWorkerModelDeletion.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer {
+            try? fileManager.removeItem(at: rootURL)
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let models = [
+            deletionModel(id: "speech-delete-fixture", purpose: .speech),
+            deletionModel(id: "formatter-delete-fixture", purpose: .formatter),
+        ]
+        for model in models {
+            let directory = rootURL.appending(
+                path: model.id,
+                directoryHint: .isDirectory
+            )
+            try fileManager.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true
+            )
+            try Data([0]).write(
+                to: directory.appending(path: model.fileName)
+            )
+        }
+        let manager = ModelManager(
+            models: models,
+            rootURL: rootURL,
+            defaults: defaults
+        )
+
+        for model in models {
+            try await manager.deleteInstalledModel(model)
+            #expect(manager.states[model.id] == .notInstalled)
+            #expect(
+                !fileManager.fileExists(
+                    atPath: rootURL.appending(path: model.id).path
+                )
+            )
+        }
+    }
+}
+
+private func deletionModel(
+    id: String,
+    purpose: ModelPurpose
+) -> ModelManifestEntry {
+    ModelManifestEntry(
+        id: id,
+        displayName: id,
+        purpose: purpose,
+        version: "1",
+        sourceURL: URL(string: "https://example.com/\(id).bin")!,
+        revision: String(repeating: "a", count: 40),
+        fileName: "\(id).bin",
+        byteCount: 1,
+        sha256: String(repeating: "b", count: 64),
+        licenseName: "MIT",
+        licenseURL: URL(string: "https://example.com/license")!,
+        runtime: purpose == .speech ? .whisper : .llama
+    )
 }
 
 private struct DiagnosticProcessFixture: Decodable {

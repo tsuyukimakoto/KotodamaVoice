@@ -554,6 +554,11 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             guard lifecycleState != .shutDown else {
                 return invalidRequestReply(for: request.requestID)
             }
+            if let requestedModelID = request.modelID,
+               let modelID,
+               requestedModelID != modelID {
+                return WorkerReply(requestID: request.requestID)
+            }
             runtime.cancelAll()
             runtime.unload()
             modelID = nil

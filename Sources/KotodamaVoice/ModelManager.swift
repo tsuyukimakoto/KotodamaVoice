@@ -15,28 +15,43 @@ enum ModelSelectionError: Error, Equatable {
     case unknownModel
 }
 
+enum ModelDeletionError: Error, Equatable {
+    case unknownModel
+    case notInstalled
+    case storageUnavailable
+    case fileSystem
+}
+
 @Observable
 @MainActor
 final class ModelManager {
     private(set) var states: [String: ModelAvailability] = [:]
     private(set) var selectedModelIDs: [ModelPurpose: String] = [:]
+    private(set) var deletionErrors: [String: String] = [:]
 
     private var coordinator: ModelDownloadCoordinator?
     private let modelsByID: [String: ModelManifestEntry]
     private let defaults: UserDefaults
+    private let fileManager: FileManager
+    private let rootURL: URL?
+    private let workerUnloader: ModelWorkerUnloading
 
     init(
         models: [ModelManifestEntry],
         fileManager: FileManager = .default,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader()
     ) {
         modelsByID = Dictionary(
             uniqueKeysWithValues: models.map { ($0.id, $0) }
         )
         self.defaults = defaults
+        self.fileManager = fileManager
+        self.workerUnloader = workerUnloader
         let rootURL = fileManager.containerURL(
             forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
         )?.appending(path: "Models", directoryHint: .isDirectory)
+        self.rootURL = rootURL
         configure(models: models, rootURL: rootURL, fileManager: fileManager)
     }
 
@@ -44,12 +59,16 @@ final class ModelManager {
         models: [ModelManifestEntry],
         rootURL: URL,
         fileManager: FileManager = .default,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader()
     ) {
         modelsByID = Dictionary(
             uniqueKeysWithValues: models.map { ($0.id, $0) }
         )
         self.defaults = defaults
+        self.fileManager = fileManager
+        self.rootURL = rootURL
+        self.workerUnloader = workerUnloader
         configure(models: models, rootURL: rootURL, fileManager: fileManager)
     }
 
@@ -87,6 +106,47 @@ final class ModelManager {
             } catch {
                 states[model.id] = .failed(message(for: error))
             }
+        }
+    }
+
+    func requestDeletion(_ model: ModelManifestEntry) {
+        deletionErrors[model.id] = nil
+        Task {
+            do {
+                try await deleteInstalledModel(model)
+            } catch {
+                deletionErrors[model.id] = deletionMessage(for: error)
+            }
+        }
+    }
+
+    func deleteInstalledModel(_ model: ModelManifestEntry) async throws {
+        guard modelsByID[model.id] != nil else {
+            throw ModelDeletionError.unknownModel
+        }
+        guard states[model.id] == .installed else {
+            throw ModelDeletionError.notInstalled
+        }
+        guard let rootURL else {
+            throw ModelDeletionError.storageUnavailable
+        }
+
+        try await workerUnloader.unload(model)
+
+        let modelDirectory = rootURL.appending(
+            path: model.id,
+            directoryHint: .isDirectory
+        )
+        do {
+            try fileManager.removeItem(at: modelDirectory)
+        } catch {
+            throw ModelDeletionError.fileSystem
+        }
+        states[model.id] = .notInstalled
+        deletionErrors[model.id] = nil
+        if selectedModelIDs[model.purpose] == model.id {
+            selectedModelIDs[model.purpose] = nil
+            defaults.removeObject(forKey: selectionKey(for: model.purpose))
         }
     }
 
@@ -165,6 +225,17 @@ final class ModelManager {
             "このモデルを処理中です"
         default:
             "モデルを取得できませんでした"
+        }
+    }
+
+    private func deletionMessage(for error: Error) -> String {
+        switch error {
+        case is ModelWorkerUnloadError:
+            "Workerがモデルを解放できなかったため削除しませんでした"
+        case ModelDeletionError.fileSystem:
+            "モデルファイルを削除できませんでした"
+        default:
+            "モデルを削除できませんでした"
         }
     }
 }

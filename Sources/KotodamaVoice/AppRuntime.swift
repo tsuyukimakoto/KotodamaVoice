@@ -30,12 +30,13 @@ final class AppRuntime {
         let pipelineStore = PipelineStore()
         let coordinator = PipelineCoordinator(store: pipelineStore)
         let audioRecording = AudioRecordingService()
+        let speechWorkerClient = SpeechWorkerClient()
         let localSpeechPipeline = LocalSpeechPipeline(
             store: pipelineStore,
             coordinator: coordinator,
             recorder: audioRecording,
             temporaryAudioStore: TemporaryAudioStore(),
-            speech: SpeechWorkerClient()
+            speech: speechWorkerClient
         )
         let hotKeyBackend: HotKeyRegistering
 
@@ -80,13 +81,26 @@ final class AppRuntime {
             modelManager = ModelManager(
                 models: modelCatalog.models,
                 rootURL: testRootURL,
-                defaults: defaults
+                defaults: defaults,
+                workerUnloader: XPCModelWorkerUnloader(
+                    speechClient: speechWorkerClient
+                )
             )
         } else {
-            modelManager = ModelManager(models: modelCatalog.models)
+            modelManager = ModelManager(
+                models: modelCatalog.models,
+                workerUnloader: XPCModelWorkerUnloader(
+                    speechClient: speechWorkerClient
+                )
+            )
         }
 #else
-        modelManager = ModelManager(models: modelCatalog.models)
+        modelManager = ModelManager(
+            models: modelCatalog.models,
+            workerUnloader: XPCModelWorkerUnloader(
+                speechClient: speechWorkerClient
+            )
+        )
 #endif
 
         audioRecording.onFailure = { [weak self] error in

@@ -135,6 +135,34 @@ private func secureRoundTrip<T: NSObject & NSSecureCoding>(
     #expect(runtime.modelResource == nil)
 }
 
+@Test func workerDoesNotUnloadDifferentModel() throws {
+    let runtime = WorkerRuntimeSpy()
+    let service = WorkerService(runtime: runtime)
+    var loadReply: WorkerReply?
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .loadModel,
+            modelID: "loaded-model"
+        )
+    ) { loadReply = $0 }
+    #expect(loadReply?.failure == nil)
+    runtime.resetEvents()
+
+    var unloadReply: WorkerReply?
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .unloadModel,
+            modelID: "different-model"
+        )
+    ) { unloadReply = $0 }
+
+    #expect(unloadReply?.failure == nil)
+    #expect(runtime.modelResource != nil)
+    #expect(runtime.events.isEmpty)
+}
+
 private final class WeakReference<Value: AnyObject> {
     weak var value: Value?
 
@@ -170,6 +198,10 @@ private final class WorkerRuntimeSpy: WorkerRuntimeManaging {
     func unload() {
         events.append("unload")
         modelResource = nil
+    }
+
+    func resetEvents() {
+        events.removeAll()
     }
 }
 

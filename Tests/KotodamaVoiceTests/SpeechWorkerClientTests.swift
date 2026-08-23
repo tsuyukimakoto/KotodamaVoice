@@ -78,6 +78,46 @@ func speechClientDoesNotFallbackAfterWorkerFailure() async throws {
     #expect(worker.requests.map(\.operation) == [.loadModel, .transcribe])
 }
 
+@Test @MainActor
+func speechClientLoadsAgainAfterModelDeletionUnload() async throws {
+    let worker = WorkerRequestPerformerSpy()
+    let client = SpeechWorkerClient(worker: worker)
+    let audioInput = WorkerAudioInput(
+        fileHandle: FileHandle.nullDevice,
+        sampleRate: 16_000,
+        channelCount: 1,
+        sampleCount: 1
+    )
+    worker.replies = [
+        WorkerReply(requestID: PipelineRequestID()),
+        WorkerReply(requestID: PipelineRequestID(), payload: Data("first".utf8)),
+        WorkerReply(requestID: PipelineRequestID()),
+        WorkerReply(requestID: PipelineRequestID()),
+        WorkerReply(requestID: PipelineRequestID(), payload: Data("second".utf8)),
+    ]
+
+    _ = try await client.transcribe(
+        modelID: "speech-model",
+        audioInput: audioInput,
+        requestID: PipelineRequestID()
+    )
+    try await client.unload(modelID: "speech-model")
+    _ = try await client.transcribe(
+        modelID: "speech-model",
+        audioInput: audioInput,
+        requestID: PipelineRequestID()
+    )
+
+    #expect(worker.requests.map(\.operation) == [
+        .loadModel,
+        .transcribe,
+        .unloadModel,
+        .loadModel,
+        .transcribe,
+    ])
+    #expect(worker.requests[2].modelID == "speech-model")
+}
+
 @MainActor
 private final class WorkerRequestPerformerSpy: WorkerRequestPerforming {
     var replies: [WorkerReply] = []

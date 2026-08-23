@@ -70,16 +70,23 @@ final class SpeechWorkerClient {
     }
 
     func unload() async throws {
-        guard loadedModelID != nil else { return }
+        guard let loadedModelID else { return }
+        try await unload(modelID: loadedModelID)
+    }
+
+    func unload(modelID: String) async throws {
         let reply = try await worker.perform(
             WorkerRequest(
                 requestID: PipelineRequestID(),
-                operation: .unloadModel
+                operation: .unloadModel,
+                modelID: modelID
             ),
             timeout: .seconds(30)
         )
         try validate(reply)
-        loadedModelID = nil
+        if loadedModelID == modelID {
+            loadedModelID = nil
+        }
     }
 
     private func validate(_ reply: WorkerReply) throws {

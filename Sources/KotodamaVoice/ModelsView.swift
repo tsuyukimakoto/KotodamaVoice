@@ -20,8 +20,10 @@ struct ModelsView: View {
                             ?? .notInstalled,
                         isSelected: runtime.modelManager
                             .selectedModel(for: model.purpose)?.id == model.id,
+                        deletionError: runtime.modelManager.deletionErrors[model.id],
                         install: { runtime.modelManager.install(model) },
-                        select: { try? runtime.modelManager.select(model) }
+                        select: { try? runtime.modelManager.select(model) },
+                        delete: { runtime.modelManager.requestDeletion(model) }
                     )
                 }
             }
@@ -34,8 +36,10 @@ private struct ModelRow: View {
     let model: ModelManifestEntry
     let state: ModelAvailability
     let isSelected: Bool
+    let deletionError: String?
     let install: () -> Void
     let select: () -> Void
+    let delete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -73,9 +77,20 @@ private struct ModelRow: View {
                 Button("取得", action: install)
                     .accessibilityIdentifier("install-\(model.id)")
             } else if state == .installed {
-                Button(isSelected ? "使用中" : "このモデルを使用", action: select)
-                    .disabled(isSelected)
-                    .accessibilityIdentifier("select-\(model.id)")
+                HStack {
+                    Button(isSelected ? "使用中" : "このモデルを使用", action: select)
+                        .disabled(isSelected)
+                        .accessibilityIdentifier("select-\(model.id)")
+                    Button("削除", role: .destructive) {
+                        delete()
+                    }
+                    .accessibilityIdentifier("delete-\(model.id)")
+                }
+            }
+            if let deletionError {
+                Text(deletionError)
+                    .foregroundStyle(.red)
+                    .accessibilityIdentifier("delete-error-\(model.id)")
             }
         }
         .padding(.vertical, 8)

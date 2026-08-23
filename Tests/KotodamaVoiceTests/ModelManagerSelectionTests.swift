@@ -63,6 +63,71 @@ func modelManagerKeepsExplicitSelectionAcrossRecreation() throws {
     #expect(restored.selectedModel(for: .speech)?.id == second.id)
 }
 
+@Test @MainActor
+func modelDeletionKeepsInstalledFileWhenWorkerUnloadFails() async throws {
+    let fixture = try ModelManagerFixture()
+    let speech = fixture.model(id: "speech-a", purpose: .speech)
+    try fixture.installFile(for: speech)
+    let unloader = ModelWorkerUnloaderSpy()
+    unloader.error = ModelDeletionFixtureError.unloadFailed
+    let manager = ModelManager(
+        models: [speech],
+        rootURL: fixture.rootURL,
+        fileManager: fixture.fileManager,
+        defaults: fixture.defaults,
+        workerUnloader: unloader
+    )
+
+    await #expect(throws: ModelDeletionFixtureError.unloadFailed) {
+        try await manager.deleteInstalledModel(speech)
+    }
+
+    #expect(unloader.modelIDs == [speech.id])
+    #expect(manager.states[speech.id] == .installed)
+    #expect(fixture.isInstalled(speech))
+}
+
+@Test @MainActor
+func modelDeletionRemovesFileOnlyAfterWorkerUnloadSucceeds() async throws {
+    let fixture = try ModelManagerFixture()
+    let speech = fixture.model(id: "speech-a", purpose: .speech)
+    try fixture.installFile(for: speech)
+    let unloader = ModelWorkerUnloaderSpy()
+    unloader.onUnload = { #expect(fixture.isInstalled(speech)) }
+    let manager = ModelManager(
+        models: [speech],
+        rootURL: fixture.rootURL,
+        fileManager: fixture.fileManager,
+        defaults: fixture.defaults,
+        workerUnloader: unloader
+    )
+    try manager.select(speech)
+
+    try await manager.deleteInstalledModel(speech)
+
+    #expect(unloader.modelIDs == [speech.id])
+    #expect(manager.states[speech.id] == .notInstalled)
+    #expect(manager.selectedModel(for: .speech) == nil)
+    #expect(!fixture.isInstalled(speech))
+}
+
+private enum ModelDeletionFixtureError: Error {
+    case unloadFailed
+}
+
+@MainActor
+private final class ModelWorkerUnloaderSpy: ModelWorkerUnloading {
+    var error: Error?
+    var onUnload: (() -> Void)?
+    private(set) var modelIDs: [String] = []
+
+    func unload(_ model: ModelManifestEntry) async throws {
+        modelIDs.append(model.id)
+        onUnload?()
+        if let error { throw error }
+    }
+}
+
 private final class ModelManagerFixture {
     let fileManager = FileManager.default
     let rootURL: URL
@@ -110,6 +175,15 @@ private final class ModelManagerFixture {
             withIntermediateDirectories: true
         )
         try Data([0]).write(to: directory.appending(path: model.fileName))
+    }
+
+    func isInstalled(_ model: ModelManifestEntry) -> Bool {
+        fileManager.fileExists(
+            atPath: rootURL
+                .appending(path: model.id, directoryHint: .isDirectory)
+                .appending(path: model.fileName, directoryHint: .notDirectory)
+                .path
+        )
     }
 
 }
