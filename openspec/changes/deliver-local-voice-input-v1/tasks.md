@@ -46,8 +46,8 @@
 
 - [x] 6.1 whisper Runtime wrapperへmodel load、transcribe、cancel、unloadの失敗テストをfixture Runtimeで追加してからSpeech Workerへ実装する
 - [x] 6.2 固定したwhisper.cpp Frameworkと小型テストモデルを使うWorker統合テストを作り、既知音声から期待文字列を取得できることを確認する
-- [ ] 6.3 Large v3 Turbo F16とQ5候補を取得し、固定日本語音声セットで文字誤り、固有名詞、英数字、日付、処理時間、ロード時間、physical footprintを測定する
-- [ ] 6.4 16GB基準を満たす既定SpeechモデルをManifestへ固定し、revision、size、SHA-256、MITライセンス表示を検証する
+- [x] 6.3 Large v3 Turbo F16とQ5候補を取得し、固定日本語音声セットで文字誤り、固有名詞、英数字、日付、処理時間、ロード時間、physical footprintを測定する
+- [x] 6.4 16GB基準を満たす既定SpeechモデルをManifestへ固定し、revision、size、SHA-256、MITライセンス表示を検証する
 - [ ] 6.5 内蔵SpeechをPipelineへ接続し、録音から文字起こし原文までネットワーク接続なしで完了することをNetwork Link Conditionerまたは通信監視で確認する
 - [ ] 6.6 Speech Workerを推論中に終了し、Appがクラッシュせず要求を失敗表示して次の録音で復旧することを確認する
 

@@ -70,6 +70,20 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
+  SpeechEvaluator:
+    type: tool
+    platform: macOS
+    sources:
+      - Tools/SpeechEvaluator
+      - Sources/SpeechWorker/SpeechRuntime.swift
+    dependencies:
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/whisper.xcframework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechEvaluator
+        GENERATE_INFOPLIST_FILE: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
   FormatterWorker:
     type: xpc-service
     platform: macOS
@@ -232,6 +246,10 @@ schemes:
     test:
       targets:
         - SpeechWorkerTests
+  SpeechEvaluator:
+    build:
+      targets:
+        SpeechEvaluator: all
   FormatterWorker:
     build:
       targets:

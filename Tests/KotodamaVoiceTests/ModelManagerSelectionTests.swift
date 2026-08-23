@@ -64,6 +64,28 @@ func modelManagerKeepsExplicitSelectionAcrossRecreation() throws {
 }
 
 @Test @MainActor
+func modelManagerChoosesInstalledManifestDefault() throws {
+    let fixture = try ModelManagerFixture()
+    let fallback = fixture.model(id: "speech-a", purpose: .speech)
+    let preferred = fixture.model(
+        id: "speech-b",
+        purpose: .speech,
+        isDefault: true
+    )
+    try fixture.installFile(for: fallback)
+    try fixture.installFile(for: preferred)
+
+    let manager = ModelManager(
+        models: [fallback, preferred],
+        rootURL: fixture.rootURL,
+        fileManager: fixture.fileManager,
+        defaults: fixture.defaults
+    )
+
+    #expect(manager.selectedModel(for: .speech)?.id == preferred.id)
+}
+
+@Test @MainActor
 func modelDeletionKeepsInstalledFileWhenWorkerUnloadFails() async throws {
     let fixture = try ModelManagerFixture()
     let speech = fixture.model(id: "speech-a", purpose: .speech)
@@ -148,7 +170,11 @@ private final class ModelManagerFixture {
         defaults.removePersistentDomain(forName: suiteName)
     }
 
-    func model(id: String, purpose: ModelPurpose) -> ModelManifestEntry {
+    func model(
+        id: String,
+        purpose: ModelPurpose,
+        isDefault: Bool = false
+    ) -> ModelManifestEntry {
         ModelManifestEntry(
             id: id,
             displayName: id,
@@ -161,7 +187,8 @@ private final class ModelManagerFixture {
             sha256: String(repeating: "b", count: 64),
             licenseName: "MIT",
             licenseURL: URL(string: "https://example.com/license")!,
-            runtime: .whisper
+            runtime: .whisper,
+            isDefault: isDefault
         )
     }
 

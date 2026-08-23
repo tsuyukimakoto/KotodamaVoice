@@ -50,7 +50,6 @@ private struct MenuBarContent: View {
 
     let runtime: AppRuntime
 
-    @State private var didBootstrapUITesting = false
     var body: some View {
         Text(store.state.title)
         if let operationError = runtime.operationError {
@@ -77,15 +76,6 @@ private struct MenuBarContent: View {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q", modifiers: .command)
-        .onAppear {
-            guard !didBootstrapUITesting,
-                  ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1"
-            else {
-                return
-            }
-            didBootstrapUITesting = true
-            openSettings()
-        }
     }
 
 }

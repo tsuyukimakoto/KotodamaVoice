@@ -9,8 +9,22 @@ import Testing
 
     #expect(manifest.schemaVersion == 1)
     #expect(manifest.models.count == 1)
+    #expect(manifest.models[0].isDefault)
     #expect(manifest.models[0].revision == String(repeating: "0", count: 40))
     #expect(manifest.models[0].byteCount == 1_024)
+}
+
+@Test func modelManifestRejectsMultipleDefaultsForOnePurpose() {
+    var first = validModelEntry()
+    first["id"] = "speech-a"
+    first["fileName"] = "speech-a.bin"
+    var second = validModelEntry()
+    second["id"] = "speech-b"
+    second["fileName"] = "speech-b.bin"
+
+    #expect(throws: ModelManifestError.multipleDefaults(.speech)) {
+        try ModelManifestLoader.decode(manifestData(entries: [first, second]))
+    }
 }
 
 @Test func modelManifestRejectsMissingRequiredField() {
@@ -62,6 +76,7 @@ private func validModelEntry() -> [String: Any] {
         "licenseName": "MIT",
         "licenseURL": "https://example.invalid/licenses/mit",
         "runtime": "whisper",
+        "isDefault": true,
     ]
 }
 

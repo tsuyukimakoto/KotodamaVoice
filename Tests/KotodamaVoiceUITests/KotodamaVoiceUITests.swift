@@ -6,6 +6,8 @@ final class KotodamaVoiceUITests: XCTestCase {
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
         application.launch()
+        application.activate()
+        application.typeKey(",", modifierFlags: .command)
 
         let settingsWindow = application.windows["General"]
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
@@ -37,6 +39,11 @@ final class KotodamaVoiceUITests: XCTestCase {
             license: "MIT",
             status: "未導入"
         )
+        XCTAssertFalse(
+            modelsWindow.staticTexts[
+                "model-whisper-large-v3-turbo-f16-default"
+            ].exists
+        )
         assertModel(
             in: modelsWindow,
             id: "whisper-large-v3-turbo-q5-0",
@@ -46,6 +53,11 @@ final class KotodamaVoiceUITests: XCTestCase {
             source: "huggingface.co",
             license: "MIT",
             status: "未導入"
+        )
+        XCTAssertTrue(
+            modelsWindow.staticTexts[
+                "model-whisper-large-v3-turbo-q5-0-default"
+            ].exists
         )
         assertModel(
             in: modelsWindow,

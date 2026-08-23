@@ -47,6 +47,14 @@ private struct ModelRow: View {
                 Text(model.displayName)
                     .font(.headline)
                     .accessibilityIdentifier("model-\(model.id)-name")
+                if model.isDefault {
+                    Text("標準")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.tint.opacity(0.15), in: Capsule())
+                        .accessibilityIdentifier("model-\(model.id)-default")
+                }
                 Spacer()
                 Text(statusText)
                     .foregroundStyle(.secondary)

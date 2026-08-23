@@ -218,7 +218,9 @@ final class ModelManager {
             let installed = models.filter {
                 $0.purpose == purpose && states[$0.id] == .installed
             }
-            if installed.count == 1, let model = installed.first {
+            let model = installed.first(where: \.isDefault)
+                ?? (installed.count == 1 ? installed.first : nil)
+            if let model {
                 selectedModelIDs[purpose] = model.id
                 defaults.set(model.id, forKey: selectionKey(for: purpose))
             } else {

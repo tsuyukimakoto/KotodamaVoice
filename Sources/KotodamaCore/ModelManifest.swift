@@ -28,6 +28,7 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
     public let licenseName: String
     public let licenseURL: URL
     public let runtime: ModelRuntime
+    public let isDefault: Bool
 
     public init(
         id: String,
@@ -41,7 +42,8 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
         sha256: String,
         licenseName: String,
         licenseURL: URL,
-        runtime: ModelRuntime
+        runtime: ModelRuntime,
+        isDefault: Bool = false
     ) {
         self.id = id
         self.displayName = displayName
@@ -55,6 +57,7 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
         self.licenseName = licenseName
         self.licenseURL = licenseURL
         self.runtime = runtime
+        self.isDefault = isDefault
     }
 }
 
@@ -74,6 +77,7 @@ public enum ModelManifestError: Error, Equatable, Sendable {
     case invalidSHA256(String)
     case invalidLicense(String)
     case incompatibleRuntime(String)
+    case multipleDefaults(ModelPurpose)
 }
 
 public enum ModelManifestLoader {
@@ -97,12 +101,17 @@ public enum ModelManifestLoader {
 
         var identifiers = Set<String>()
         var fileNames = Set<String>()
+        var defaultPurposes = Set<ModelPurpose>()
         for model in manifest.models {
             guard identifiers.insert(model.id).inserted else {
                 throw ModelManifestError.duplicateID(model.id)
             }
             guard fileNames.insert(model.fileName).inserted else {
                 throw ModelManifestError.duplicateFileName(model.fileName)
+            }
+            if model.isDefault,
+               !defaultPurposes.insert(model.purpose).inserted {
+                throw ModelManifestError.multipleDefaults(model.purpose)
             }
             try validate(model)
         }

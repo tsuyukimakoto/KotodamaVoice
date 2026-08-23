@@ -21,7 +21,7 @@ func hotKeyPreferenceRoundTripsDescriptor() throws {
 }
 
 @Test @MainActor
-func bundledModelCatalogContainsPinnedCandidates() {
+func bundledModelCatalogContainsPinnedCandidates() throws {
     let catalog = ModelCatalog()
 
     #expect(catalog.loadError == nil)
@@ -30,6 +30,18 @@ func bundledModelCatalogContainsPinnedCandidates() {
         "whisper-large-v3-turbo-q5-0",
         "gemma-4-e4b-it-qat-q4-0",
     ])
+    let defaultSpeech = try #require(
+        catalog.models.first(where: { $0.isDefault })
+    )
+    #expect(defaultSpeech.id == "whisper-large-v3-turbo-q5-0")
+    #expect(defaultSpeech.revision == "5359861c739e955e79d9a303bcbc70fb988958b1")
+    #expect(defaultSpeech.byteCount == 574_041_195)
+    #expect(
+        defaultSpeech.sha256
+            == "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2"
+    )
+    #expect(defaultSpeech.licenseName == "MIT")
+    #expect(defaultSpeech.licenseURL.absoluteString == "https://github.com/openai/whisper/blob/main/LICENSE")
 }
 
 @Test @MainActor

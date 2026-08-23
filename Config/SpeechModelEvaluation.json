@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "evaluatedAt": "2026-08-23",
+  "environment": {
+    "hardwareModel": "Mac17,7",
+    "memoryBytes": 68719476736,
+    "macOSVersion": "26.5.2",
+    "runtimeRevision": "371b5a7561823ab2bb32142d2751e35e7534727b"
+  },
+  "fixture": {
+    "durationSeconds": 49.94,
+    "referenceCharacterCount": 231
+  },
+  "measurement": {
+    "language": "ja",
+    "runCount": 3,
+    "timingAggregation": "median",
+    "contentNormalization": "NFKC, case-insensitive, width-insensitive, whitespace/punctuation/symbols excluded"
+  },
+  "results": [
+    {
+      "modelID": "whisper-large-v3-turbo-f16",
+      "fileByteCount": 1624555275,
+      "fileSHA256": "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
+      "characterErrorRate": 0.06060606060606061,
+      "properNounMatches": 4,
+      "properNounTotal": 5,
+      "alphanumericMatches": 3,
+      "alphanumericTotal": 3,
+      "dateMatches": 2,
+      "dateTotal": 2,
+      "punctuationMatches": 15,
+      "punctuationTotal": 15,
+      "loadMilliseconds": 368.935583,
+      "transcriptionMilliseconds": 498.52975,
+      "loadedPhysicalFootprintBytes": 1985841168,
+      "transcribedPhysicalFootprintBytes": 2025801792,
+      "firstRuntimeInitializationMilliseconds": 6552.973625
+    },
+    {
+      "modelID": "whisper-large-v3-turbo-q5-0",
+      "fileByteCount": 574041195,
+      "fileSHA256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+      "characterErrorRate": 0.07792207792207792,
+      "properNounMatches": 3,
+      "properNounTotal": 5,
+      "alphanumericMatches": 3,
+      "alphanumericTotal": 3,
+      "dateMatches": 2,
+      "dateTotal": 2,
+      "punctuationMatches": 15,
+      "punctuationTotal": 15,
+      "loadMilliseconds": 171.887042,
+      "transcriptionMilliseconds": 456.89325,
+      "loadedPhysicalFootprintBytes": 853886200,
+      "transcribedPhysicalFootprintBytes": 908739904
+    }
+  ],
+  "selectedDefaultModelID": "whisper-large-v3-turbo-q5-0"
+}
