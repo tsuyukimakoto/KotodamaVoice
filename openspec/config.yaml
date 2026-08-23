@@ -1,0 +1,35 @@
+schema: spec-driven
+
+context: |
+  Language: Japanese
+  All artifacts must be written in Japanese.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  KotodamaVoice is a native macOS, local-first voice input application.
+  Default behavior must work with microphone permission only; clipboard output is the default.
+  Accessibility is optional and may only be requested after the user explicitly enables auto insert.
+  Audio, transcripts, prompts, generated text, and clipboard contents are not persisted or logged by default.
+  Downloaded model artifacts must be version-pinned and integrity-checked; downloaded executable code is prohibited.
+  Internal speech and formatting run in separate bundled XPC workers using pinned whisper.cpp and llama.cpp builds.
+  Exact runtime revisions, model files, quantization, and external endpoint adapters must pass compatibility, licensing, resource, and failure-behavior verification before release.
+
+rules:
+  proposal:
+    - State explicit non-goals when the source idea spans multiple implementation phases.
+  specs:
+    - Include observable failure and privacy behavior where applicable.
+  design:
+    - Record alternatives for permissions, model execution, and external communication decisions.
+  tasks:
+    - Every implementation group must include automated or manual verification with an observable success criterion.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
