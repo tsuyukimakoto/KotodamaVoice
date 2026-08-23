@@ -273,6 +273,25 @@ func coordinatorOwnsRequestIDAndPublishesState() throws {
 }
 
 @Test @MainActor
+func globalHotKeyControllerEmitsOneActionPerPhysicalPress() throws {
+    let backend = HotKeyBackendSpy()
+    let controller = GlobalHotKeyController(backend: backend)
+    var actionCount = 0
+    controller.onPress = { actionCount += 1 }
+
+    try controller.register(
+        HotKeyDescriptor(keyCode: 49, modifiers: 1 << 8)
+    )
+    backend.emit(.pressed)
+    backend.emit(.pressed)
+    #expect(actionCount == 1)
+
+    backend.emit(.released)
+    backend.emit(.pressed)
+    #expect(actionCount == 2)
+}
+
+@Test @MainActor
 func hotKeyConflictKeepsPreviousRegistration() throws {
     let backend = HotKeyBackendSpy()
     let controller = GlobalHotKeyController(backend: backend)
@@ -341,6 +360,7 @@ private final class HotKeyBackendSpy: HotKeyRegistering {
     var eventHandler: ((HotKeyRegistrationToken, HotKeyEvent) -> Void)?
     var registrationError: HotKeyRegistrationError?
     private(set) var activeDescriptors: [HotKeyDescriptor] = []
+    private var latestToken: HotKeyRegistrationToken?
 
     func register(
         _ descriptor: HotKeyDescriptor
@@ -349,7 +369,9 @@ private final class HotKeyBackendSpy: HotKeyRegistering {
             throw registrationError
         }
         activeDescriptors.append(descriptor)
-        return HotKeyRegistrationToken()
+        let token = HotKeyRegistrationToken()
+        latestToken = token
+        return token
     }
 
     func unregister(_ token: HotKeyRegistrationToken) {
@@ -357,6 +379,11 @@ private final class HotKeyBackendSpy: HotKeyRegistering {
             return
         }
         activeDescriptors.removeFirst()
+    }
+
+    func emit(_ event: HotKeyEvent) {
+        guard let latestToken else { return }
+        eventHandler?(latestToken, event)
     }
 }
 

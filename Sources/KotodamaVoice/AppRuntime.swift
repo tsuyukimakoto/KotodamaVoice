@@ -71,7 +71,23 @@ final class AppRuntime {
         workerDiagnostics = WorkerDiagnostics()
         let modelCatalog = ModelCatalog()
         self.modelCatalog = modelCatalog
+#if DEBUG
+        if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+            let testRootURL = FileManager.default.temporaryDirectory.appending(
+                path: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)",
+                directoryHint: .isDirectory
+            )
+            modelManager = ModelManager(
+                models: modelCatalog.models,
+                rootURL: testRootURL,
+                defaults: defaults
+            )
+        } else {
+            modelManager = ModelManager(models: modelCatalog.models)
+        }
+#else
         modelManager = ModelManager(models: modelCatalog.models)
+#endif
 
         audioRecording.onFailure = { [weak self] error in
             self?.handleAudioRecordingFailure(error)

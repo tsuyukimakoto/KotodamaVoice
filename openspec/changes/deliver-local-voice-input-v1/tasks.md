@@ -10,8 +10,8 @@
 
 - [x] 2.1 Pipeline状態機械とrequest IDについて不正遷移、処理中の再操作、キャンセルの失敗テストを先に追加し、テストが要求どおり失敗することを確認する
 - [x] 2.2 MainActor上のStoreとPipeline coordinatorを実装し、2.1のテストが成功することを確認する
-- [ ] 2.3 メニューバー、状態表示、Settings、Models、Runtime Monitor、終了操作を実装し、UI Testで各画面へ到達できDockアイコンが表示されないことを確認する
-- [ ] 2.4 `RegisterEventHotKey` adapterへ登録競合とキーリピートの失敗テストを追加してから実装し、別アプリが前面でも一回の押下が一回の状態遷移になることを確認する
+- [x] 2.3 メニューバー、状態表示、Settings、Models、Runtime Monitor、終了操作を実装し、UI Testで各画面へ到達できDockアイコンが表示されないことを確認する
+- [x] 2.4 `RegisterEventHotKey` adapterへ登録競合とキーリピートの失敗テストを追加してから実装し、別アプリが前面でも一回の押下が一回の状態遷移になることを確認する
 - [x] 2.5 ショートカット編集と再登録を実装し、競合時に旧設定を維持してエラーを表示することをテストする
 - [x] 2.6 `SMAppService.mainApp`によるLaunch at Loginを実装し、設定のONとOFFで登録状態が一致することを確認する
 
@@ -28,7 +28,7 @@
 ## 4. Model Manager
 
 - [x] 4.1 Manifest decoderへ必須項目不足、重複ID、許可外ファイル種別、hash不正の失敗テストを追加してから検証処理を実装する
-- [ ] 4.2 署名対象のモデルManifestとModels画面を実装し、名称、用途、容量、取得元、ライセンス、状態がfixtureと一致することをUI Testで確認する
+- [x] 4.2 署名対象のモデルManifestとModels画面を実装し、名称、用途、容量、取得元、ライセンス、状態がfixtureと一致することをUI Testで確認する
 - [x] 4.3 空き容量、一時取得、resume、進捗、サイズ、SHA-256、atomic moveの失敗テストを追加してからdownload coordinatorを実装する
 - [ ] 4.4 HTTP fixture serverで成功、中断再開、hash不一致、容量不足を再現し、Installedになるのが検証成功時だけであることを確認する
 - [ ] 4.5 Worker unloadとモデル削除を連携し、unload失敗時はファイルを残し成功時だけ削除されることを統合テストで確認する

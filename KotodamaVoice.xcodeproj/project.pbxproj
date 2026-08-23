@@ -53,6 +53,7 @@
 		C004EE7FE49C131969FD78A0 /* ModelManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C4E38780D1164B577359F9 /* ModelManifest.swift */; };
 		C3A2598AE024237FC31AD00A /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E1494AAD53178A1A680279 /* PipelineCoordinator.swift */; };
 		C45BA0E732C0D5B3502E28B5 /* SpeechWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D262B41A81B6E67267B0B4DF /* SpeechWorkerTests.swift */; };
+		C569DF0986B25B0E779E336E /* CarbonHotKeyBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426A21DB0B93F6890E207B08 /* CarbonHotKeyBackendTests.swift */; };
 		C620873D77438120DDB5097E /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A109991F1F9EDAB8AFB2A88C /* llama.xcframework */; };
 		CA8C968200562003FF37423B /* whisper.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */; };
 		CB9644E56A512B65FCB66C12 /* WorkerDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */; };
@@ -238,6 +239,7 @@
 		31C4E38780D1164B577359F9 /* ModelManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManifest.swift; sourceTree = "<group>"; };
 		3797E508E9AC167BA2BF6402 /* KotodamaVoiceUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceUITests.swift; sourceTree = "<group>"; };
 		3DD938F4BC6FB93AEFA3881B /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		426A21DB0B93F6890E207B08 /* CarbonHotKeyBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonHotKeyBackendTests.swift; sourceTree = "<group>"; };
 		4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KotodamaCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		487C3D2C28A272E278E75399 /* KotodamaCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaCore.swift; sourceTree = "<group>"; };
 		4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRuntime.swift; sourceTree = "<group>"; };
@@ -401,6 +403,7 @@
 			children = (
 				FBE752A3FC33E0BFF1FB53FF /* AudioBufferAccumulatorTests.swift */,
 				D01BB1F927CBC5BDE8D5B03C /* AudioSampleConverterTests.swift */,
+				426A21DB0B93F6890E207B08 /* CarbonHotKeyBackendTests.swift */,
 				5B8A0A655F55C34B62C5E0EE /* ClipboardOutputTests.swift */,
 				56629419C9CE473E97605ADA /* EmbeddedWorkerIntegrationTests.swift */,
 				6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */,
@@ -810,6 +813,7 @@
 			files = (
 				7A6E8E44D2DBEF3D9429D029 /* AudioBufferAccumulatorTests.swift in Sources */,
 				EBE31FB6205FF5E70BB095E4 /* AudioSampleConverterTests.swift in Sources */,
+				C569DF0986B25B0E779E336E /* CarbonHotKeyBackendTests.swift in Sources */,
 				8884F151A1F8ECB6949F8C3F /* ClipboardOutputTests.swift in Sources */,
 				14278F37DD287B964F745026 /* EmbeddedWorkerIntegrationTests.swift in Sources */,
 				4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */,

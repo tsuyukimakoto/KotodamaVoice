@@ -23,7 +23,6 @@ struct ModelsView: View {
                         install: { runtime.modelManager.install(model) },
                         select: { try? runtime.modelManager.select(model) }
                     )
-                        .accessibilityIdentifier("model-\(model.id)")
                 }
             }
         }
@@ -43,20 +42,31 @@ private struct ModelRow: View {
             HStack {
                 Text(model.displayName)
                     .font(.headline)
+                    .accessibilityIdentifier("model-\(model.id)-name")
                 Spacer()
                 Text(statusText)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("model-\(model.id)-status")
             }
-            LabeledContent("用途", value: purposeName)
-            LabeledContent(
-                "容量",
-                value: ByteCountFormatter.string(
+            LabeledContent("用途") {
+                Text(purposeName)
+                    .accessibilityIdentifier("model-\(model.id)-purpose")
+            }
+            LabeledContent("容量") {
+                Text(ByteCountFormatter.string(
                     fromByteCount: model.byteCount,
                     countStyle: .file
-                )
-            )
-            LabeledContent("取得元", value: model.sourceURL.host() ?? "-")
-            LabeledContent("ライセンス", value: model.licenseName)
+                ))
+                    .accessibilityIdentifier("model-\(model.id)-size")
+            }
+            LabeledContent("取得元") {
+                Text(model.sourceURL.host() ?? "-")
+                    .accessibilityIdentifier("model-\(model.id)-source")
+            }
+            LabeledContent("ライセンス") {
+                Text(model.licenseName)
+                    .accessibilityIdentifier("model-\(model.id)-license")
+            }
             if case let .downloading(progress) = state {
                 ProgressView(value: progress)
             } else if canInstall {

@@ -5,6 +5,7 @@ import KotodamaCore
 final class CarbonHotKeyBackend: HotKeyRegistering {
     var eventHandler: ((HotKeyRegistrationToken, HotKeyEvent) -> Void)?
 
+    static let registrationOptions = OptionBits(kEventHotKeyExclusive)
     private static let signature: OSType = 0x4B_56_48_4B
 
     private struct Registration {
@@ -68,7 +69,7 @@ final class CarbonHotKeyBackend: HotKeyRegistering {
             descriptor.modifiers,
             hotKeyID,
             GetApplicationEventTarget(),
-            0,
+            Self.registrationOptions,
             &reference
         )
 
