@@ -30,7 +30,10 @@ final class AppRuntime {
         let pipelineStore = PipelineStore()
         let coordinator = PipelineCoordinator(store: pipelineStore)
         let audioRecording = AudioRecordingService()
-        let speechWorkerClient = SpeechWorkerClient()
+        let modelOperationGate = ModelOperationGate()
+        let speechWorkerClient = SpeechWorkerClient(
+            operationGate: modelOperationGate
+        )
         let localSpeechPipeline = LocalSpeechPipeline(
             store: pipelineStore,
             coordinator: coordinator,
@@ -84,14 +87,16 @@ final class AppRuntime {
                 defaults: defaults,
                 workerUnloader: XPCModelWorkerUnloader(
                     speechClient: speechWorkerClient
-                )
+                ),
+                operationGate: modelOperationGate
             )
         } else {
             modelManager = ModelManager(
                 models: modelCatalog.models,
                 workerUnloader: XPCModelWorkerUnloader(
                     speechClient: speechWorkerClient
-                )
+                ),
+                operationGate: modelOperationGate
             )
         }
 #else
@@ -99,7 +104,8 @@ final class AppRuntime {
             models: modelCatalog.models,
             workerUnloader: XPCModelWorkerUnloader(
                 speechClient: speechWorkerClient
-            )
+            ),
+            operationGate: modelOperationGate
         )
 #endif
 

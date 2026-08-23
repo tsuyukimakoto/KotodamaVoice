@@ -20,9 +20,14 @@ extension WorkerConnectionManager: WorkerRequestPerforming {}
 @MainActor
 final class SpeechWorkerClient {
     private let worker: WorkerRequestPerforming
+    private let operationGate: ModelOperationGate
     private var loadedModelID: String?
 
-    init(worker: WorkerRequestPerforming? = nil) {
+    init(
+        worker: WorkerRequestPerforming? = nil,
+        operationGate: ModelOperationGate = ModelOperationGate()
+    ) {
+        self.operationGate = operationGate
         self.worker = worker ?? WorkerConnectionManager(
             makeTransport: {
                 NSXPCWorkerTransport(
@@ -34,6 +39,20 @@ final class SpeechWorkerClient {
     }
 
     func transcribe(
+        modelID: String,
+        audioInput: WorkerAudioInput,
+        requestID: PipelineRequestID
+    ) async throws -> String {
+        try await operationGate.withOperation(for: modelID) {
+            try await self.performTranscription(
+                modelID: modelID,
+                audioInput: audioInput,
+                requestID: requestID
+            )
+        }
+    }
+
+    private func performTranscription(
         modelID: String,
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
@@ -71,10 +90,12 @@ final class SpeechWorkerClient {
 
     func unload() async throws {
         guard let loadedModelID else { return }
-        try await unload(modelID: loadedModelID)
+        try await operationGate.withOperation(for: loadedModelID) {
+            try await self.unloadForDeletion(modelID: loadedModelID)
+        }
     }
 
-    func unload(modelID: String) async throws {
+    func unloadForDeletion(modelID: String) async throws {
         let reply = try await worker.perform(
             WorkerRequest(
                 requestID: PipelineRequestID(),

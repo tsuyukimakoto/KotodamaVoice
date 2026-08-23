@@ -101,7 +101,7 @@ func speechClientLoadsAgainAfterModelDeletionUnload() async throws {
         audioInput: audioInput,
         requestID: PipelineRequestID()
     )
-    try await client.unload(modelID: "speech-model")
+    try await client.unloadForDeletion(modelID: "speech-model")
     _ = try await client.transcribe(
         modelID: "speech-model",
         audioInput: audioInput,

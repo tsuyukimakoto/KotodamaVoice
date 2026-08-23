@@ -32,7 +32,7 @@
 - [x] 4.3 空き容量、一時取得、resume、進捗、サイズ、SHA-256、atomic moveの失敗テストを追加してからdownload coordinatorを実装する
 - [x] 4.4 HTTP fixture serverで成功、中断再開、hash不一致、容量不足を再現し、Installedになるのが検証成功時だけであることを確認する
 - [x] 4.5 Worker unloadとモデル削除を連携し、unload失敗時はファイルを残し成功時だけ削除されることを統合テストで確認する
-- [ ] 4.6 同一モデルのdownload、delete、loadを直列化し、競合操作を注入して破損または二重状態が発生しないことを確認する
+- [x] 4.6 同一モデルのdownload、delete、loadを直列化し、競合操作を注入して破損または二重状態が発生しないことを確認する
 
 ## 5. 録音Pipeline
 

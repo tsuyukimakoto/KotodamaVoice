@@ -35,12 +35,14 @@ final class ModelManager {
     private let fileManager: FileManager
     private let rootURL: URL?
     private let workerUnloader: ModelWorkerUnloading
+    private let operationGate: ModelOperationGate
 
     init(
         models: [ModelManifestEntry],
         fileManager: FileManager = .default,
         defaults: UserDefaults = .standard,
-        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader()
+        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader(),
+        operationGate: ModelOperationGate = ModelOperationGate()
     ) {
         modelsByID = Dictionary(
             uniqueKeysWithValues: models.map { ($0.id, $0) }
@@ -48,6 +50,7 @@ final class ModelManager {
         self.defaults = defaults
         self.fileManager = fileManager
         self.workerUnloader = workerUnloader
+        self.operationGate = operationGate
         let rootURL = fileManager.containerURL(
             forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
         )?.appending(path: "Models", directoryHint: .isDirectory)
@@ -60,7 +63,8 @@ final class ModelManager {
         rootURL: URL,
         fileManager: FileManager = .default,
         defaults: UserDefaults = .standard,
-        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader()
+        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader(),
+        operationGate: ModelOperationGate = ModelOperationGate()
     ) {
         modelsByID = Dictionary(
             uniqueKeysWithValues: models.map { ($0.id, $0) }
@@ -69,6 +73,7 @@ final class ModelManager {
         self.fileManager = fileManager
         self.rootURL = rootURL
         self.workerUnloader = workerUnloader
+        self.operationGate = operationGate
         configure(models: models, rootURL: rootURL, fileManager: fileManager)
     }
 
@@ -89,19 +94,28 @@ final class ModelManager {
     }
 
     func install(_ model: ModelManifestEntry) {
-        guard let coordinator else {
+        guard states[model.id] != .installed else { return }
+        guard coordinator != nil else {
             states[model.id] = .storageUnavailable
             return
         }
         states[model.id] = .downloading(0)
         Task {
             do {
-                _ = try await coordinator.install(model) { [weak self] progress in
-                    self?.states[model.id] = .downloading(progress)
-                }
-                states[model.id] = .installed
-                if selectedModel(for: model.purpose) == nil {
-                    try select(model)
+                try await operationGate.withOperation(for: model.id) {
+                    guard self.states[model.id] != .installed else { return }
+                    guard let coordinator = self.coordinator else {
+                        self.states[model.id] = .storageUnavailable
+                        return
+                    }
+                    self.states[model.id] = .downloading(0)
+                    _ = try await coordinator.install(model) { [weak self] progress in
+                        self?.states[model.id] = .downloading(progress)
+                    }
+                    self.states[model.id] = .installed
+                    if self.selectedModel(for: model.purpose) == nil {
+                        try self.select(model)
+                    }
                 }
             } catch {
                 states[model.id] = .failed(message(for: error))
@@ -121,32 +135,36 @@ final class ModelManager {
     }
 
     func deleteInstalledModel(_ model: ModelManifestEntry) async throws {
-        guard modelsByID[model.id] != nil else {
-            throw ModelDeletionError.unknownModel
-        }
-        guard states[model.id] == .installed else {
-            throw ModelDeletionError.notInstalled
-        }
-        guard let rootURL else {
-            throw ModelDeletionError.storageUnavailable
-        }
+        try await operationGate.withOperation(for: model.id) {
+            guard self.modelsByID[model.id] != nil else {
+                throw ModelDeletionError.unknownModel
+            }
+            guard self.states[model.id] == .installed else {
+                throw ModelDeletionError.notInstalled
+            }
+            guard let rootURL = self.rootURL else {
+                throw ModelDeletionError.storageUnavailable
+            }
 
-        try await workerUnloader.unload(model)
+            try await self.workerUnloader.unload(model)
 
-        let modelDirectory = rootURL.appending(
-            path: model.id,
-            directoryHint: .isDirectory
-        )
-        do {
-            try fileManager.removeItem(at: modelDirectory)
-        } catch {
-            throw ModelDeletionError.fileSystem
-        }
-        states[model.id] = .notInstalled
-        deletionErrors[model.id] = nil
-        if selectedModelIDs[model.purpose] == model.id {
-            selectedModelIDs[model.purpose] = nil
-            defaults.removeObject(forKey: selectionKey(for: model.purpose))
+            let modelDirectory = rootURL.appending(
+                path: model.id,
+                directoryHint: .isDirectory
+            )
+            do {
+                try self.fileManager.removeItem(at: modelDirectory)
+            } catch {
+                throw ModelDeletionError.fileSystem
+            }
+            self.states[model.id] = .notInstalled
+            self.deletionErrors[model.id] = nil
+            if self.selectedModelIDs[model.purpose] == model.id {
+                self.selectedModelIDs[model.purpose] = nil
+                self.defaults.removeObject(
+                    forKey: self.selectionKey(for: model.purpose)
+                )
+            }
         }
     }
 

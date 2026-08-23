@@ -97,6 +97,53 @@ struct ModelDownloadHTTPIntegrationTests {
         )
     }
 
+    @Test @MainActor
+    func competingDownloadDeleteAndLoadAreSerialized() async throws {
+        let fixture = try DownloadIntegrationFixture()
+        defer { fixture.cleanUp() }
+        let server = try HTTPModelFixtureServer(
+            payload: fixture.payload,
+            responseDelayMilliseconds: 200
+        )
+        let model = fixture.model(sourceURL: server.url)
+        let operationGate = ModelOperationGate()
+        let events = ModelOperationEvents()
+        let manager = fixture.manager(
+            models: [model],
+            workerUnloader: RecordingModelUnloader(events: events),
+            operationGate: operationGate
+        )
+        let speechClient = SpeechWorkerClient(
+            worker: RecordingSpeechWorker(events: events),
+            operationGate: operationGate
+        )
+
+        manager.install(model)
+        try await waitForRequest(to: server)
+        let deletion = Task { @MainActor in
+            try await manager.deleteInstalledModel(model)
+        }
+        await Task.yield()
+        let transcription = Task { @MainActor in
+            try await speechClient.transcribe(
+                modelID: model.id,
+                audioInput: WorkerAudioInput(
+                    fileHandle: FileHandle.nullDevice,
+                    sampleRate: 16_000,
+                    channelCount: 1,
+                    sampleCount: 1
+                ),
+                requestID: PipelineRequestID()
+            )
+        }
+
+        try await deletion.value
+        #expect(try await transcription.value == "fixture")
+        #expect(events.values == ["unload", "load", "transcribe"])
+        #expect(manager.states[model.id] == .notInstalled)
+        #expect(server.requestCount == 1)
+    }
+
     @MainActor
     private func terminalState(
         of model: ModelManifestEntry,
@@ -109,6 +156,16 @@ struct ModelDownloadHTTPIntegrationTests {
                 continue
             }
             return state
+        }
+        throw URLError(.timedOut)
+    }
+
+    private func waitForRequest(
+        to server: HTTPModelFixtureServer
+    ) async throws {
+        for _ in 0..<200 {
+            if server.requestCount > 0 { return }
+            try await Task.sleep(for: .milliseconds(10))
         }
         throw URLError(.timedOut)
     }
@@ -173,11 +230,17 @@ private final class DownloadIntegrationFixture {
         )
     }
 
-    func manager(models: [ModelManifestEntry]) -> ModelManager {
+    func manager(
+        models: [ModelManifestEntry],
+        workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader(),
+        operationGate: ModelOperationGate = ModelOperationGate()
+    ) -> ModelManager {
         ModelManager(
             models: models,
             rootURL: rootURL,
-            defaults: defaults
+            defaults: defaults,
+            workerUnloader: workerUnloader,
+            operationGate: operationGate
         )
     }
 
@@ -190,6 +253,52 @@ private final class DownloadIntegrationFixture {
     func cleanUp() {
         try? FileManager.default.removeItem(at: rootURL)
         defaults.removePersistentDomain(forName: defaultsSuiteName)
+    }
+}
+
+@MainActor
+private final class ModelOperationEvents {
+    var values: [String] = []
+}
+
+@MainActor
+private final class RecordingModelUnloader: ModelWorkerUnloading {
+    private let events: ModelOperationEvents
+
+    init(events: ModelOperationEvents) {
+        self.events = events
+    }
+
+    func unload(_ model: ModelManifestEntry) async throws {
+        events.values.append("unload")
+    }
+}
+
+@MainActor
+private final class RecordingSpeechWorker: WorkerRequestPerforming {
+    private let events: ModelOperationEvents
+
+    init(events: ModelOperationEvents) {
+        self.events = events
+    }
+
+    func perform(
+        _ request: WorkerRequest,
+        timeout: Duration
+    ) async throws -> WorkerReply {
+        switch request.operation {
+        case .loadModel:
+            events.values.append("load")
+            return WorkerReply(requestID: request.requestID)
+        case .transcribe:
+            events.values.append("transcribe")
+            return WorkerReply(
+                requestID: request.requestID,
+                payload: Data("fixture".utf8)
+            )
+        default:
+            return WorkerReply(requestID: request.requestID)
+        }
     }
 }
 
@@ -244,6 +353,7 @@ private final class CapacityLimitedModelStorage: ModelStorageManaging {
 private final class HTTPModelFixtureServer: @unchecked Sendable {
     private let payload: Data
     private let interruptsFirstRequest: Bool
+    private let responseDelayMilliseconds: Int
     private let listener: NWListener
     private let queue = DispatchQueue(label: "HTTPModelFixtureServer")
     private let lock = NSLock()
@@ -255,9 +365,14 @@ private final class HTTPModelFixtureServer: @unchecked Sendable {
         )!
     }
 
-    init(payload: Data, interruptsFirstRequest: Bool = false) throws {
+    init(
+        payload: Data,
+        interruptsFirstRequest: Bool = false,
+        responseDelayMilliseconds: Int = 0
+    ) throws {
         self.payload = payload
         self.interruptsFirstRequest = interruptsFirstRequest
+        self.responseDelayMilliseconds = responseDelayMilliseconds
         listener = try NWListener(using: .tcp, on: .any)
 
         let ready = DispatchSemaphore(value: 0)
@@ -356,9 +471,15 @@ private final class HTTPModelFixtureServer: @unchecked Sendable {
         )
         var response = Data(responseHeaders.utf8)
         response.append(body)
-        connection.send(content: response, completion: .contentProcessed { _ in
-            connection.cancel()
-        })
+        let responseData = response
+        queue.asyncAfter(
+            deadline: .now() + .milliseconds(responseDelayMilliseconds)
+        ) {
+            connection.send(
+                content: responseData,
+                completion: .contentProcessed { _ in connection.cancel() }
+            )
+        }
     }
 
     private static func rangeStart(in headers: String) -> Int? {

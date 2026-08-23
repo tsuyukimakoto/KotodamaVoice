@@ -27,7 +27,7 @@ final class XPCModelWorkerUnloader: ModelWorkerUnloading {
         switch model.purpose {
         case .speech:
             do {
-                try await speechClient.unload(modelID: model.id)
+                try await speechClient.unloadForDeletion(modelID: model.id)
             } catch let SpeechWorkerClientError.workerFailure(code) {
                 throw ModelWorkerUnloadError.workerFailure(code)
             }
