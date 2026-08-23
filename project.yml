@@ -169,6 +169,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorkerTests
         GENERATE_INFOPLIST_FILE: YES
+    preBuildScripts:
+      - name: Prepare speech test fixtures
+        script: Scripts/prepare-speech-test-fixtures.sh
+        basedOnDependencyAnalysis: false
   FormatterWorkerTests:
     type: bundle.unit-test
     platform: macOS

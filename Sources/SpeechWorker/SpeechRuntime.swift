@@ -17,16 +17,19 @@ final class SpeechRuntime: SpeechTranscribingRuntime, @unchecked Sendable {
     private let condition = NSCondition()
     private let backend: WhisperBackend
     private let resolveModelURL: (String) throws -> URL
+    private let language: String
     private var model: AnyObject?
     private var cancelledRequestIDs = Set<PipelineRequestID>()
     private var activeRequestIDs = Set<PipelineRequestID>()
 
     init(
         backend: WhisperBackend = CWhisperBackend(),
-        resolveModelURL: @escaping (String) throws -> URL
+        resolveModelURL: @escaping (String) throws -> URL,
+        language: String = "ja"
     ) {
         self.backend = backend
         self.resolveModelURL = resolveModelURL
+        self.language = language
     }
 
     func load(modelID: String) throws {
@@ -89,7 +92,7 @@ final class SpeechRuntime: SpeechTranscribingRuntime, @unchecked Sendable {
         return try backend.transcribe(
             model: model,
             samples: samples,
-            language: "ja",
+            language: language,
             isCancelled: { [weak self] in
                 self?.isCancelled(requestID) ?? true
             }

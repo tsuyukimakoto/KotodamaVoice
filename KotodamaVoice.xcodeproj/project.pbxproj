@@ -597,6 +597,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E4F9C2D60C720871C4AB1969 /* Build configuration list for PBXNativeTarget "SpeechWorkerTests" */;
 			buildPhases = (
+				2BDCDC1EF09533F3A757ECAB /* Prepare speech test fixtures */,
 				881BD707FFF3943DBDDA301E /* Sources */,
 				4557355FF76ACDF432E7E342 /* Frameworks */,
 				82A3B2A0E63AD5BA23B1A171 /* Embed Frameworks */,
@@ -800,6 +801,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2BDCDC1EF09533F3A757ECAB /* Prepare speech test fixtures */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Prepare speech test fixtures";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "Scripts/prepare-speech-test-fixtures.sh";
+		};
 		EEB3F4FC2B77814FD6371DBB /* Verify Core dependencies */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;

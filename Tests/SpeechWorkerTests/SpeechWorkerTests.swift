@@ -40,6 +40,60 @@ import Testing
     #expect(backend.receivedLanguage == "ja")
 }
 
+@Test func pinnedWhisperRuntimeTranscribesKnownAudio() throws {
+    let projectRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let modelURL = projectRoot.appending(
+        path: ".build/test-fixtures/ggml-tiny.en-q5_1.bin"
+    )
+    let audioURL = projectRoot.appending(
+        path: ".build/runtimes/sources/whisper/samples/jfk.wav"
+    )
+    let runtime = SpeechRuntime(
+        resolveModelURL: { _ in modelURL },
+        language: "en"
+    )
+    let service = WorkerService(runtime: runtime)
+    let fixture = try AudioInputFixture(samples: readPCM16Wave(at: audioURL))
+    var loadReply: WorkerReply?
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .loadModel,
+            modelID: "whisper-tiny-en-q5-1-fixture"
+        )
+    ) { loadReply = $0 }
+    #expect(loadReply?.failure == nil)
+
+    var transcriptionReply: WorkerReply?
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .transcribe,
+            audioInput: fixture.input
+        )
+    ) { transcriptionReply = $0 }
+    let text = String(
+        data: try #require(transcriptionReply?.payload),
+        encoding: .utf8
+    )
+
+    #expect(
+        text == "And so my fellow Americans ask not what your country can do for you. Ask what you can do for your country."
+    )
+    var unloadReply: WorkerReply?
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .unloadModel,
+            modelID: "whisper-tiny-en-q5-1-fixture"
+        )
+    ) { unloadReply = $0 }
+    #expect(unloadReply?.failure == nil)
+}
+
 @Test func speechRuntimeRejectsMismatchedAudioMetadata() throws {
     let backend = FixtureWhisperBackend()
     let runtime = SpeechRuntime(
@@ -228,6 +282,62 @@ private final class AudioInputFixture: @unchecked Sendable {
         try? input.fileHandle.close()
         try? FileManager.default.removeItem(at: url)
     }
+}
+
+private func readPCM16Wave(at url: URL) throws -> [Float] {
+    let data = try Data(contentsOf: url)
+    guard data.count >= 12,
+          String(decoding: data[0..<4], as: UTF8.self) == "RIFF",
+          String(decoding: data[8..<12], as: UTF8.self) == "WAVE"
+    else {
+        throw WorkerRuntimeError.invalidInput
+    }
+
+    var cursor = 12
+    var formatIsPCM16Mono16K = false
+    var audioData: Data?
+    while cursor + 8 <= data.count {
+        let identifier = String(
+            decoding: data[cursor..<(cursor + 4)],
+            as: UTF8.self
+        )
+        let byteCount = Int(readUInt32(data, at: cursor + 4))
+        let start = cursor + 8
+        let end = start + byteCount
+        guard end <= data.count else {
+            throw WorkerRuntimeError.invalidInput
+        }
+        if identifier == "fmt ", byteCount >= 16 {
+            formatIsPCM16Mono16K = readUInt16(data, at: start) == 1
+                && readUInt16(data, at: start + 2) == 1
+                && readUInt32(data, at: start + 4) == 16_000
+                && readUInt16(data, at: start + 14) == 16
+        } else if identifier == "data" {
+            audioData = Data(data[start..<end])
+        }
+        cursor = end + byteCount % 2
+    }
+    guard formatIsPCM16Mono16K, let audioData,
+          audioData.count.isMultiple(of: 2)
+    else {
+        throw WorkerRuntimeError.invalidInput
+    }
+
+    return stride(from: 0, to: audioData.count, by: 2).map { offset in
+        let sample = Int16(bitPattern: readUInt16(audioData, at: offset))
+        return Float(sample) / 32_768
+    }
+}
+
+private func readUInt16(_ data: Data, at offset: Int) -> UInt16 {
+    UInt16(data[offset]) | UInt16(data[offset + 1]) << 8
+}
+
+private func readUInt32(_ data: Data, at offset: Int) -> UInt32 {
+    UInt32(data[offset])
+        | UInt32(data[offset + 1]) << 8
+        | UInt32(data[offset + 2]) << 16
+        | UInt32(data[offset + 3]) << 24
 }
 
 private final class UncheckedSendableBox<Value>: @unchecked Sendable {
