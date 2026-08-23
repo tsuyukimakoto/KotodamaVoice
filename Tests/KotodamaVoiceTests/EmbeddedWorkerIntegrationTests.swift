@@ -54,6 +54,39 @@ struct EmbeddedWorkerIntegrationTests {
             )
         }
     }
+
+    @Test
+    func workersMemoryMapAppGroupFixture() async throws {
+        let fileManager = FileManager.default
+        let containerURL = try #require(
+            fileManager.containerURL(
+                forSecurityApplicationGroupIdentifier:
+                    "group.jp.tsuyuki.KotodamaVoice"
+            )
+        )
+        let directoryURL = containerURL.appending(
+            path: "Diagnostics",
+            directoryHint: .isDirectory
+        )
+        try fileManager.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+        let fixtureURL = directoryURL.appending(
+            path: "worker-mmap.fixture",
+            directoryHint: .notDirectory
+        )
+        let fixture = Data("KotodamaVoice mmap fixture v1".utf8)
+        try fixture.write(to: fixtureURL, options: .atomic)
+        defer { try? fileManager.removeItem(at: fixtureURL) }
+
+        let client = WorkerDiagnosticClient()
+        for endpoint in WorkerEndpoint.allCases {
+            let reply = try await client.mapDiagnosticFixture(in: endpoint)
+            #expect(reply.failure == nil)
+            #expect(reply.payload == fixture)
+        }
+    }
 }
 
 private struct DiagnosticProcessFixture: Decodable {

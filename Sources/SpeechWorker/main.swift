@@ -13,7 +13,8 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedObject = WorkerService(
             runtime: SpeechRuntime(resolveModelURL: resolveSpeechModelURL),
             logger: OSLogDiagnosticLogger(component: .speechWorker),
-            component: .speechWorker
+            component: .speechWorker,
+            diagnosticFixtureMapper: mapAppGroupDiagnosticFixture
         )
         newConnection.activate()
         return true

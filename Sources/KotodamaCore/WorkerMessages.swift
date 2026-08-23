@@ -9,6 +9,7 @@ public enum WorkerOperation: Int, Sendable {
     case cancel
     case transcribe
     case format
+    case diagnosticMapFixture
 }
 
 public enum WorkerPhase: Int, Sendable {
@@ -390,6 +391,7 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
     private let runtime: WorkerRuntimeManaging
     private let logger: DiagnosticLogging
     private let component: DiagnosticComponent
+    private let diagnosticFixtureMapper: @Sendable () throws -> Data
     private let lock = NSLock()
     private var lifecycleState: WorkerLifecycleState = .idle
     private var modelID: String?
@@ -413,11 +415,15 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
     public init(
         runtime: WorkerRuntimeManaging,
         logger: DiagnosticLogging,
-        component: DiagnosticComponent
+        component: DiagnosticComponent,
+        diagnosticFixtureMapper: @escaping @Sendable () throws -> Data = {
+            throw WorkerRuntimeError.invalidInput
+        }
     ) {
         self.runtime = runtime
         self.logger = logger
         self.component = component
+        self.diagnosticFixtureMapper = diagnosticFixtureMapper
         super.init()
     }
 
@@ -499,6 +505,23 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 requestID: request.requestID,
                 payload: payload
             )
+
+        case .diagnosticMapFixture:
+            do {
+                return WorkerReply(
+                    requestID: request.requestID,
+                    payload: try diagnosticFixtureMapper()
+                )
+            } catch {
+                return WorkerReply(
+                    requestID: request.requestID,
+                    failure: WorkerFailure(
+                        code: .processingFailed,
+                        isRetryable: true,
+                        underlyingCode: (error as NSError).code
+                    )
+                )
+            }
 
         case .loadModel:
             guard lifecycleState != .shutDown,

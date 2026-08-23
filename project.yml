@@ -44,6 +44,7 @@ targets:
     platform: macOS
     sources:
       - Sources/SpeechWorker
+      - Sources/WorkerShared
     dependencies:
       - target: KotodamaCore
         embed: true
@@ -75,6 +76,7 @@ targets:
     platform: macOS
     sources:
       - Sources/FormatterWorker
+      - Sources/WorkerShared
     dependencies:
       - target: KotodamaCore
         embed: true

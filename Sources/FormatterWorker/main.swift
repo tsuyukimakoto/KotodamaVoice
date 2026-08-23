@@ -13,7 +13,8 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedObject = WorkerService(
             runtime: FormatterRuntimePlaceholder(),
             logger: OSLogDiagnosticLogger(component: .formatterWorker),
-            component: .formatterWorker
+            component: .formatterWorker,
+            diagnosticFixtureMapper: mapAppGroupDiagnosticFixture
         )
         newConnection.activate()
         return true

@@ -52,6 +52,21 @@ final class WorkerDiagnosticClient {
         managers[endpoint]?.hasActiveTransport == true
     }
 
+    func mapDiagnosticFixture(
+        in endpoint: WorkerEndpoint
+    ) async throws -> WorkerReply {
+        guard let manager = managers[endpoint] else {
+            throw WorkerDiagnosticError.invalidEndpoint
+        }
+        return try await manager.perform(
+            WorkerRequest(
+                requestID: PipelineRequestID(),
+                operation: .diagnosticMapFixture
+            ),
+            timeout: .seconds(3)
+        )
+    }
+
     private func makeManager(
         for endpoint: WorkerEndpoint
     ) -> WorkerConnectionManager {

@@ -22,6 +22,7 @@
 		473491B0408C052E808733BE /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD938F4BC6FB93AEFA3881B /* HotKey.swift */; };
 		4CE508D579E90463EE067CCE /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */; };
+		55D3848235EB6875C8685D23 /* AppGroupDiagnosticFixtureMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB05D0E93CC193290FCBD103 /* AppGroupDiagnosticFixtureMapper.swift */; };
 		5A0783CE5C0D1C33FFD4E755 /* URLSessionModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDE7553E525E6D37D454CB1C /* URLSessionModelDownloader.swift */; };
 		5A2F6512F819EBD55567A21B /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
 		5B7AB2438A108AA70D054101 /* FormatterWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */; };
@@ -54,6 +55,7 @@
 		C620873D77438120DDB5097E /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A109991F1F9EDAB8AFB2A88C /* llama.xcframework */; };
 		CA8C968200562003FF37423B /* whisper.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */; };
 		CB9644E56A512B65FCB66C12 /* WorkerDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */; };
+		CD54520B9D2D0FDD955184E4 /* AppGroupDiagnosticFixtureMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB05D0E93CC193290FCBD103 /* AppGroupDiagnosticFixtureMapper.swift */; };
 		CECAB467C0D8247D58A79E59 /* FormatterWorker.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 80A3944F2874EE16F49135C7 /* FormatterWorker.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CF0D91917C50BAC095EE932B /* AudioSampleConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D5719B39B1A692C06CBE86 /* AudioSampleConverter.swift */; };
 		D60389933CAB91331B8693A1 /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -275,6 +277,7 @@
 		E41A57AA23343E5644F31E6B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		E7A002F56BBCAE14AD65120F /* FormatterWorkerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FormatterWorkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E98A0C0BBD109721E35265FF /* WorkerConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerConnectionManager.swift; sourceTree = "<group>"; };
+		EB05D0E93CC193290FCBD103 /* AppGroupDiagnosticFixtureMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupDiagnosticFixtureMapper.swift; sourceTree = "<group>"; };
 		ED90C336FE480B0ADC7CA39D /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		EDE7553E525E6D37D454CB1C /* URLSessionModelDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionModelDownloader.swift; sourceTree = "<group>"; };
 		F20D8C389F4413253DAAF88A /* PipelineStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineStateMachine.swift; sourceTree = "<group>"; };
@@ -496,6 +499,14 @@
 			path = FormatterWorker;
 			sourceTree = "<group>";
 		};
+		F51080320193310CE8AC19B6 /* WorkerShared */ = {
+			isa = PBXGroup;
+			children = (
+				EB05D0E93CC193290FCBD103 /* AppGroupDiagnosticFixtureMapper.swift */,
+			);
+			path = WorkerShared;
+			sourceTree = "<group>";
+		};
 		F6E3256C165610B7FC2E4521 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
@@ -503,6 +514,7 @@
 				5BD4D75ECCDB4BA5E74B13D2 /* KotodamaCore */,
 				C538AA36F7322D7BC52C2C36 /* KotodamaVoice */,
 				04BFE5F67B597802F84C501A /* SpeechWorker */,
+				F51080320193310CE8AC19B6 /* WorkerShared */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -814,6 +826,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55D3848235EB6875C8685D23 /* AppGroupDiagnosticFixtureMapper.swift in Sources */,
 				22D2F132C4B309B8CF488321 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -839,6 +852,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD54520B9D2D0FDD955184E4 /* AppGroupDiagnosticFixtureMapper.swift in Sources */,
 				A59E16B231D25AA7BC376A5E /* SpeechRuntime.swift in Sources */,
 				D9162D80A5BC57760BBBA0B5 /* main.swift in Sources */,
 			);
