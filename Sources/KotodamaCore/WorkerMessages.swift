@@ -53,6 +53,68 @@ public protocol WorkerRuntimeManaging: AnyObject {
     func unload()
 }
 
+public enum WorkerRuntimeError: Error, Equatable, Sendable {
+    case invalidInput
+    case cancelled
+    case processingFailed
+}
+
+public protocol SpeechTranscribingRuntime: WorkerRuntimeManaging {
+    func transcribe(
+        audioInput: WorkerAudioInput,
+        requestID: PipelineRequestID
+    ) throws -> String
+}
+
+@objc(KVWorkerAudioInput)
+public final class WorkerAudioInput: NSObject, NSSecureCoding, @unchecked Sendable {
+    public static var supportsSecureCoding: Bool { true }
+
+    public let fileHandle: FileHandle
+    public let sampleRate: Double
+    public let channelCount: Int
+    public let sampleCount: Int64
+
+    public init(
+        fileHandle: FileHandle,
+        sampleRate: Double,
+        channelCount: Int,
+        sampleCount: Int64
+    ) {
+        self.fileHandle = fileHandle
+        self.sampleRate = sampleRate
+        self.channelCount = channelCount
+        self.sampleCount = sampleCount
+    }
+
+    public required init?(coder: NSCoder) {
+        guard let fileHandle = coder.decodeObject(
+            of: FileHandle.self,
+            forKey: Key.fileHandle
+        ) else {
+            return nil
+        }
+        self.fileHandle = fileHandle
+        sampleRate = coder.decodeDouble(forKey: Key.sampleRate)
+        channelCount = coder.decodeInteger(forKey: Key.channelCount)
+        sampleCount = coder.decodeInt64(forKey: Key.sampleCount)
+    }
+
+    public func encode(with coder: NSCoder) {
+        coder.encode(fileHandle, forKey: Key.fileHandle)
+        coder.encode(sampleRate, forKey: Key.sampleRate)
+        coder.encode(channelCount, forKey: Key.channelCount)
+        coder.encode(sampleCount, forKey: Key.sampleCount)
+    }
+
+    private enum Key {
+        static let fileHandle = "fileHandle"
+        static let sampleRate = "sampleRate"
+        static let channelCount = "channelCount"
+        static let sampleCount = "sampleCount"
+    }
+}
+
 @objc(KVWorkerRequest)
 public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable {
     public static var supportsSecureCoding: Bool { true }
@@ -62,19 +124,22 @@ public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable 
     public let operation: WorkerOperation
     public let modelID: String?
     public let options: [String: String]
+    public let audioInput: WorkerAudioInput?
 
     public init(
         protocolVersion: Int = KotodamaCore.protocolVersion,
         requestID: PipelineRequestID,
         operation: WorkerOperation,
         modelID: String? = nil,
-        options: [String: String] = [:]
+        options: [String: String] = [:],
+        audioInput: WorkerAudioInput? = nil
     ) {
         self.protocolVersion = protocolVersion
         self.requestID = requestID
         self.operation = operation
         self.modelID = modelID
         self.options = options
+        self.audioInput = audioInput
     }
 
     public required init?(coder: NSCoder) {
@@ -98,6 +163,10 @@ public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable 
         self.operation = operation
         modelID = coder.decodeObject(of: NSString.self, forKey: Key.modelID) as String?
         self.options = options
+        audioInput = coder.decodeObject(
+            of: WorkerAudioInput.self,
+            forKey: Key.audioInput
+        )
     }
 
     public func encode(with coder: NSCoder) {
@@ -106,6 +175,7 @@ public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable 
         coder.encode(operation.rawValue, forKey: Key.operation)
         coder.encode(modelID as NSString?, forKey: Key.modelID)
         coder.encode(options as NSDictionary, forKey: Key.options)
+        coder.encode(audioInput, forKey: Key.audioInput)
     }
 
     public override var description: String {
@@ -118,6 +188,7 @@ public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable 
         static let operation = "operation"
         static let modelID = "modelID"
         static let options = "options"
+        static let audioInput = "audioInput"
     }
 }
 
@@ -354,9 +425,7 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 stage: .accepted
             )
         )
-        lock.lock()
         let replyValue = handle(request)
-        lock.unlock()
         logger.record(
             DiagnosticRecord(
                 component: component,
@@ -380,6 +449,36 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             )
         }
 
+        switch request.operation {
+        case .cancel:
+            runtime.cancel(requestID: request.requestID)
+            return WorkerReply(requestID: request.requestID)
+
+        case .transcribe:
+            lock.lock()
+            let speechRuntime = runtime as? SpeechTranscribingRuntime
+            let canTranscribe = lifecycleState == .loaded
+            lock.unlock()
+            guard canTranscribe,
+                  let speechRuntime,
+                  let audioInput = request.audioInput
+            else {
+                return invalidRequestReply(for: request.requestID)
+            }
+            return transcribe(
+                audioInput: audioInput,
+                requestID: request.requestID,
+                runtime: speechRuntime
+            )
+
+        default:
+            lock.lock()
+            defer { lock.unlock() }
+            return handleSerialized(request)
+        }
+    }
+
+    private func handleSerialized(_ request: WorkerRequest) -> WorkerReply {
         switch request.operation {
         case .diagnosticEcho:
             return WorkerReply(requestID: request.requestID)
@@ -434,10 +533,6 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 payload: payload
             )
 
-        case .cancel:
-            runtime.cancel(requestID: request.requestID)
-            return WorkerReply(requestID: request.requestID)
-
         case .shutdown:
             runtime.cancelAll()
             runtime.unload()
@@ -445,8 +540,44 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             lifecycleState = .shutDown
             return WorkerReply(requestID: request.requestID)
 
-        case .transcribe, .format:
+        case .cancel, .transcribe, .format:
             return invalidRequestReply(for: request.requestID)
+        }
+    }
+
+    private func transcribe(
+        audioInput: WorkerAudioInput,
+        requestID: PipelineRequestID,
+        runtime: SpeechTranscribingRuntime
+    ) -> WorkerReply {
+        do {
+            let text = try runtime.transcribe(
+                audioInput: audioInput,
+                requestID: requestID
+            )
+            return WorkerReply(
+                requestID: requestID,
+                payload: Data(text.utf8)
+            )
+        } catch WorkerRuntimeError.cancelled {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(code: .cancelled, isRetryable: true)
+            )
+        } catch WorkerRuntimeError.invalidInput {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(code: .invalidRequest, isRetryable: false)
+            )
+        } catch {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(
+                    code: .processingFailed,
+                    isRetryable: true,
+                    underlyingCode: (error as NSError).code
+                )
+            )
         }
     }
 

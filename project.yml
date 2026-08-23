@@ -154,8 +154,10 @@ targets:
     platform: macOS
     sources:
       - Tests/SpeechWorkerTests
+      - Sources/SpeechWorker/SpeechRuntime.swift
     dependencies:
-      - target: SpeechWorker
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/whisper.xcframework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorkerTests

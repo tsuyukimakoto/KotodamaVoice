@@ -29,22 +29,22 @@
 
 - [x] 4.1 Manifest decoderへ必須項目不足、重複ID、許可外ファイル種別、hash不正の失敗テストを追加してから検証処理を実装する
 - [ ] 4.2 署名対象のモデルManifestとModels画面を実装し、名称、用途、容量、取得元、ライセンス、状態がfixtureと一致することをUI Testで確認する
-- [ ] 4.3 空き容量、一時取得、resume、進捗、サイズ、SHA-256、atomic moveの失敗テストを追加してからdownload coordinatorを実装する
+- [x] 4.3 空き容量、一時取得、resume、進捗、サイズ、SHA-256、atomic moveの失敗テストを追加してからdownload coordinatorを実装する
 - [ ] 4.4 HTTP fixture serverで成功、中断再開、hash不一致、容量不足を再現し、Installedになるのが検証成功時だけであることを確認する
 - [ ] 4.5 Worker unloadとモデル削除を連携し、unload失敗時はファイルを残し成功時だけ削除されることを統合テストで確認する
 - [ ] 4.6 同一モデルのdownload、delete、loadを直列化し、競合操作を注入して破損または二重状態が発生しないことを確認する
 
 ## 5. 録音Pipeline
 
-- [ ] 5.1 マイク権限の未決定、許可、拒否を表す境界と失敗テストを追加し、初回録音操作まで許可要求を開始しない実装を確認する
-- [ ] 5.2 `AVAudioEngine`による録音と`AVAudioConverter`によるモノラル16kHz Float32変換を実装し、既知波形fixtureのサンプル数と値をテストする
+- [x] 5.1 マイク権限の未決定、許可、拒否を表す境界と失敗テストを追加し、初回録音操作まで許可要求を開始しない実装を確認する
+- [x] 5.2 `AVAudioEngine`による録音と`AVAudioConverter`によるモノラル16kHz Float32変換を実装し、既知波形fixtureのサンプル数と値をテストする
 - [ ] 5.3 空録音、入力機器切断、最大録音長、キャンセルのテストを追加し、部分音声をSpeechへ渡さずreadyへ戻ることを確認する
 - [ ] 5.4 request ID単位の一時音声ファイルと`NSFileHandle`受け渡しを実装し、成功、失敗、キャンセル後に一時ファイルが残らないことを確認する
 - [ ] 5.5 メニューバーとホットキーを録音Pipelineへ接続し、二回の押下で録音開始、停止、transcribing遷移が一度ずつ起きることを実機で確認する
 
 ## 6. 内蔵Speech
 
-- [ ] 6.1 whisper Runtime wrapperへmodel load、transcribe、cancel、unloadの失敗テストをfixture Runtimeで追加してからSpeech Workerへ実装する
+- [x] 6.1 whisper Runtime wrapperへmodel load、transcribe、cancel、unloadの失敗テストをfixture Runtimeで追加してからSpeech Workerへ実装する
 - [ ] 6.2 固定したwhisper.cpp Frameworkと小型テストモデルを使うWorker統合テストを作り、既知音声から期待文字列を取得できることを確認する
 - [ ] 6.3 Large v3 Turbo F16とQ5候補を取得し、固定日本語音声セットで文字誤り、固有名詞、英数字、日付、処理時間、ロード時間、physical footprintを測定する
 - [ ] 6.4 16GB基準を満たす既定SpeechモデルをManifestへ固定し、revision、size、SHA-256、MITライセンス表示を検証する
@@ -72,7 +72,7 @@
 
 ## 9. ClipboardとAuto Insert
 
-- [ ] 9.1 Clipboard adapterへ置換、読み戻し、競合、失敗のテストを追加してから実装し、最終テキストと読み戻しが一致することを確認する
+- [x] 9.1 Clipboard adapterへ置換、読み戻し、競合、失敗のテストを追加してから実装し、最終テキストと読み戻しが一致することを確認する
 - [ ] 9.2 単一`NSPanel` HUDへ置換、timer reset、非アクティブ、本文非表示のテストを追加してから実装する
 - [ ] 9.3 Accessibility権限adapterを実装し、起動時とClipboard利用時にはpromptせずAuto Insert選択時だけpromptすることをUI Testで確認する
 - [ ] 9.4 録音開始時のfrontmost app、focused element、selection captureと出力時再検証を実装し、PID変更、element無効化、selection変更の失敗テストを成功させる

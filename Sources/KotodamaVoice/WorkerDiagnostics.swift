@@ -60,7 +60,7 @@ private enum WorkerDiagnosticError: Error {
 }
 
 @MainActor
-private final class NSXPCWorkerTransport: WorkerTransport {
+final class NSXPCWorkerTransport: WorkerTransport {
     var interruptionHandler: (@MainActor @Sendable () -> Void)?
     var invalidationHandler: (@MainActor @Sendable () -> Void)?
 

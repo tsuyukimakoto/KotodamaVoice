@@ -11,7 +11,7 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
             with: WorkerServiceProtocol.self
         )
         newConnection.exportedObject = WorkerService(
-            runtime: SpeechRuntimePlaceholder(),
+            runtime: SpeechRuntime(resolveModelURL: resolveSpeechModelURL),
             logger: OSLogDiagnosticLogger(component: .speechWorker),
             component: .speechWorker
         )
@@ -20,11 +20,24 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
     }
 }
 
-private final class SpeechRuntimePlaceholder: WorkerRuntimeManaging {
-    func load(modelID: String) throws {}
-    func cancel(requestID: PipelineRequestID) {}
-    func cancelAll() {}
-    func unload() {}
+private func resolveSpeechModelURL(modelID: String) throws -> URL {
+    guard let containerURL = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+    ) else {
+        throw WorkerRuntimeError.processingFailed
+    }
+    let modelDirectory = containerURL
+        .appending(path: "Models", directoryHint: .isDirectory)
+        .appending(path: modelID, directoryHint: .isDirectory)
+    let files = try FileManager.default.contentsOfDirectory(
+        at: modelDirectory,
+        includingPropertiesForKeys: nil,
+        options: [.skipsHiddenFiles]
+    )
+    guard files.count == 1, files[0].pathExtension == "bin" else {
+        throw WorkerRuntimeError.invalidInput
+    }
+    return files[0]
 }
 
 let delegate = SpeechWorkerDelegate()

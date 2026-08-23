@@ -14,7 +14,15 @@ struct ModelsView: View {
                 )
             } else {
                 List(runtime.modelCatalog.models) { model in
-                    ModelRow(model: model)
+                    ModelRow(
+                        model: model,
+                        state: runtime.modelManager.states[model.id]
+                            ?? .notInstalled,
+                        isSelected: runtime.modelManager
+                            .selectedModel(for: model.purpose)?.id == model.id,
+                        install: { runtime.modelManager.install(model) },
+                        select: { try? runtime.modelManager.select(model) }
+                    )
                         .accessibilityIdentifier("model-\(model.id)")
                 }
             }
@@ -25,6 +33,10 @@ struct ModelsView: View {
 
 private struct ModelRow: View {
     let model: ModelManifestEntry
+    let state: ModelAvailability
+    let isSelected: Bool
+    let install: () -> Void
+    let select: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -32,7 +44,7 @@ private struct ModelRow: View {
                 Text(model.displayName)
                     .font(.headline)
                 Spacer()
-                Text("未導入")
+                Text(statusText)
                     .foregroundStyle(.secondary)
             }
             LabeledContent("用途", value: purposeName)
@@ -45,6 +57,16 @@ private struct ModelRow: View {
             )
             LabeledContent("取得元", value: model.sourceURL.host() ?? "-")
             LabeledContent("ライセンス", value: model.licenseName)
+            if case let .downloading(progress) = state {
+                ProgressView(value: progress)
+            } else if canInstall {
+                Button("取得", action: install)
+                    .accessibilityIdentifier("install-\(model.id)")
+            } else if state == .installed {
+                Button(isSelected ? "使用中" : "このモデルを使用", action: select)
+                    .disabled(isSelected)
+                    .accessibilityIdentifier("select-\(model.id)")
+            }
         }
         .padding(.vertical, 8)
     }
@@ -55,6 +77,30 @@ private struct ModelRow: View {
             "文字起こし"
         case .formatter:
             "文章整形"
+        }
+    }
+
+    private var canInstall: Bool {
+        switch state {
+        case .notInstalled, .failed:
+            true
+        case .downloading, .installed, .storageUnavailable:
+            false
+        }
+    }
+
+    private var statusText: String {
+        switch state {
+        case .notInstalled:
+            "未導入"
+        case let .downloading(progress):
+            "取得中 \(Int(progress * 100))%"
+        case .installed:
+            "導入済み"
+        case let .failed(message):
+            message
+        case .storageUnavailable:
+            "App Groupを利用できません"
         }
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ModelPurpose: String, Codable, Sendable {
+public enum ModelPurpose: String, Codable, Hashable, Sendable {
     case speech
     case formatter
 }
@@ -28,6 +28,34 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
     public let licenseName: String
     public let licenseURL: URL
     public let runtime: ModelRuntime
+
+    public init(
+        id: String,
+        displayName: String,
+        purpose: ModelPurpose,
+        version: String,
+        sourceURL: URL,
+        revision: String,
+        fileName: String,
+        byteCount: Int64,
+        sha256: String,
+        licenseName: String,
+        licenseURL: URL,
+        runtime: ModelRuntime
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.purpose = purpose
+        self.version = version
+        self.sourceURL = sourceURL
+        self.revision = revision
+        self.fileName = fileName
+        self.byteCount = byteCount
+        self.sha256 = sha256
+        self.licenseName = licenseName
+        self.licenseURL = licenseURL
+        self.runtime = runtime
+    }
 }
 
 public enum ModelManifestError: Error, Equatable, Sendable {
