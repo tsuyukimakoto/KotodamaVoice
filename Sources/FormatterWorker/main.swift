@@ -14,7 +14,11 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
             runtime: FormatterRuntimePlaceholder(),
             logger: OSLogDiagnosticLogger(component: .formatterWorker),
             component: .formatterWorker,
-            diagnosticFixtureMapper: mapAppGroupDiagnosticFixture
+            diagnosticFixtureMapper: {
+                try WorkerDiagnosticFixture.map(
+                    appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+                )
+            }
         )
         newConnection.activate()
         return true

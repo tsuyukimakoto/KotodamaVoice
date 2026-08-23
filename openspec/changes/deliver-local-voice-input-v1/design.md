@@ -133,7 +133,8 @@ WorkerReply
 音声本文、文字起こし本文、整形本文は要求と応答には含まれるが、`description`、`debugDescription`、OSLogへ展開しない。
 ログはrequest ID、byte count、token count、時間、状態、エラー分類だけを記録する。
 
-中断は接続を再利用できる状態、無効化はConnectionを作り直す状態として区別する。
+中断は進行中要求を一度だけ失敗させてConnectionを破棄し、次回要求で新しいConnectionを作る状態として扱う。
+無効化も同様にConnectionを破棄し、次回要求まで再接続しない。
 進行中要求は自動再実行しない。
 再実行すると同じ要求が二重に完了する可能性があるためである。
 

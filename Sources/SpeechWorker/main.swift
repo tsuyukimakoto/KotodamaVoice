@@ -14,7 +14,11 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
             runtime: SpeechRuntime(resolveModelURL: resolveSpeechModelURL),
             logger: OSLogDiagnosticLogger(component: .speechWorker),
             component: .speechWorker,
-            diagnosticFixtureMapper: mapAppGroupDiagnosticFixture
+            diagnosticFixtureMapper: {
+                try WorkerDiagnosticFixture.map(
+                    appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+                )
+            }
         )
         newConnection.activate()
         return true
