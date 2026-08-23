@@ -218,6 +218,10 @@ schemes:
         SpeechWorker: all
         FormatterWorker: all
     test:
+      environmentVariables:
+        KOTODAMA_OFFLINE_REQUIRED: "$(KOTODAMA_OFFLINE_REQUIRED)"
+        KOTODAMA_OFFLINE_MODEL: "$(KOTODAMA_OFFLINE_MODEL)"
+        KOTODAMA_OFFLINE_AUDIO: "$(KOTODAMA_OFFLINE_AUDIO)"
       targets:
         - KotodamaCoreTests
         - KotodamaVoiceTests

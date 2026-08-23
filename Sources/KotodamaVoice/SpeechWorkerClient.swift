@@ -43,12 +43,17 @@ final class SpeechWorkerClient {
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
     ) async throws -> String {
-        try await operationGate.withOperation(for: modelID) {
-            try await self.performTranscription(
-                modelID: modelID,
-                audioInput: audioInput,
-                requestID: requestID
-            )
+        do {
+            return try await operationGate.withOperation(for: modelID) {
+                try await self.performTranscription(
+                    modelID: modelID,
+                    audioInput: audioInput,
+                    requestID: requestID
+                )
+            }
+        } catch let error as WorkerConnectionError {
+            loadedModelID = nil
+            throw error
         }
     }
 

@@ -79,6 +79,48 @@ func speechClientDoesNotFallbackAfterWorkerFailure() async throws {
 }
 
 @Test @MainActor
+func speechClientReloadsModelAfterConnectionInterruption() async throws {
+    let worker = RecoveringWorkerRequestPerformerSpy()
+    let client = SpeechWorkerClient(worker: worker)
+    let audioInput = WorkerAudioInput(
+        fileHandle: FileHandle.nullDevice,
+        sampleRate: 16_000,
+        channelCount: 1,
+        sampleCount: 1
+    )
+    worker.results = [
+        .success(WorkerReply(requestID: PipelineRequestID())),
+        .failure(WorkerConnectionError.interrupted),
+        .success(WorkerReply(requestID: PipelineRequestID())),
+        .success(WorkerReply(
+            requestID: PipelineRequestID(),
+            payload: Data("recovered".utf8)
+        )),
+    ]
+
+    await #expect(throws: WorkerConnectionError.interrupted) {
+        try await client.transcribe(
+            modelID: "speech-model",
+            audioInput: audioInput,
+            requestID: PipelineRequestID()
+        )
+    }
+    let recovered = try await client.transcribe(
+        modelID: "speech-model",
+        audioInput: audioInput,
+        requestID: PipelineRequestID()
+    )
+
+    #expect(recovered == "recovered")
+    #expect(worker.requests.map(\.operation) == [
+        .loadModel,
+        .transcribe,
+        .loadModel,
+        .transcribe,
+    ])
+}
+
+@Test @MainActor
 func speechClientLoadsAgainAfterModelDeletionUnload() async throws {
     let worker = WorkerRequestPerformerSpy()
     let client = SpeechWorkerClient(worker: worker)
@@ -129,5 +171,19 @@ private final class WorkerRequestPerformerSpy: WorkerRequestPerforming {
     ) async throws -> WorkerReply {
         requests.append(request)
         return replies.removeFirst()
+    }
+}
+
+@MainActor
+private final class RecoveringWorkerRequestPerformerSpy: WorkerRequestPerforming {
+    var results: [Result<WorkerReply, Error>] = []
+    private(set) var requests: [WorkerRequest] = []
+
+    func perform(
+        _ request: WorkerRequest,
+        timeout: Duration
+    ) async throws -> WorkerReply {
+        requests.append(request)
+        return try results.removeFirst().get()
     }
 }
