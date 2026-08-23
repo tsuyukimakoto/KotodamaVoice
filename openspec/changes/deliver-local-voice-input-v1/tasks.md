@@ -53,7 +53,7 @@
 
 ## 7. Formatter
 
-- [ ] 7.1 Formatter Off、内蔵、外部と、失敗時に原文へ戻るPipelineテストを先に追加してからEngine selectionを実装する
+- [x] 7.1 Formatter Off、内蔵、外部と、失敗時に原文へ戻るPipelineテストを先に追加してからEngine selectionを実装する
 - [ ] 7.2 llama Runtime wrapperへmodel load、format、cancel、unloadの失敗テストをfixture Runtimeで追加してからFormatter Workerへ実装する
 - [ ] 7.3 Gemma 4 E4B候補を固定llama.cpp revisionで変換または取得し、ロード、連続生成、キャンセル、終了、制御token除去を検証する
 - [ ] 7.4 日本語評価セットで意味、固有名詞、数値、日付、フィラー、句読点、情報追加、ロード時間、速度、physical footprintを測定する

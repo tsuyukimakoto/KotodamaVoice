@@ -27,6 +27,7 @@
 		47C139ACBC14BEA8515727C2 /* SpeechRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */; };
 		49655035111E03525A6C578F /* ModelOperationGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D8917CFEEE69E9EDC4070C /* ModelOperationGate.swift */; };
 		4CE508D579E90463EE067CCE /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4DD6D8B55AF2EAE84DC40D49 /* TextFormattingPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C20967D9755B4A66D1CA24 /* TextFormattingPipelineTests.swift */; };
 		4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */; };
 		5A0783CE5C0D1C33FFD4E755 /* URLSessionModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDE7553E525E6D37D454CB1C /* URLSessionModelDownloader.swift */; };
 		5A2F6512F819EBD55567A21B /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
@@ -42,6 +43,7 @@
 		7529719FBEAA212F88E7295C /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		792EC659BF1FCE6DB494F089 /* WorkerConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98A0C0BBD109721E35265FF /* WorkerConnectionManager.swift */; };
 		7A6E8E44D2DBEF3D9429D029 /* AudioBufferAccumulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE752A3FC33E0BFF1FB53FF /* AudioBufferAccumulatorTests.swift */; };
+		7EED43F0F58BF3CD7328AAC8 /* TextFormattingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0B561B52FA7990A33A1019 /* TextFormattingPipeline.swift */; };
 		81FFBB36BAA1E29A1051FF61 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A5D11D804A8B7BDB6C7175 /* AppRuntime.swift */; };
 		8884F151A1F8ECB6949F8C3F /* ClipboardOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A0A655F55C34B62C5E0EE /* ClipboardOutputTests.swift */; };
 		88855C43D2E9D5FF5C14B1A2 /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
@@ -249,8 +251,10 @@
 		0450E471B8AEAF1C9EA9E059 /* MicrophonePermissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophonePermissionTests.swift; sourceTree = "<group>"; };
 		0AE210015442A705B2F3AEEA /* ModelDownloadCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloadCoordinatorTests.swift; sourceTree = "<group>"; };
 		0AF1DFF961964DE3D0EF3AA5 /* LocalSpeechPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSpeechPipeline.swift; sourceTree = "<group>"; };
+		0F0B561B52FA7990A33A1019 /* TextFormattingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFormattingPipeline.swift; sourceTree = "<group>"; };
 		11761C2322787DB1CA3B22A7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		163377464306A3A252A8CC29 /* ModelDownloadCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloadCoordinator.swift; sourceTree = "<group>"; };
+		20C20967D9755B4A66D1CA24 /* TextFormattingPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFormattingPipelineTests.swift; sourceTree = "<group>"; };
 		223537F87A638A6A25C0A009 /* ModelManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManifestTests.swift; sourceTree = "<group>"; };
 		28ACFFCE4943C9852FE83D73 /* KotodamaVoiceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceApp.swift; sourceTree = "<group>"; };
 		2AB920251DA74A14ECE2CC71 /* SpeechWorkerClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechWorkerClientTests.swift; sourceTree = "<group>"; };
@@ -462,6 +466,7 @@
 				7E355F449AECB3C4A8400BE3 /* SpeechModelEvaluationTests.swift */,
 				2AB920251DA74A14ECE2CC71 /* SpeechWorkerClientTests.swift */,
 				E042E81D56B2E0BFC6C385D4 /* TemporaryAudioStoreTests.swift */,
+				20C20967D9755B4A66D1CA24 /* TextFormattingPipelineTests.swift */,
 			);
 			path = KotodamaVoiceTests;
 			sourceTree = "<group>";
@@ -537,6 +542,7 @@
 				C9D2617C6E95C214AAC1D1D7 /* ShortcutRecorder.swift */,
 				8D8D5DFA20028FB8580A6178 /* SpeechWorkerClient.swift */,
 				D17AA34DA2B4922241291761 /* TemporaryAudioStore.swift */,
+				0F0B561B52FA7990A33A1019 /* TextFormattingPipeline.swift */,
 				EDE7553E525E6D37D454CB1C /* URLSessionModelDownloader.swift */,
 				88868843C2C55F2F234F1584 /* UserDefaultsHotKeyPreference.swift */,
 				B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */,
@@ -931,6 +937,7 @@
 				92B28808C99CE1598120DD57 /* SpeechModelEvaluationTests.swift in Sources */,
 				E43513C3FA5EC51371270205 /* SpeechWorkerClientTests.swift in Sources */,
 				EDEE2C47484A72D0C0CE8A48 /* TemporaryAudioStoreTests.swift in Sources */,
+				4DD6D8B55AF2EAE84DC40D49 /* TextFormattingPipelineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1011,6 +1018,7 @@
 				157B69F84BB0F25B95410600 /* ShortcutRecorder.swift in Sources */,
 				6FAE6C97E0D815A1981FC1AF /* SpeechWorkerClient.swift in Sources */,
 				1E9899545FDE91FB20280AC4 /* TemporaryAudioStore.swift in Sources */,
+				7EED43F0F58BF3CD7328AAC8 /* TextFormattingPipeline.swift in Sources */,
 				5A0783CE5C0D1C33FFD4E755 /* URLSessionModelDownloader.swift in Sources */,
 				ECC13AF7AA18EF340F087D7F /* UserDefaultsHotKeyPreference.swift in Sources */,
 				CB9644E56A512B65FCB66C12 /* WorkerDiagnostics.swift in Sources */,

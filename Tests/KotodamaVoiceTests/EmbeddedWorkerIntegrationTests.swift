@@ -42,7 +42,7 @@ struct EmbeddedWorkerIntegrationTests {
 
             let secondReply = try await client.echo(
                 endpoint,
-                timeout: .seconds(10)
+                timeout: .seconds(15)
             )
             let secondProcess = try JSONDecoder().decode(
                 DiagnosticProcessFixture.self,

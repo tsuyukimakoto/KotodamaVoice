@@ -28,10 +28,7 @@ struct SettingsView: View {
                     .accessibilityIdentifier("speech-settings")
             }
 
-            PlaceholderSettingsView(
-                title: "Formatting",
-                detail: "文章整形の利用方法を設定します。"
-            )
+            FormattingSettingsView(settings: runtime.formatterSettings)
             .tabItem {
                 Label("Formatting", systemImage: "text.alignleft")
                     .accessibilityIdentifier("formatting-settings")
@@ -57,6 +54,47 @@ struct SettingsView: View {
         }
         .padding(20)
         .frame(width: 620, height: 420)
+    }
+}
+
+private struct FormattingSettingsView: View {
+    let settings: FormatterSettingsStore
+
+    var body: some View {
+        Form {
+            Section("文章整形") {
+                Picker(
+                    "Formatter",
+                    selection: Binding(
+                        get: { settings.engine },
+                        set: { settings.setEngine($0) }
+                    )
+                ) {
+                    ForEach(FormattingEngine.allCases) { engine in
+                        Text(engine.displayName).tag(engine)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("formatter-engine-picker")
+
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("formatter-engine-detail")
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var detail: String {
+        switch settings.engine {
+        case .off:
+            "文字起こし結果を変更せず、そのまま出力します。"
+        case .builtIn:
+            "端末内のFormatter Workerで文章を整えます。"
+        case .external:
+            "設定した外部Formatterへ文字起こし結果を送信します。"
+        }
     }
 }
 

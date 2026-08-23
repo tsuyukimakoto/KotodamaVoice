@@ -19,8 +19,10 @@ final class AppRuntime {
     let workerDiagnostics: WorkerDiagnostics
     let modelCatalog: ModelCatalog
     let modelManager: ModelManager
+    let formatterSettings: FormatterSettingsStore
     private let clipboardOutput = ClipboardOutput()
     private let localSpeechPipeline: LocalSpeechPipeline
+    private let textFormattingPipeline: TextFormattingPipeline
 
     private(set) var operationError: String?
     private let hotKeyBackend: HotKeyRegistering
@@ -40,6 +42,13 @@ final class AppRuntime {
             recorder: audioRecording,
             temporaryAudioStore: TemporaryAudioStore(),
             speech: speechWorkerClient
+        )
+        let formatterSettings = FormatterSettingsStore(defaults: defaults)
+        let textFormattingPipeline = TextFormattingPipeline(
+            coordinator: coordinator,
+            settings: formatterSettings,
+            builtIn: UnavailableTextFormatter(),
+            external: UnavailableTextFormatter()
         )
         let hotKeyBackend: HotKeyRegistering
 
@@ -61,6 +70,8 @@ final class AppRuntime {
         self.pipelineStore = pipelineStore
         self.coordinator = coordinator
         self.localSpeechPipeline = localSpeechPipeline
+        self.formatterSettings = formatterSettings
+        self.textFormattingPipeline = textFormattingPipeline
         recordingStartCoordinator = RecordingStartCoordinator(
             pipeline: coordinator,
             store: pipelineStore,
@@ -127,6 +138,7 @@ final class AppRuntime {
     func toggleRecording() {
         Task {
             do {
+                var completionMessage: String?
                 if pipelineStore.state == .recording {
                     guard let speechModel = modelManager.selectedModel(
                         for: .speech
@@ -138,15 +150,17 @@ final class AppRuntime {
                         .stopAndTranscribe(
                             modelID: speechModel.id
                         )
+                    let output = try await textFormattingPipeline.process(
+                        transcription
+                    )
                     do {
-                        _ = try coordinator.completeTranscription(
-                            requestID: transcription.requestID,
-                            requiresFormatting: false
-                        )
-                        try clipboardOutput.write(transcription.text)
+                        try clipboardOutput.write(output.text)
                         _ = try coordinator.completeOutput(
                             requestID: transcription.requestID
                         )
+                        if output.usedFallback {
+                            completionMessage = "文章整形を適用できなかったため原文を出力しました"
+                        }
                     } catch {
                         _ = try? coordinator.fail(
                             requestID: transcription.requestID
@@ -173,7 +187,7 @@ final class AppRuntime {
                         }
                     }
                 }
-                operationError = nil
+                operationError = completionMessage
             } catch RecordingStartError.microphonePermissionDenied {
                 operationError = "マイクの使用が許可されていません"
             } catch VoiceInputError.speechModelUnavailable {
