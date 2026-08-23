@@ -49,18 +49,18 @@ final class AudioRecordingService {
         accumulator = AudioBufferAccumulator(
             maximumFrameCount: UInt64(format.sampleRate * maximumDuration)
         )
+        let tapReceiver = AudioInputTapReceiver(
+            accumulator: accumulator,
+            onMaximumDurationExceeded: { [weak self] in
+                self?.failRecording(with: .maximumDurationExceeded)
+            }
+        )
         inputNode.installTap(
             onBus: 0,
             bufferSize: 4_096,
-            format: format
-        ) { [weak self, accumulator] buffer, _ in
-            guard accumulator.appendCopy(of: buffer) == .accepted else {
-                Task { @MainActor in
-                    self?.failRecording(with: .maximumDurationExceeded)
-                }
-                return
-            }
-        }
+            format: format,
+            block: makeAudioInputTap(receiver: tapReceiver)
+        )
         engine.prepare()
         do {
             try engine.start()
@@ -114,6 +114,36 @@ final class AudioRecordingService {
         guard let configurationObserver else { return }
         NotificationCenter.default.removeObserver(configurationObserver)
         self.configurationObserver = nil
+    }
+}
+
+final class AudioInputTapReceiver: @unchecked Sendable {
+    private let accumulator: AudioBufferAccumulator
+    private let onMaximumDurationExceeded: @MainActor @Sendable () -> Void
+
+    init(
+        accumulator: AudioBufferAccumulator,
+        onMaximumDurationExceeded: @escaping @MainActor @Sendable () -> Void
+    ) {
+        self.accumulator = accumulator
+        self.onMaximumDurationExceeded = onMaximumDurationExceeded
+    }
+
+    func receive(_ buffer: AVAudioPCMBuffer) {
+        guard accumulator.appendCopy(of: buffer) == .accepted else {
+            Task { @MainActor [onMaximumDurationExceeded] in
+                onMaximumDurationExceeded()
+            }
+            return
+        }
+    }
+}
+
+func makeAudioInputTap(
+    receiver: AudioInputTapReceiver
+) -> AVAudioNodeTapBlock {
+    { buffer, _ in
+        receiver.receive(buffer)
     }
 }
 

@@ -36,6 +36,36 @@ import Testing
     }
 }
 
+@Test @MainActor
+func audioInputTapCanRunOutsideTheMainActor() async throws {
+    try await confirmation { failureReported in
+        let receiver = AudioInputTapReceiver(
+            accumulator: AudioBufferAccumulator(maximumFrameCount: 0),
+            onMaximumDurationExceeded: {
+                #expect(Thread.isMainThread)
+                failureReported()
+            }
+        )
+        let tap = makeAudioInputTap(receiver: receiver)
+
+        try await Task.detached {
+            let format = try #require(
+                AVAudioFormat(
+                    commonFormat: .pcmFormatFloat32,
+                    sampleRate: 48_000,
+                    channels: 1,
+                    interleaved: false
+                )
+            )
+            let buffer = try #require(
+                AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1)
+            )
+            buffer.frameLength = 1
+            tap(buffer, AVAudioTime(sampleTime: 0, atRate: 48_000))
+        }.value
+    }
+}
+
 private func audioBuffer(frameCount: AVAudioFrameCount) throws -> AVAudioPCMBuffer {
     let format = try #require(
         AVAudioFormat(

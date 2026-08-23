@@ -1,10 +1,22 @@
 import Foundation
 import KotodamaCore
+import Security
 import Testing
 @testable import KotodamaVoice
 
 @Test func applicationModuleLoads() {
     #expect(true)
+}
+
+@Test func signedHostAllowsMicrophoneInput() throws {
+    let task = try #require(SecTaskCreateFromSelf(nil))
+    let entitlement = SecTaskCopyValueForEntitlement(
+        task,
+        "com.apple.security.device.audio-input" as CFString,
+        nil
+    ) as? Bool
+
+    #expect(entitlement == true)
 }
 
 @Test @MainActor

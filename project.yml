@@ -142,6 +142,7 @@ targets:
       properties:
         com.apple.security.application-groups:
           - group.jp.tsuyuki.KotodamaVoice
+        com.apple.security.device.audio-input: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice
