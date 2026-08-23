@@ -46,6 +46,8 @@ targets:
       - Sources/SpeechWorker
     dependencies:
       - target: KotodamaCore
+        embed: true
+        codeSign: true
       - framework: .build/runtimes/artifacts/whisper.xcframework
         embed: true
         codeSign: true
@@ -64,8 +66,9 @@ targets:
           - group.jp.tsuyuki.KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorker
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.worker.speech
         ENABLE_HARDENED_RUNTIME: YES
+        REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
   FormatterWorker:
     type: xpc-service
@@ -74,6 +77,8 @@ targets:
       - Sources/FormatterWorker
     dependencies:
       - target: KotodamaCore
+        embed: true
+        codeSign: true
       - framework: .build/runtimes/artifacts/llama.xcframework
         embed: true
         codeSign: true
@@ -92,8 +97,9 @@ targets:
           - group.jp.tsuyuki.KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterWorker
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.worker.formatter
         ENABLE_HARDENED_RUNTIME: YES
+        REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
   KotodamaVoice:
     type: application
@@ -127,6 +133,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice
         ENABLE_HARDENED_RUNTIME: YES
         LD_GENERATE_MAP_FILE: YES
+        REGISTER_APP_GROUPS: YES
   KotodamaCoreTests:
     type: bundle.unit-test
     platform: macOS

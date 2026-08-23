@@ -9,11 +9,12 @@ enum WorkerEndpoint: CaseIterable, Hashable {
     var serviceName: String {
         switch self {
         case .speech:
-            "jp.tsuyuki.KotodamaVoice.SpeechWorker"
+            "jp.tsuyuki.KotodamaVoice.worker.speech"
         case .formatter:
-            "jp.tsuyuki.KotodamaVoice.FormatterWorker"
+            "jp.tsuyuki.KotodamaVoice.worker.formatter"
         }
     }
+
 }
 
 enum WorkerDiagnosticState: Equatable {
@@ -30,13 +31,16 @@ final class WorkerDiagnosticClient {
         .formatter: makeManager(for: .formatter),
     ]
 
-    func echo(_ endpoint: WorkerEndpoint) async throws -> WorkerReply {
+    func echo(
+        _ endpoint: WorkerEndpoint,
+        requestID: PipelineRequestID = PipelineRequestID()
+    ) async throws -> WorkerReply {
         guard let manager = managers[endpoint] else {
             throw WorkerDiagnosticError.invalidEndpoint
         }
         return try await manager.perform(
             WorkerRequest(
-                requestID: PipelineRequestID(),
+                requestID: requestID,
                 operation: .diagnosticEcho
             ),
             timeout: .seconds(3)
@@ -64,24 +68,31 @@ final class NSXPCWorkerTransport: WorkerTransport {
     var interruptionHandler: (@MainActor @Sendable () -> Void)?
     var invalidationHandler: (@MainActor @Sendable () -> Void)?
 
-    private let connection: NSXPCConnection
+    private let connectionHandle: XPCConnectionHandle
+
+    private var connection: NSXPCConnection {
+        connectionHandle.connection
+    }
 
     init(serviceName: String) {
-        connection = NSXPCConnection(serviceName: serviceName)
+        let connection = NSXPCConnection(serviceName: serviceName)
+        connectionHandle = XPCConnectionHandle(connection: connection)
         connection.remoteObjectInterface = NSXPCInterface(
             with: WorkerServiceProtocol.self
         )
     }
 
     func activate() {
-        connection.interruptionHandler = { [weak self] in
+        let interruptionHandler = self.interruptionHandler
+        let invalidationHandler = self.invalidationHandler
+        connection.interruptionHandler = { @Sendable in
             Task { @MainActor in
-                self?.interruptionHandler?()
+                interruptionHandler?()
             }
         }
-        connection.invalidationHandler = { [weak self] in
+        connection.invalidationHandler = { @Sendable in
             Task { @MainActor in
-                self?.invalidationHandler?()
+                invalidationHandler?()
             }
         }
         connection.activate()
@@ -91,10 +102,9 @@ final class NSXPCWorkerTransport: WorkerTransport {
         _ request: WorkerRequest,
         reply: @escaping @MainActor @Sendable (WorkerReply) -> Void
     ) {
-        let proxy = connection.remoteObjectProxyWithErrorHandler { [weak self] _ in
-            Task { @MainActor in
-                self?.connection.invalidate()
-            }
+        let connectionHandle = self.connectionHandle
+        let proxy = connection.remoteObjectProxyWithErrorHandler { @Sendable _ in
+            connectionHandle.connection.invalidate()
         }
         guard let service = proxy as? WorkerServiceProtocol else {
             connection.invalidate()
@@ -117,6 +127,14 @@ final class NSXPCWorkerTransport: WorkerTransport {
 
     func invalidate() {
         connection.invalidate()
+    }
+}
+
+private final class XPCConnectionHandle: @unchecked Sendable {
+    let connection: NSXPCConnection
+
+    init(connection: NSXPCConnection) {
+        self.connection = connection
     }
 }
 
