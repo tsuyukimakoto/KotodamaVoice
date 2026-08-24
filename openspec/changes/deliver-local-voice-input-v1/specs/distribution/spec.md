@@ -7,8 +7,8 @@
 ### Requirement: 配布物の全実行コードを署名する
 配布用アプリはDeveloper ID Applicationでアプリ、Framework、dylib、Speech Worker、Formatter Workerを署名し、Hardened Runtimeを有効にしなければならない（SHALL）。
 
-#### Scenario: 配布用archiveを検査する
-- **WHEN** 開発者が配布用archiveを作成する
+#### Scenario: Developer IDでexportした配布物を検査する
+- **WHEN** 開発者がRelease archiveからDeveloper ID方式で配布用アプリをexportする
 - **THEN** 署名検証はアプリ内のすべての実行コードについて成功する
 
 ### Requirement: Notarization済み配布物を作る

@@ -259,7 +259,8 @@ Accessibility APIによる他アプリ操作がV1の任意機能に含まれる�
 
 アプリと全内蔵実行コードでHardened RuntimeとLibrary Validationを維持する。
 JIT、unsigned executable memory、disable library validationの例外を要求しない。
-配布用archiveをDeveloper ID Applicationで署名し、`notarytool`で送信してticketをstapleする。
+Release archiveをXcodeのDeveloper ID方式でexportし、配布用アプリの全実行コードをDeveloper ID Applicationで再署名する。
+exportした配布物を`notarytool`で送信し、受理後にticketをstapleする。
 
 ## Risks / Trade-offs
 
