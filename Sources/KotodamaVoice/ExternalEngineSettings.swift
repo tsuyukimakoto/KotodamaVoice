@@ -38,6 +38,18 @@ enum ExternalEngineSettingsEvent: Equatable, Sendable {
   case saved(id: UUID, hasAPIKey: Bool)
   case removed(id: UUID)
   case loadFailed
+
+  var osLogMessage: String {
+    switch self {
+    case .saved(let id, let hasAPIKey):
+      "external_engine_settings saved id=\(id.uuidString) "
+        + "has_api_key=\(hasAPIKey)"
+    case .removed(let id):
+      "external_engine_settings removed id=\(id.uuidString)"
+    case .loadFailed:
+      "external_engine_settings load_failed"
+    }
+  }
 }
 
 protocol ExternalEngineSettingsLogging: Sendable {
@@ -51,18 +63,7 @@ struct OSLogExternalEngineSettingsLogger: ExternalEngineSettingsLogging {
   )
 
   func record(_ event: ExternalEngineSettingsEvent) {
-    switch event {
-    case .saved(let id, let hasAPIKey):
-      logger.info(
-        "external_engine_settings saved id=\(id.uuidString, privacy: .public) has_api_key=\(hasAPIKey, privacy: .public)"
-      )
-    case .removed(let id):
-      logger.info(
-        "external_engine_settings removed id=\(id.uuidString, privacy: .public)"
-      )
-    case .loadFailed:
-      logger.error("external_engine_settings load_failed")
-    }
+    logger.info("\(event.osLogMessage, privacy: .public)")
   }
 }
 

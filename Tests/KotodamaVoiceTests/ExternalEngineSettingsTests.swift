@@ -56,6 +56,7 @@ struct ExternalEngineSettingsTests {
     #expect(!persistentDomain(defaults, suiteName: suiteName, contains: secret))
     #expect(!String(decoding: try store.export(), as: UTF8.self).contains(secret))
     #expect(!String(describing: logger.events).contains(secret))
+    #expect(!logger.events.map(\.osLogMessage).joined().contains(secret))
 
     let restored = ExternalEngineSettingsStore(
       defaults: defaults,

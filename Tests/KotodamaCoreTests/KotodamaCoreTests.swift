@@ -582,6 +582,186 @@ func workerConnectionTimesOutAndIgnoresLateReply() async {
     #expect(logger.records.last?.failureCode == .protocolMismatch)
 }
 
+@Test func workerFailureDiagnosticsAndMonitorExcludeSensitiveCanaries() throws {
+    let canaries = [
+        "kv-audio-canary",
+        "kv-transcription-canary",
+        "kv-prompt-canary",
+        "kv-formatted-canary",
+        "kv-clipboard-canary",
+        "kv-api-key-canary",
+    ]
+    let logger = DiagnosticLoggerSpy()
+    let runtime = PrivacyCanaryFormatterRuntime()
+    let service = WorkerService(
+        runtime: runtime,
+        logger: logger,
+        component: .formatterWorker
+    )
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .loadModel,
+            modelID: "formatter"
+        )
+    ) { _ in }
+
+    for failure in [
+        WorkerRuntimeError.cancelled,
+        .invalidInput,
+        .processingFailed,
+    ] {
+        runtime.nextFailure = failure
+        service.perform(
+            WorkerRequest(
+                requestID: PipelineRequestID(),
+                operation: .format,
+                options: [
+                    "text": canaries[1],
+                    "prompt": canaries[2],
+                    "audio": canaries[0],
+                    "formatted": canaries[3],
+                    "clipboard": canaries[4],
+                    "apiKey": canaries[5],
+                ]
+            )
+        ) { _ in }
+    }
+
+    var stateReply: WorkerReply?
+    service.perform(
+        WorkerRequest(requestID: PipelineRequestID(), operation: .state)
+    ) { stateReply = $0 }
+    let monitorPayload = try #require(stateReply?.payload)
+    let observableOutput = logger.records.map(\.osLogMessage).joined()
+        + String(decoding: monitorPayload, as: UTF8.self)
+
+    for canary in canaries {
+        #expect(!observableOutput.contains(canary))
+    }
+}
+
+@Test @MainActor
+func connectionFailureDiagnosticsExcludeRequestContent() async {
+    let canary = "kv-all-connection-failures-canary"
+    let logger = DiagnosticLoggerSpy()
+
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        await #expect(throws: WorkerConnectionError.timedOut) {
+            try await manager.perform(request, timeout: .milliseconds(1))
+        }
+    }
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        let task = Task {
+            try await manager.perform(request, timeout: .seconds(1))
+        }
+        await Task.yield()
+        transport.interrupt()
+        await #expect(throws: WorkerConnectionError.interrupted) {
+            try await task.value
+        }
+    }
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        let task = Task {
+            try await manager.perform(request, timeout: .seconds(1))
+        }
+        await Task.yield()
+        transport.invalidateConnection()
+        await #expect(throws: WorkerConnectionError.invalidated) {
+            try await task.value
+        }
+    }
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        let task = Task {
+            try await manager.perform(request, timeout: .seconds(1))
+        }
+        await Task.yield()
+        transport.reply(
+            WorkerReply(
+                protocolVersion: KotodamaCore.protocolVersion + 1,
+                requestID: request.requestID
+            ),
+            to: request.requestID
+        )
+        await #expect(throws: WorkerConnectionError.protocolMismatch) {
+            try await task.value
+        }
+    }
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        let task = Task {
+            try await manager.perform(request, timeout: .seconds(1))
+        }
+        await Task.yield()
+        transport.reply(
+            WorkerReply(requestID: PipelineRequestID()),
+            to: request.requestID
+        )
+        await #expect(throws: WorkerConnectionError.requestMismatch) {
+            try await task.value
+        }
+    }
+    do {
+        let transport = WorkerTransportSpy()
+        let manager = WorkerConnectionManager(
+            makeTransport: { transport },
+            logger: logger
+        )
+        let request = privacyCanaryRequest(canary)
+        let task = Task {
+            try await manager.perform(request, timeout: .seconds(1))
+        }
+        await Task.yield()
+        task.cancel()
+        await #expect(throws: CancellationError.self) {
+            try await task.value
+        }
+    }
+
+    let messages = logger.records.map(\.osLogMessage).joined()
+    #expect(!messages.contains(canary))
+    #expect(Set(logger.records.map(\.stage)).isSuperset(of: [
+        .timedOut, .interrupted, .invalidated, .failed, .cancelled,
+    ]))
+}
+
+private func privacyCanaryRequest(_ canary: String) -> WorkerRequest {
+    WorkerRequest(
+        requestID: PipelineRequestID(),
+        operation: .format,
+        options: ["text": canary, "prompt": canary]
+    )
+}
+
 @Test @MainActor
 func workerInterruptionFailsOnceAndCreatesNewConnection() async throws {
     let first = WorkerTransportSpy()
@@ -718,6 +898,10 @@ private final class WorkerTransportSpy: WorkerTransport {
     func reply(to requestID: PipelineRequestID) {
         replies[requestID]?(WorkerReply(requestID: requestID))
     }
+
+    func reply(_ reply: WorkerReply, to requestID: PipelineRequestID) {
+        replies[requestID]?(reply)
+    }
 }
 
 private final class DiagnosticLoggerSpy: DiagnosticLogging, @unchecked Sendable {
@@ -734,5 +918,22 @@ private final class DiagnosticLoggerSpy: DiagnosticLogging, @unchecked Sendable 
         lock.lock()
         storedRecords.append(record)
         lock.unlock()
+    }
+}
+
+private final class PrivacyCanaryFormatterRuntime: TextFormattingRuntime {
+    var nextFailure: WorkerRuntimeError = .processingFailed
+
+    func load(modelID: String) throws {}
+    func cancel(requestID: PipelineRequestID) {}
+    func cancelAll() {}
+    func unload() {}
+
+    func format(
+        text: String,
+        prompt: String,
+        requestID: PipelineRequestID
+    ) throws -> String {
+        throw nextFailure
     }
 }

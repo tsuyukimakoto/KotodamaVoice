@@ -38,6 +38,13 @@ public struct DiagnosticRecord: Equatable, Sendable {
         self.stage = stage
         self.failureCode = failureCode
     }
+
+    public var osLogMessage: String {
+        "request_id=\(requestID.rawValue.uuidString) "
+            + "operation=\(operation) "
+            + "stage=\(stage.rawValue) "
+            + "failure=\(String(describing: failureCode))"
+    }
 }
 
 public protocol DiagnosticLogging: Sendable {
@@ -55,9 +62,7 @@ public struct OSLogDiagnosticLogger: DiagnosticLogging {
     }
 
     public func record(_ record: DiagnosticRecord) {
-        logger.info(
-            "request_id=\(record.requestID.rawValue.uuidString, privacy: .public) operation=\(String(describing: record.operation), privacy: .public) stage=\(record.stage.rawValue, privacy: .public) failure=\(String(describing: record.failureCode), privacy: .public)"
-        )
+        logger.info("\(record.osLogMessage, privacy: .public)")
     }
 }
 
