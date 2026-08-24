@@ -184,6 +184,14 @@ Core ML artifactもモデルManifestのhash対象にする。
 既定モデルと量子化は評価結果が合格した組み合わせだけをManifestへ固定する。
 最小ファイルを自動的に選ぶ方式は採用しない。
 
+Formatter Engineの内蔵は、Installedかつ選択済みのFormatterモデルがある場合だけ永続化する。
+未導入時の内蔵選択は保存値ではなく、モデル取得完了までの一時的な意図として扱う。
+対象は現時点で単一のFormatterモデルであるため、別のモデル選択ダイアログは設けない。
+内蔵選択時にモデルが未導入なら、名称、容量、取得元、ライセンスを示す取得確認を表示する。
+承認後はModel Managerの対象行へ遷移して取得を開始し、進捗と失敗を同じ画面で表示する。
+取得、完全性検証、atomic move、モデル選択が成功した時点で内蔵を保存し、取り消しまたは失敗時は従来のFormatter Engineを維持する。
+内蔵で使用中のFormatterモデルを削除した場合は、削除成功時にFormatter EngineをOffへ戻す。
+
 ### Model Manager
 
 Manifestはapp bundle内の署名対象JSONとして保持する。
@@ -194,6 +202,8 @@ revisionとSHA-256を固定し、実行時にremoteの`main`を解決しない�
 
 モデル削除は対応Workerのunloadが成功してから行う。
 ダウンロードと削除を同じモデルに対して同時実行しない。
+設定画面から開始されたFormatterモデル取得は通常のdownload coordinatorを再利用し、Models画面で対象行を表示したまま進捗を更新する。
+取得開始前にFormatter設定を切り替えず、導入と選択の完了通知を受けてから内蔵を確定する。
 
 ### 外部Engine
 

@@ -5,11 +5,29 @@
 ## ADDED Requirements
 
 ### Requirement: Formatterの動作方式を選択できる
-アプリはFormatterをOff、内蔵、外部から選択でき、初期値をOffとしなければならない（SHALL）。
+アプリはFormatterをOff、内蔵、外部から選択でき、初期値をOffとしなければならない（SHALL）。内蔵は、選択済みのFormatterモデルがInstalledの場合だけ確定・保存しなければならない（SHALL）。
 
 #### Scenario: Offを選択する
 - **WHEN** FormatterがOffで文字起こしに成功する
 - **THEN** システムは文字起こし結果を変更せず出力へ渡す
+
+#### Scenario: 未導入の内蔵Formatterを選択する
+- **WHEN** FormatterモデルがInstalledでない状態でユーザーが内蔵を選択する
+- **THEN** システムは対象モデルの名称、容量、取得元、ライセンスと「モデルを取得しますか？」を表示する
+- **THEN** システムは内蔵を確定または保存せず、現在のFormatter設定を維持する
+
+#### Scenario: Formatterモデルの取得を承認する
+- **WHEN** 未導入モデルの取得確認でユーザーが取得を承認する
+- **THEN** システムはモデル管理画面の対象Formatterモデルへ遷移し、取得を開始する
+- **THEN** システムはサイズとSHA-256の検証、導入、モデル選択がすべて成功した後に内蔵を確定・保存する
+
+#### Scenario: Formatterモデルの取得を取り消すまたは取得に失敗する
+- **WHEN** ユーザーが取得確認を取り消すか、モデルの取得、検証、導入、選択のいずれかに失敗する
+- **THEN** システムは内蔵を確定または保存せず、現在のFormatter設定を維持する
+
+#### Scenario: 使用中のFormatterモデルを削除する
+- **WHEN** 内蔵Formatterで使用中のモデル削除が成功する
+- **THEN** システムはFormatterをOffに変更し、利用できない内蔵選択を残さない
 
 ### Requirement: 内蔵Formatterをローカル実行する
 内蔵Formatterは検証済みモデルをFormatter Workerで実行し、文字起こし結果とPromptをネットワークへ送信してはならない（MUST NOT）。
