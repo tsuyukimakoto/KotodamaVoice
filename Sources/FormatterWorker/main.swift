@@ -3,6 +3,17 @@ import KotodamaCore
 import llama
 
 final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
+    private let service = WorkerService(
+        runtime: FormatterRuntime(resolveModelURL: resolveFormatterModelURL),
+        logger: OSLogDiagnosticLogger(component: .formatterWorker),
+        component: .formatterWorker,
+        diagnosticFixtureMapper: {
+            try WorkerDiagnosticFixture.map(
+                appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+            )
+        }
+    )
+
     func listener(
         _ listener: NSXPCListener,
         shouldAcceptNewConnection newConnection: NSXPCConnection
@@ -10,16 +21,7 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedInterface = NSXPCInterface(
             with: WorkerServiceProtocol.self
         )
-        newConnection.exportedObject = WorkerService(
-            runtime: FormatterRuntime(resolveModelURL: resolveFormatterModelURL),
-            logger: OSLogDiagnosticLogger(component: .formatterWorker),
-            component: .formatterWorker,
-            diagnosticFixtureMapper: {
-                try WorkerDiagnosticFixture.map(
-                    appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
-                )
-            }
-        )
+        newConnection.exportedObject = service
         newConnection.activate()
         return true
     }

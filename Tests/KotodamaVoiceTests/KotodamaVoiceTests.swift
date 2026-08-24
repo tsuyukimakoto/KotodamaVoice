@@ -84,6 +84,35 @@ func launchAtLoginReflectsBackendStateAfterFailure() {
     #expect(settings.errorMessage != nil)
 }
 
+@Test @MainActor
+func runtimeMonitorStopsPollingAndProcessSamplingWhenClosed() async {
+    let worker = RuntimeWorkerMonitorSpy()
+    let sampler = RuntimeProcessSamplerSpy()
+    let scheduler = RuntimeMonitorSchedulerSpy()
+    let monitor = WorkerDiagnostics(
+        client: worker,
+        processSampler: sampler,
+        scheduler: scheduler
+    )
+
+    monitor.startMonitoring()
+    await monitor.waitForPendingRefreshes()
+    #expect(worker.requestCount == 2)
+    #expect(sampler.sampledProcessIDs == [101, 102])
+
+    scheduler.fire()
+    await monitor.waitForPendingRefreshes()
+    #expect(worker.requestCount == 4)
+
+    monitor.stopMonitoring()
+    scheduler.fire()
+    await monitor.waitForPendingRefreshes()
+
+    #expect(worker.requestCount == 4)
+    #expect(sampler.resetCount == 1)
+    #expect(scheduler.cancelCount == 1)
+}
+
 @MainActor
 private final class LaunchAtLoginBackendSpy: LaunchAtLoginRegistering {
     var status: LaunchAtLoginStatus = .disabled
@@ -105,4 +134,70 @@ private final class LaunchAtLoginBackendSpy: LaunchAtLoginRegistering {
 
 private enum TestLaunchAtLoginError: Error {
     case failed
+}
+
+@MainActor
+private final class RuntimeWorkerMonitorSpy: WorkerMonitoring {
+    private(set) var requestCount = 0
+
+    func snapshot(for endpoint: WorkerEndpoint) async throws -> WorkerSnapshot {
+        requestCount += 1
+        return WorkerSnapshot(
+            state: .loaded,
+            modelID: endpoint == .speech ? "speech" : "formatter",
+            processIdentifier: endpoint == .speech ? 101 : 102,
+            usesMetal: true
+        )
+    }
+}
+
+@MainActor
+private final class RuntimeProcessSamplerSpy: WorkerProcessSampling {
+    private(set) var sampledProcessIDs: [Int32] = []
+    private(set) var resetCount = 0
+
+    func sample(processIdentifier: Int32) -> WorkerProcessResources? {
+        sampledProcessIDs.append(processIdentifier)
+        return WorkerProcessResources(
+            physicalFootprintBytes: 1_024,
+            cpuPercentage: 5
+        )
+    }
+
+    func reset() {
+        resetCount += 1
+    }
+}
+
+@MainActor
+private final class RuntimeMonitorSchedulerSpy: RuntimeMonitorScheduling {
+    private var action: (@MainActor @Sendable () -> Void)?
+    private(set) var cancelCount = 0
+
+    func schedule(
+        action: @escaping @MainActor @Sendable () -> Void
+    ) -> RuntimeMonitorCancellable {
+        self.action = action
+        return RuntimeMonitorCancellationSpy { [weak self] in
+            self?.cancelCount += 1
+            self?.action = nil
+        }
+    }
+
+    func fire() {
+        action?()
+    }
+}
+
+@MainActor
+private final class RuntimeMonitorCancellationSpy: RuntimeMonitorCancellable {
+    private let cancellation: @MainActor () -> Void
+
+    init(cancellation: @escaping @MainActor () -> Void) {
+        self.cancellation = cancellation
+    }
+
+    func cancel() {
+        cancellation()
+    }
 }

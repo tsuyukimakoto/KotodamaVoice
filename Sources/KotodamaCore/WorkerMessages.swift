@@ -20,7 +20,7 @@ public enum WorkerPhase: Int, Sendable {
     case finished
 }
 
-public enum WorkerFailureCode: Int, Sendable {
+public enum WorkerFailureCode: Int, Codable, Sendable {
     case protocolMismatch
     case invalidRequest
     case modelNotInstalled
@@ -37,13 +37,75 @@ public enum WorkerLifecycleState: String, Codable, Sendable {
     case shutDown
 }
 
+public enum WorkerRequestResult: String, Codable, Sendable {
+    case succeeded
+    case failed
+}
+
+public struct WorkerLastRequestSnapshot: Codable, Equatable, Sendable {
+    public let requestID: PipelineRequestID
+    public let result: WorkerRequestResult
+    public let failureCode: WorkerFailureCode?
+    public let processingMilliseconds: Double
+    public let promptTokensPerSecond: Double?
+    public let generationTokensPerSecond: Double?
+
+    public init(
+        requestID: PipelineRequestID,
+        result: WorkerRequestResult,
+        failureCode: WorkerFailureCode? = nil,
+        processingMilliseconds: Double,
+        promptTokensPerSecond: Double? = nil,
+        generationTokensPerSecond: Double? = nil
+    ) {
+        self.requestID = requestID
+        self.result = result
+        self.failureCode = failureCode
+        self.processingMilliseconds = processingMilliseconds
+        self.promptTokensPerSecond = promptTokensPerSecond
+        self.generationTokensPerSecond = generationTokensPerSecond
+    }
+}
+
+public struct WorkerRuntimeMetrics: Equatable, Sendable {
+    public let usesMetal: Bool?
+    public let promptTokensPerSecond: Double?
+    public let generationTokensPerSecond: Double?
+
+    public init(
+        usesMetal: Bool?,
+        promptTokensPerSecond: Double? = nil,
+        generationTokensPerSecond: Double? = nil
+    ) {
+        self.usesMetal = usesMetal
+        self.promptTokensPerSecond = promptTokensPerSecond
+        self.generationTokensPerSecond = generationTokensPerSecond
+    }
+}
+
+public protocol WorkerRuntimeMetricsProviding: AnyObject {
+    var workerRuntimeMetrics: WorkerRuntimeMetrics { get }
+}
+
 public struct WorkerSnapshot: Codable, Equatable, Sendable {
     public let state: WorkerLifecycleState
     public let modelID: String?
+    public let processIdentifier: Int32
+    public let usesMetal: Bool?
+    public let lastRequest: WorkerLastRequestSnapshot?
 
-    public init(state: WorkerLifecycleState, modelID: String?) {
+    public init(
+        state: WorkerLifecycleState,
+        modelID: String?,
+        processIdentifier: Int32 = 0,
+        usesMetal: Bool? = nil,
+        lastRequest: WorkerLastRequestSnapshot? = nil
+    ) {
         self.state = state
         self.modelID = modelID
+        self.processIdentifier = processIdentifier
+        self.usesMetal = usesMetal
+        self.lastRequest = lastRequest
     }
 }
 
@@ -403,6 +465,7 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
     private let lock = NSLock()
     private var lifecycleState: WorkerLifecycleState = .idle
     private var modelID: String?
+    private var lastRequest: WorkerLastRequestSnapshot?
 
     public override convenience init() {
         self.init(
@@ -487,11 +550,18 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             else {
                 return invalidRequestReply(for: request.requestID)
             }
-            return transcribe(
+            let startedAt = DispatchTime.now().uptimeNanoseconds
+            let reply = transcribe(
                 audioInput: audioInput,
                 requestID: request.requestID,
                 runtime: speechRuntime
             )
+            recordRequest(
+                requestID: request.requestID,
+                reply: reply,
+                startedAt: startedAt
+            )
+            return reply
 
         case .format:
             lock.lock()
@@ -507,12 +577,19 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             else {
                 return invalidRequestReply(for: request.requestID)
             }
-            return format(
+            let startedAt = DispatchTime.now().uptimeNanoseconds
+            let reply = format(
                 text: text,
                 prompt: prompt,
                 requestID: request.requestID,
                 runtime: formatterRuntime
             )
+            recordRequest(
+                requestID: request.requestID,
+                reply: reply,
+                startedAt: startedAt
+            )
+            return reply
 
         default:
             lock.lock()
@@ -595,9 +672,14 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             return WorkerReply(requestID: request.requestID)
 
         case .state:
+            let runtimeMetrics = (runtime as? WorkerRuntimeMetricsProviding)?
+                .workerRuntimeMetrics
             let snapshot = WorkerSnapshot(
                 state: lifecycleState,
-                modelID: modelID
+                modelID: modelID,
+                processIdentifier: ProcessInfo.processInfo.processIdentifier,
+                usesMetal: runtimeMetrics?.usesMetal,
+                lastRequest: lastRequest
             )
             guard let payload = try? JSONEncoder().encode(snapshot) else {
                 return invalidRequestReply(for: request.requestID)
@@ -703,6 +785,27 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 isRetryable: false
             )
         )
+    }
+
+    private func recordRequest(
+        requestID: PipelineRequestID,
+        reply: WorkerReply,
+        startedAt: UInt64
+    ) {
+        let elapsedNanoseconds = DispatchTime.now().uptimeNanoseconds - startedAt
+        let runtimeMetrics = (runtime as? WorkerRuntimeMetricsProviding)?
+            .workerRuntimeMetrics
+        let snapshot = WorkerLastRequestSnapshot(
+            requestID: requestID,
+            result: reply.failure == nil ? .succeeded : .failed,
+            failureCode: reply.failure?.code,
+            processingMilliseconds: Double(elapsedNanoseconds) / 1_000_000,
+            promptTokensPerSecond: runtimeMetrics?.promptTokensPerSecond,
+            generationTokensPerSecond: runtimeMetrics?.generationTokensPerSecond
+        )
+        lock.lock()
+        lastRequest = snapshot
+        lock.unlock()
     }
 }
 

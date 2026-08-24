@@ -3,6 +3,8 @@ import KotodamaCore
 import llama
 
 protocol LlamaBackend: AnyObject {
+    var usesMetal: Bool { get }
+    var lastMetrics: LlamaGenerationMetrics? { get }
     func loadModel(at url: URL) throws -> AnyObject
     func format(
         model: AnyObject,
@@ -13,7 +15,14 @@ protocol LlamaBackend: AnyObject {
     func unloadModel(_ model: AnyObject)
 }
 
-final class FormatterRuntime: TextFormattingRuntime, @unchecked Sendable {
+extension LlamaBackend {
+    var usesMetal: Bool { false }
+    var lastMetrics: LlamaGenerationMetrics? { nil }
+}
+
+final class FormatterRuntime: TextFormattingRuntime,
+    WorkerRuntimeMetricsProviding, @unchecked Sendable
+{
     private let condition = NSCondition()
     private let backend: LlamaBackend
     private let resolveModelURL: (String) throws -> URL
@@ -27,6 +36,21 @@ final class FormatterRuntime: TextFormattingRuntime, @unchecked Sendable {
     ) {
         self.backend = backend
         self.resolveModelURL = resolveModelURL
+    }
+
+    var workerRuntimeMetrics: WorkerRuntimeMetrics {
+        let metrics = backend.lastMetrics
+        return WorkerRuntimeMetrics(
+            usesMetal: backend.usesMetal,
+            promptTokensPerSecond: rate(
+                count: metrics?.promptTokenCount,
+                milliseconds: metrics?.promptMilliseconds
+            ),
+            generationTokensPerSecond: rate(
+                count: metrics?.generatedTokenCount,
+                milliseconds: metrics?.generationMilliseconds
+            )
+        )
     }
 
     func load(modelID: String) throws {
@@ -123,6 +147,13 @@ final class FormatterRuntime: TextFormattingRuntime, @unchecked Sendable {
         condition.broadcast()
         condition.unlock()
     }
+
+    private func rate(count: Int?, milliseconds: Double?) -> Double? {
+        guard let count, let milliseconds, milliseconds > 0 else {
+            return nil
+        }
+        return Double(count) / (milliseconds / 1_000)
+    }
 }
 
 enum FormatterRuntimeBackendError: Error {
@@ -152,6 +183,8 @@ final class CLlamaBackend: LlamaBackend {
     private let maximumOutputTokens: Int32
     private let metricsLock = NSLock()
     private var storedMetrics: LlamaGenerationMetrics?
+
+    var usesMetal: Bool { true }
 
     var lastMetrics: LlamaGenerationMetrics? {
         metricsLock.lock()

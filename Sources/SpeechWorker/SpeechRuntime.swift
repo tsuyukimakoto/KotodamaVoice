@@ -3,6 +3,7 @@ import KotodamaCore
 import whisper
 
 protocol WhisperBackend: AnyObject {
+    var usesMetal: Bool { get }
     func loadModel(at url: URL) throws -> AnyObject
     func transcribe(
         model: AnyObject,
@@ -13,7 +14,13 @@ protocol WhisperBackend: AnyObject {
     func unloadModel(_ model: AnyObject)
 }
 
-final class SpeechRuntime: SpeechTranscribingRuntime, @unchecked Sendable {
+extension WhisperBackend {
+    var usesMetal: Bool { false }
+}
+
+final class SpeechRuntime: SpeechTranscribingRuntime,
+    WorkerRuntimeMetricsProviding, @unchecked Sendable
+{
     private let condition = NSCondition()
     private let backend: WhisperBackend
     private let resolveModelURL: (String) throws -> URL
@@ -30,6 +37,10 @@ final class SpeechRuntime: SpeechTranscribingRuntime, @unchecked Sendable {
         self.backend = backend
         self.resolveModelURL = resolveModelURL
         self.language = language
+    }
+
+    var workerRuntimeMetrics: WorkerRuntimeMetrics {
+        WorkerRuntimeMetrics(usesMetal: backend.usesMetal)
     }
 
     func load(modelID: String) throws {
@@ -148,6 +159,8 @@ enum SpeechRuntimeBackendError: Error {
 }
 
 final class CWhisperBackend: WhisperBackend {
+    var usesMetal: Bool { true }
+
     func loadModel(at url: URL) throws -> AnyObject {
         var params = whisper_context_default_params()
         params.use_gpu = true

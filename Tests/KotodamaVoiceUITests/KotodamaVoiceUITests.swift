@@ -74,9 +74,10 @@ final class KotodamaVoiceUITests: XCTestCase {
         XCTAssertTrue(modelsWindow.waitForNonExistence(timeout: 3))
 
         settingsWindow.buttons["runtime-open-button"].click()
-        XCTAssertTrue(
-            application.windows["Runtime Monitor"].waitForExistence(timeout: 3)
-        )
+        let runtimeWindow = application.windows["Runtime Monitor"]
+        XCTAssertTrue(runtimeWindow.waitForExistence(timeout: 3))
+        XCTAssertFalse(runtimeWindow.staticTexts["GPU使用率"].exists)
+        XCTAssertFalse(runtimeWindow.staticTexts["独立VRAM"].exists)
     }
 
     @MainActor

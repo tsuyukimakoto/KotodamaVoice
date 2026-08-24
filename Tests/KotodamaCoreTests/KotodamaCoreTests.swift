@@ -56,6 +56,29 @@ private func secureRoundTrip<T: NSObject & NSSecureCoding>(
     return try #require(decoded)
 }
 
+@Test func workerMonitorSnapshotRoundTripsWithoutContent() throws {
+    let requestID = PipelineRequestID()
+    let snapshot = WorkerSnapshot(
+        state: .loaded,
+        modelID: "fixture-model",
+        processIdentifier: 321,
+        usesMetal: true,
+        lastRequest: WorkerLastRequestSnapshot(
+            requestID: requestID,
+            result: .succeeded,
+            processingMilliseconds: 125,
+            promptTokensPerSecond: 48,
+            generationTokensPerSecond: 12
+        )
+    )
+
+    let data = try JSONEncoder().encode(snapshot)
+    let decoded = try JSONDecoder().decode(WorkerSnapshot.self, from: data)
+
+    #expect(decoded == snapshot)
+    #expect(decoded.lastRequest?.requestID == requestID)
+}
+
 @Test func diagnosticWorkerEchoesRequestIDAndRejectsVersionMismatch() throws {
     let service = WorkerService()
     let requestID = PipelineRequestID()
@@ -125,7 +148,12 @@ private func secureRoundTrip<T: NSObject & NSSecureCoding>(
         WorkerSnapshot.self,
         from: loadedPayload
     )
-    #expect(loadedSnapshot == WorkerSnapshot(state: .loaded, modelID: "fixture"))
+    #expect(loadedSnapshot.state == .loaded)
+    #expect(loadedSnapshot.modelID == "fixture")
+    #expect(
+        loadedSnapshot.processIdentifier
+            == ProcessInfo.processInfo.processIdentifier
+    )
 
     var unloadReply: WorkerReply?
     service.perform(
@@ -163,11 +191,72 @@ private func secureRoundTrip<T: NSObject & NSSecureCoding>(
     #expect(runtime.events.isEmpty)
 }
 
+@Test func workerStateIncludesLatestRequestMetrics() throws {
+    let runtime = MonitoredFormatterRuntimeSpy()
+    let service = WorkerService(runtime: runtime)
+    service.perform(
+        WorkerRequest(
+            requestID: PipelineRequestID(),
+            operation: .loadModel,
+            modelID: "formatter"
+        )
+    ) { _ in }
+    let requestID = PipelineRequestID()
+    service.perform(
+        WorkerRequest(
+            requestID: requestID,
+            operation: .format,
+            options: ["text": "input", "prompt": "prompt"]
+        )
+    ) { reply in
+        #expect(reply.failure == nil)
+    }
+
+    var stateReply: WorkerReply?
+    service.perform(
+        WorkerRequest(requestID: PipelineRequestID(), operation: .state)
+    ) { stateReply = $0 }
+    let payload = try #require(stateReply?.payload)
+    let snapshot = try JSONDecoder().decode(WorkerSnapshot.self, from: payload)
+
+    #expect(snapshot.usesMetal == true)
+    #expect(snapshot.lastRequest?.requestID == requestID)
+    #expect(snapshot.lastRequest?.result == .succeeded)
+    #expect(snapshot.lastRequest?.processingMilliseconds ?? -1 >= 0)
+    #expect(snapshot.lastRequest?.promptTokensPerSecond == 40)
+    #expect(snapshot.lastRequest?.generationTokensPerSecond == 10)
+}
+
 private final class WeakReference<Value: AnyObject> {
     weak var value: Value?
 
     init(_ value: Value?) {
         self.value = value
+    }
+}
+
+private final class MonitoredFormatterRuntimeSpy: TextFormattingRuntime,
+    WorkerRuntimeMetricsProviding
+{
+    var workerRuntimeMetrics: WorkerRuntimeMetrics {
+        WorkerRuntimeMetrics(
+            usesMetal: true,
+            promptTokensPerSecond: 40,
+            generationTokensPerSecond: 10
+        )
+    }
+
+    func load(modelID: String) throws {}
+    func cancel(requestID: PipelineRequestID) {}
+    func cancelAll() {}
+    func unload() {}
+
+    func format(
+        text: String,
+        prompt: String,
+        requestID: PipelineRequestID
+    ) throws -> String {
+        "formatted"
     }
 }
 

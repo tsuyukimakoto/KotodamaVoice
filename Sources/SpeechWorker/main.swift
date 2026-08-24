@@ -3,6 +3,17 @@ import KotodamaCore
 import whisper
 
 final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
+    private let service = WorkerService(
+        runtime: SpeechRuntime(resolveModelURL: resolveSpeechModelURL),
+        logger: OSLogDiagnosticLogger(component: .speechWorker),
+        component: .speechWorker,
+        diagnosticFixtureMapper: {
+            try WorkerDiagnosticFixture.map(
+                appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+            )
+        }
+    )
+
     func listener(
         _ listener: NSXPCListener,
         shouldAcceptNewConnection newConnection: NSXPCConnection
@@ -10,16 +21,7 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedInterface = NSXPCInterface(
             with: WorkerServiceProtocol.self
         )
-        newConnection.exportedObject = WorkerService(
-            runtime: SpeechRuntime(resolveModelURL: resolveSpeechModelURL),
-            logger: OSLogDiagnosticLogger(component: .speechWorker),
-            component: .speechWorker,
-            diagnosticFixtureMapper: {
-                try WorkerDiagnosticFixture.map(
-                    appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
-                )
-            }
-        )
+        newConnection.exportedObject = service
         newConnection.activate()
         return true
     }

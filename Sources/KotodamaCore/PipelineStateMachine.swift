@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PipelineRequestID: Hashable, Sendable {
+public struct PipelineRequestID: Codable, Hashable, Sendable {
     public let rawValue: UUID
 
     public init(rawValue: UUID = UUID()) {
