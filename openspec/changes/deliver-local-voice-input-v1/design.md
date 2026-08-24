@@ -222,7 +222,8 @@ Formatter出力は空、上限超過、制御token混入、本文外の説明を
 ### ClipboardとAuto Insert
 
 Clipboardは`NSPasteboard`へplain textを書き込み、change countと読み戻しで直後の成功を確認する。
-HUDは本文を表示しない。
+Clipboard成功、Auto InsertからClipboardへのFallback、出力失敗は本文を含まないHUDで通知する。
+Auto Insert成功は入力欄への反映自体で確認できるためHUDを表示しない。
 
 Auto Insertはユーザーが設定で選択した場合だけ`AXIsProcessTrustedWithOptions`を呼ぶ。
 アプリ起動時にはAccessibility権限を要求しない。

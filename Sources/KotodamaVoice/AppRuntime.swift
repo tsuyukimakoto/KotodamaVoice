@@ -195,7 +195,7 @@ final class AppRuntime {
             transcription
           )
           do {
-            let hudNotification = try await deliverOutput(
+            let outputOutcome = try await deliverOutput(
               output.text,
               usedFormattingFallback: output.usedFallback
             )
@@ -205,7 +205,9 @@ final class AppRuntime {
             if output.usedFallback {
               completionMessage = "文章整形を適用できなかったため原文を出力しました"
             }
-            outputHUD.show(hudNotification)
+            if let hudNotification = outputOutcome.hudNotification {
+              outputHUD.show(hudNotification)
+            }
           } catch {
             _ = try? coordinator.fail(
               requestID: transcription.requestID
@@ -265,7 +267,7 @@ final class AppRuntime {
   private func deliverOutput(
     _ text: String,
     usedFormattingFallback: Bool
-  ) async throws -> OutputHUDNotification {
+  ) async throws -> OutputDeliveryOutcome {
     defer { autoInsertTarget.clear() }
     guard outputSettings.mode == .autoInsert else {
       try clipboardOutput.write(text)

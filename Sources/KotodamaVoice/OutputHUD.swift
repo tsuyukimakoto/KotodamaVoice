@@ -7,11 +7,10 @@ struct OutputHUDPresentation: Equatable {
     let symbolName: String
 }
 
-enum OutputHUDNotification {
+enum OutputHUDNotification: Equatable {
     case clipboardSucceeded
     case clipboardSucceededWithFormattingFallback
     case clipboardFailed
-    case automaticInsertionSucceeded
     case automaticInsertionFellBackToClipboard
     case automaticInsertionFailed
 
@@ -35,12 +34,6 @@ enum OutputHUDNotification {
                 detail: "失敗",
                 symbolName: "xmark.circle.fill"
             )
-        case .automaticInsertionSucceeded:
-            OutputHUDPresentation(
-                title: "入力先へ挿入しました",
-                detail: "成功",
-                symbolName: "checkmark.circle.fill"
-            )
         case .automaticInsertionFellBackToClipboard:
             OutputHUDPresentation(
                 title: "クリップボードへコピーしました",
@@ -53,6 +46,26 @@ enum OutputHUDNotification {
                 detail: "失敗",
                 symbolName: "xmark.circle.fill"
             )
+        }
+    }
+}
+
+enum OutputDeliveryOutcome {
+    case clipboardSucceeded
+    case clipboardSucceededWithFormattingFallback
+    case automaticInsertionSucceeded
+    case automaticInsertionFellBackToClipboard
+
+    var hudNotification: OutputHUDNotification? {
+        switch self {
+        case .clipboardSucceeded:
+            .clipboardSucceeded
+        case .clipboardSucceededWithFormattingFallback:
+            .clipboardSucceededWithFormattingFallback
+        case .automaticInsertionSucceeded:
+            nil
+        case .automaticInsertionFellBackToClipboard:
+            .automaticInsertionFellBackToClipboard
         }
     }
 }

@@ -81,6 +81,19 @@ func outputHUDPanelCannotBecomeKeyOrMain() {
     presenter.hide()
 }
 
+@Test
+func autoInsertSuccessDoesNotRequestAHUDNotification() {
+    #expect(OutputDeliveryOutcome.automaticInsertionSucceeded.hudNotification == nil)
+    #expect(
+        OutputDeliveryOutcome.clipboardSucceeded.hudNotification
+            == .clipboardSucceeded
+    )
+    #expect(
+        OutputDeliveryOutcome.automaticInsertionFellBackToClipboard.hudNotification
+            == .automaticInsertionFellBackToClipboard
+    )
+}
+
 @MainActor
 private final class OutputHUDPresenterSpy: OutputHUDPresenting {
     private(set) var presentations: [OutputHUDPresentation] = []

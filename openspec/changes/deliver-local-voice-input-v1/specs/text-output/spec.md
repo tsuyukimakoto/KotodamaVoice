@@ -12,16 +12,21 @@
 - **THEN** システムはClipboardの既存内容を最終テキストで置き換える
 - **THEN** システムはAccessibility権限を要求しない
 
-### Requirement: 単一HUDで結果を通知する
-アプリはフォーカスを奪わないHUDを一つだけ表示し、新しい通知で既存HUDと消去時刻を置き換えなければならない（SHALL）。
+### Requirement: 必要な結果を単一HUDで通知する
+アプリはClipboard成功、Auto InsertからClipboardへのFallback、出力失敗についてフォーカスを奪わないHUDを一つだけ表示し、新しい通知で既存HUDと消去時刻を置き換えなければならない（SHALL）。Auto Insert成功ではHUDを表示してはならない（MUST NOT）。
 
 #### Scenario: 短時間に複数結果が届く
 - **WHEN** HUD表示中に新しい結果通知が届く
 - **THEN** システムはHUDを追加せず既存HUDの内容と消去時刻を更新する
 
-#### Scenario: 成功を表示する
-- **WHEN** 出力が完了する
-- **THEN** システムは本文を含めず出力方式と成否だけをHUDへ表示する
+#### Scenario: Clipboard成功を表示する
+- **WHEN** Clipboard出力が完了する
+- **THEN** システムは本文を含めず出力方式と成功だけをHUDへ表示する
+
+#### Scenario: Auto Insert成功は入力欄だけで確認する
+- **WHEN** Auto Insertが成功する
+- **THEN** システムは入力欄へ最終テキストを反映する
+- **THEN** システムはHUDを表示しない
 
 ### Requirement: Auto Insertを明示的に有効化する
 アプリはユーザーがAuto Insertを選択した時点だけAccessibility権限を確認し、許可されるまで設定を確定してはならない（MUST NOT）。
