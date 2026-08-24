@@ -502,6 +502,7 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
         _ request: WorkerRequest,
         withReply reply: @escaping (WorkerReply) -> Void
     ) {
+        let startedAt = DispatchTime.now().uptimeNanoseconds
         logger.record(
             DiagnosticRecord(
                 component: component,
@@ -517,7 +518,8 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 requestID: request.requestID,
                 operation: request.operation,
                 stage: replyValue.failure == nil ? .completed : .failed,
-                failureCode: replyValue.failure?.code
+                failureCode: replyValue.failure?.code,
+                elapsedMilliseconds: elapsedMilliseconds(since: startedAt)
             )
         )
         reply(replyValue)
@@ -806,6 +808,10 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
         lock.lock()
         lastRequest = snapshot
         lock.unlock()
+    }
+
+    private func elapsedMilliseconds(since startedAt: UInt64) -> Double {
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000
     }
 }
 

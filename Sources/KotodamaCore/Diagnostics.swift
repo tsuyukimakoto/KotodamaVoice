@@ -24,26 +24,31 @@ public struct DiagnosticRecord: Equatable, Sendable {
     public let operation: WorkerOperation
     public let stage: DiagnosticStage
     public let failureCode: WorkerFailureCode?
+    public let elapsedMilliseconds: Double?
 
     public init(
         component: DiagnosticComponent,
         requestID: PipelineRequestID,
         operation: WorkerOperation,
         stage: DiagnosticStage,
-        failureCode: WorkerFailureCode? = nil
+        failureCode: WorkerFailureCode? = nil,
+        elapsedMilliseconds: Double? = nil
     ) {
         self.component = component
         self.requestID = requestID
         self.operation = operation
         self.stage = stage
         self.failureCode = failureCode
+        self.elapsedMilliseconds = elapsedMilliseconds
     }
 
     public var osLogMessage: String {
-        "request_id=\(requestID.rawValue.uuidString) "
+        let elapsed = elapsedMilliseconds.map { String($0) } ?? "none"
+        return "request_id=\(requestID.rawValue.uuidString) "
             + "operation=\(operation) "
             + "stage=\(stage.rawValue) "
-            + "failure=\(String(describing: failureCode))"
+            + "failure=\(String(describing: failureCode)) "
+            + "elapsed_ms=\(elapsed)"
     }
 }
 

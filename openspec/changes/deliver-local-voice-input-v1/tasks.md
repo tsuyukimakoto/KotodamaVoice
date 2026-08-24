@@ -85,7 +85,7 @@
 - [x] 10.2 Monitor表示中だけpollingするテストを追加し、ウィンドウを閉じた後にtimerとprocess samplingが停止することを確認する
 - [x] 10.3 取得不能なGPU使用率と独立VRAMを表示しないUI Testを追加し、利用可能なmetricsだけが表示されることを確認する
 - [x] 10.4 音声、文字起こし、Prompt本文、整形本文、Clipboard、API Keyを含むcanary文字列を全失敗経路へ流し、OSLogとRuntime Monitorに現れないことを確認する
-- [ ] 10.5 request IDからApp、Speech Worker、Formatter Workerの正常要求とクラッシュ要求を追跡し、段階と時間が一致することを診断手順で確認する
+- [x] 10.5 request IDからApp、Speech Worker、Formatter Workerの正常要求とクラッシュ要求を追跡し、段階と時間が一致することを診断手順で確認する
 
 ## 11. V1統合試験
 

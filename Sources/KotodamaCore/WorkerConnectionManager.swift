@@ -27,6 +27,7 @@ public protocol WorkerTransport: AnyObject {
 public final class WorkerConnectionManager {
     private struct PendingRequest {
         let operation: WorkerOperation
+        let startedAt: UInt64
         let continuation: CheckedContinuation<WorkerReply, Error>
         let timeoutTask: Task<Void, Never>
     }
@@ -55,6 +56,7 @@ public final class WorkerConnectionManager {
     ) async throws -> WorkerReply {
         try Task.checkCancellation()
         let requestID = request.requestID
+        let startedAt = DispatchTime.now().uptimeNanoseconds
         logger.record(
             DiagnosticRecord(
                 component: .app,
@@ -80,6 +82,7 @@ public final class WorkerConnectionManager {
                 }
                 pending[requestID] = PendingRequest(
                     operation: request.operation,
+                    startedAt: startedAt,
                     continuation: continuation,
                     timeoutTask: timeoutTask
                 )
@@ -212,9 +215,16 @@ public final class WorkerConnectionManager {
                 requestID: requestID,
                 operation: request.operation,
                 stage: stage,
-                failureCode: failureCode
+                failureCode: failureCode,
+                elapsedMilliseconds: elapsedMilliseconds(
+                    since: request.startedAt
+                )
             )
         )
         request.continuation.resume(with: result)
+    }
+
+    private func elapsedMilliseconds(since startedAt: UInt64) -> Double {
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1_000_000
     }
 }

@@ -754,6 +754,71 @@ func connectionFailureDiagnosticsExcludeRequestContent() async {
     ]))
 }
 
+@Test @MainActor
+func requestTraceCorrelatesAppWorkersStagesAndElapsedTime() async throws {
+    let logger = DiagnosticLoggerSpy()
+    let normalService = WorkerService(
+        runtime: WorkerRuntimeSpy(),
+        logger: logger,
+        component: .speechWorker
+    )
+    let normalManager = WorkerConnectionManager(
+        makeTransport: { InProcessWorkerTransport(service: normalService) },
+        logger: logger
+    )
+    let normalID = PipelineRequestID()
+
+    _ = try await normalManager.perform(
+        WorkerRequest(requestID: normalID, operation: .diagnosticEcho),
+        timeout: .seconds(1)
+    )
+
+    let normalTrace = logger.records.filter { $0.requestID == normalID }
+    #expect(normalTrace.map(\.component) == [
+        .app, .speechWorker, .speechWorker, .app,
+    ])
+    #expect(normalTrace.map(\.stage) == [
+        .requested, .accepted, .completed, .completed,
+    ])
+    #expect(normalTrace[2].elapsedMilliseconds ?? -1 >= 0)
+    #expect(normalTrace[3].elapsedMilliseconds ?? -1 >= 0)
+
+    for component in [
+        DiagnosticComponent.speechWorker,
+        .formatterWorker,
+    ] {
+        let manager = WorkerConnectionManager(
+            makeTransport: {
+                AcceptedThenInterruptedTransport(
+                    logger: logger,
+                    component: component
+                )
+            },
+            logger: logger
+        )
+        let crashID = PipelineRequestID()
+
+        await #expect(throws: WorkerConnectionError.interrupted) {
+            try await manager.perform(
+                WorkerRequest(
+                    requestID: crashID,
+                    operation: component == .speechWorker
+                        ? .transcribe
+                        : .format
+                ),
+                timeout: .seconds(1)
+            )
+        }
+
+        let crashTrace = logger.records.filter { $0.requestID == crashID }
+        #expect(crashTrace.map(\.component) == [.app, component, .app])
+        #expect(crashTrace.map(\.stage) == [
+            .requested, .accepted, .interrupted,
+        ])
+        #expect(crashTrace[2].elapsedMilliseconds ?? -1 >= 0)
+    }
+}
+
 private func privacyCanaryRequest(_ canary: String) -> WorkerRequest {
     WorkerRequest(
         requestID: PipelineRequestID(),
@@ -936,4 +1001,60 @@ private final class PrivacyCanaryFormatterRuntime: TextFormattingRuntime {
     ) throws -> String {
         throw nextFailure
     }
+}
+
+@MainActor
+private final class InProcessWorkerTransport: WorkerTransport {
+    var interruptionHandler: (@MainActor @Sendable () -> Void)?
+    var invalidationHandler: (@MainActor @Sendable () -> Void)?
+    private let service: WorkerService
+
+    init(service: WorkerService) {
+        self.service = service
+    }
+
+    func activate() {}
+
+    func send(
+        _ request: WorkerRequest,
+        reply: @escaping @MainActor @Sendable (WorkerReply) -> Void
+    ) {
+        service.perform(request, withReply: reply)
+    }
+
+    func cancel(requestID: PipelineRequestID) {}
+    func invalidate() {}
+}
+
+@MainActor
+private final class AcceptedThenInterruptedTransport: WorkerTransport {
+    var interruptionHandler: (@MainActor @Sendable () -> Void)?
+    var invalidationHandler: (@MainActor @Sendable () -> Void)?
+    private let logger: DiagnosticLogging
+    private let component: DiagnosticComponent
+
+    init(logger: DiagnosticLogging, component: DiagnosticComponent) {
+        self.logger = logger
+        self.component = component
+    }
+
+    func activate() {}
+
+    func send(
+        _ request: WorkerRequest,
+        reply: @escaping @MainActor @Sendable (WorkerReply) -> Void
+    ) {
+        logger.record(
+            DiagnosticRecord(
+                component: component,
+                requestID: request.requestID,
+                operation: request.operation,
+                stage: .accepted
+            )
+        )
+        interruptionHandler?()
+    }
+
+    func cancel(requestID: PipelineRequestID) {}
+    func invalidate() {}
 }
