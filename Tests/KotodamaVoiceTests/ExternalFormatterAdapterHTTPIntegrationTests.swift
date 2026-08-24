@@ -1,0 +1,237 @@
+import Foundation
+import Network
+import Testing
+
+@testable import KotodamaVoice
+
+@Test
+func responsesFormatterAdapterUsesLMStudioResponseContract() async throws {
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"""
+      {
+        "object":"response",
+        "status":"completed",
+        "output":[
+          {"type":"reasoning","summary":[]},
+          {"type":"message","role":"assistant","content":[
+            {"type":"output_text","text":"LM Studio整形結果","annotations":[]}
+          ]}
+        ]
+      }
+      """#.utf8))
+  let adapter = OpenAIResponsesFormatterAdapter(
+    endpointURL: server.url(path: "/v1/responses"),
+    model: "local-model",
+    apiKey: "fixture-secret"
+  )
+
+  let text = try await adapter.format(
+    text: "文字起こし原文",
+    prompt: "整形指示"
+  )
+  let request = try #require(server.receivedRequest)
+  let body = try #require(
+    JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+  )
+
+  #expect(text == "LM Studio整形結果")
+  #expect(request.requestLine == "POST /v1/responses HTTP/1.1")
+  #expect(request.headers["authorization"] == "Bearer fixture-secret")
+  #expect(request.headers["content-type"] == "application/json")
+  #expect(body["model"] as? String == "local-model")
+  #expect(body["instructions"] as? String == "整形指示")
+  #expect(body["input"] as? String == "文字起こし原文")
+  #expect(body["store"] as? Bool == false)
+}
+
+@Test
+func chatCompletionsFormatterAdapterUsesLlamaServerContract() async throws {
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"""
+      {
+        "object":"chat.completion",
+        "choices":[
+          {"index":0,"finish_reason":"stop","message":{
+            "role":"assistant","content":"llama-server整形結果"
+          }}
+        ]
+      }
+      """#.utf8))
+  let adapter = ChatCompletionsFormatterAdapter(
+    endpointURL: server.url(path: "/v1/chat/completions"),
+    model: "local-model"
+  )
+
+  let text = try await adapter.format(
+    text: "文字起こし原文",
+    prompt: "整形指示"
+  )
+  let request = try #require(server.receivedRequest)
+  let body = try #require(
+    JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+  )
+  let messages = try #require(body["messages"] as? [[String: String]])
+
+  #expect(text == "llama-server整形結果")
+  #expect(request.requestLine == "POST /v1/chat/completions HTTP/1.1")
+  #expect(request.headers["authorization"] == nil)
+  #expect(body["model"] as? String == "local-model")
+  #expect(body["stream"] as? Bool == false)
+  #expect(
+    messages == [
+      ["role": "system", "content": "整形指示"],
+      ["role": "user", "content": "文字起こし原文"],
+    ])
+}
+
+@Test(arguments: ExternalFormatterFixtureKind.allCases)
+func externalFormatterAdaptersRejectTheOtherResponseContract(
+  kind: ExternalFormatterFixtureKind
+) async throws {
+  let response: String
+  switch kind {
+  case .responses:
+    response = #"{"choices":[{"message":{"content":"契約違い"}}]}"#
+  case .chatCompletions:
+    response =
+      #"{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"契約違い"}]}]}"#
+  }
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(response.utf8)
+  )
+
+  await #expect(throws: ExternalFormatterAdapterError.invalidResponseBody) {
+    switch kind {
+    case .responses:
+      _ = try await OpenAIResponsesFormatterAdapter(
+        endpointURL: server.url(path: "/v1/responses"),
+        model: "local-model"
+      ).format(text: "原文", prompt: "指示")
+    case .chatCompletions:
+      _ = try await ChatCompletionsFormatterAdapter(
+        endpointURL: server.url(path: "/v1/chat/completions"),
+        model: "local-model"
+      ).format(text: "原文", prompt: "指示")
+    }
+  }
+}
+
+enum ExternalFormatterFixtureKind: CaseIterable, Sendable {
+  case responses
+  case chatCompletions
+}
+
+private struct FormatterReceivedHTTPRequest: Sendable {
+  let requestLine: String
+  let headers: [String: String]
+  let body: Data
+}
+
+private final class FormatterAdapterFixtureServer: @unchecked Sendable {
+  private let responseBody: Data
+  private let listener: NWListener
+  private let queue = DispatchQueue(label: "FormatterAdapterFixtureServer")
+  private let lock = NSLock()
+  private var request: FormatterReceivedHTTPRequest?
+
+  init(responseBody: Data) throws {
+    self.responseBody = responseBody
+    listener = try NWListener(using: .tcp, on: .any)
+    let ready = DispatchSemaphore(value: 0)
+    listener.stateUpdateHandler = { state in
+      if case .ready = state { ready.signal() }
+    }
+    listener.newConnectionHandler = { [weak self] connection in
+      self?.receive(on: connection, accumulated: Data())
+    }
+    listener.start(queue: queue)
+    guard ready.wait(timeout: .now() + 3) == .success,
+      listener.port != nil
+    else {
+      listener.cancel()
+      throw URLError(.cannotConnectToHost)
+    }
+  }
+
+  deinit { listener.cancel() }
+
+  var receivedRequest: FormatterReceivedHTTPRequest? {
+    lock.lock()
+    defer { lock.unlock() }
+    return request
+  }
+
+  func url(path: String) -> URL {
+    URL(string: "http://127.0.0.1:\(listener.port!.rawValue)\(path)")!
+  }
+
+  private func receive(on connection: NWConnection, accumulated: Data) {
+    connection.start(queue: queue)
+    connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) {
+      [weak self] data, _, isComplete, error in
+      guard let self else { return }
+      var completeData = accumulated
+      if let data { completeData.append(data) }
+      if let request = Self.parseCompleteRequest(completeData) {
+        self.store(request)
+        self.respond(on: connection)
+      } else if !isComplete, error == nil {
+        self.receive(on: connection, accumulated: completeData)
+      } else {
+        connection.cancel()
+      }
+    }
+  }
+
+  private func store(_ request: FormatterReceivedHTTPRequest) {
+    lock.lock()
+    self.request = request
+    lock.unlock()
+  }
+
+  private func respond(on connection: NWConnection) {
+    let headers = [
+      "HTTP/1.1 200 OK",
+      "Content-Type: application/json",
+      "Content-Length: \(responseBody.count)",
+      "Connection: close",
+      "",
+      "",
+    ].joined(separator: "\r\n")
+    var response = Data(headers.utf8)
+    response.append(responseBody)
+    connection.send(
+      content: response,
+      completion: .contentProcessed { _ in
+        connection.cancel()
+      })
+  }
+
+  private static func parseCompleteRequest(
+    _ data: Data
+  ) -> FormatterReceivedHTTPRequest? {
+    let separator = Data("\r\n\r\n".utf8)
+    guard let headerRange = data.range(of: separator) else { return nil }
+    let headerText = String(decoding: data[..<headerRange.lowerBound], as: UTF8.self)
+    let lines = headerText.components(separatedBy: "\r\n")
+    guard let requestLine = lines.first else { return nil }
+    var headers: [String: String] = [:]
+    for line in lines.dropFirst() {
+      guard let colon = line.firstIndex(of: ":") else { continue }
+      headers[String(line[..<colon]).lowercased()] = line[line.index(after: colon)...]
+        .trimmingCharacters(in: .whitespaces)
+    }
+    guard let lengthText = headers["content-length"],
+      let contentLength = Int(lengthText)
+    else { return nil }
+    let bodyStart = headerRange.upperBound
+    guard data.count >= bodyStart + contentLength else { return nil }
+    return FormatterReceivedHTTPRequest(
+      requestLine: requestLine,
+      headers: headers,
+      body: data.subdata(in: bodyStart..<(bodyStart + contentLength))
+    )
+  }
+}
