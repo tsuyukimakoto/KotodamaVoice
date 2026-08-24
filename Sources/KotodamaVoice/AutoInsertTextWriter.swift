@@ -33,7 +33,16 @@ protocol AutoInsertTextAccessing: AnyObject {
 }
 
 @MainActor
-final class AutoInsertTextWriter {
+protocol AutoInsertWriting: AnyObject {
+    @discardableResult
+    func replaceSelection(
+        with replacement: String,
+        in target: AutoInsertTargetObservation
+    ) async throws -> AutoInsertWriteResult
+}
+
+@MainActor
+final class AutoInsertTextWriter: AutoInsertWriting {
     private let access: AutoInsertTextAccessing
 
     init(access: AutoInsertTextAccessing = SystemAutoInsertTextAccess()) {

@@ -268,22 +268,16 @@ final class AppRuntime {
     _ text: String,
     usedFormattingFallback: Bool
   ) async throws -> OutputDeliveryOutcome {
-    defer { autoInsertTarget.clear() }
-    guard outputSettings.mode == .autoInsert else {
-      try clipboardOutput.write(text)
-      return usedFormattingFallback
-        ? .clipboardSucceededWithFormattingFallback
-        : .clipboardSucceeded
-    }
-
-    do {
-      let target = try autoInsertTarget.revalidateForOutput()
-      try await autoInsertWriter.replaceSelection(with: text, in: target)
-      return .automaticInsertionSucceeded
-    } catch {
-      try clipboardOutput.write(text)
-      return .automaticInsertionFellBackToClipboard
-    }
+    let delivery = OutputDeliveryCoordinator(
+      clipboard: clipboardOutput,
+      autoInsertTarget: autoInsertTarget,
+      autoInsertWriter: autoInsertWriter
+    )
+    return try await delivery.deliver(
+      text,
+      mode: outputSettings.mode,
+      usedFormattingFallback: usedFormattingFallback
+    )
   }
 
   private func handleAudioRecordingFailure(_ error: Error) {
@@ -296,6 +290,46 @@ final class AppRuntime {
       operationError = "録音時間が上限に達したため録音を中止しました"
     default:
       operationError = "録音を継続できませんでした"
+    }
+  }
+}
+
+@MainActor
+final class OutputDeliveryCoordinator {
+  private let clipboard: ClipboardWriting
+  private let autoInsertTarget: AutoInsertTargetCoordinating
+  private let autoInsertWriter: AutoInsertWriting
+
+  init(
+    clipboard: ClipboardWriting,
+    autoInsertTarget: AutoInsertTargetCoordinating,
+    autoInsertWriter: AutoInsertWriting
+  ) {
+    self.clipboard = clipboard
+    self.autoInsertTarget = autoInsertTarget
+    self.autoInsertWriter = autoInsertWriter
+  }
+
+  func deliver(
+    _ text: String,
+    mode: OutputMode,
+    usedFormattingFallback: Bool
+  ) async throws -> OutputDeliveryOutcome {
+    defer { autoInsertTarget.clear() }
+    guard mode == .autoInsert else {
+      try clipboard.write(text)
+      return usedFormattingFallback
+        ? .clipboardSucceededWithFormattingFallback
+        : .clipboardSucceeded
+    }
+
+    do {
+      let target = try autoInsertTarget.revalidateForOutput()
+      try await autoInsertWriter.replaceSelection(with: text, in: target)
+      return .automaticInsertionSucceeded
+    } catch {
+      try clipboard.write(text)
+      return .automaticInsertionFellBackToClipboard
     }
   }
 }

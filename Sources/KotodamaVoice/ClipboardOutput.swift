@@ -12,6 +12,11 @@ protocol PasteboardAccessing: AnyObject {
 }
 
 @MainActor
+protocol ClipboardWriting: AnyObject {
+    func write(_ text: String) throws
+}
+
+@MainActor
 final class SystemPasteboard: PasteboardAccessing {
     private let pasteboard: NSPasteboard
 
@@ -30,7 +35,7 @@ final class SystemPasteboard: PasteboardAccessing {
 }
 
 @MainActor
-final class ClipboardOutput {
+final class ClipboardOutput: ClipboardWriting {
     private let pasteboard: PasteboardAccessing
 
     init(pasteboard: PasteboardAccessing = SystemPasteboard()) {

@@ -127,6 +127,39 @@ func systemTextAccessDoesNotInvokePasteWhenClipboardWriteFails() {
     #expect(command.processIDs.isEmpty)
 }
 
+@Test(
+    "Auto Insertの再検証失敗は既存入力を変更せずClipboardへFallbackする",
+    arguments: [
+        OutputFallbackFailure.unsafeElement,
+        .permissionRevoked,
+        .targetApplicationTerminated,
+    ]
+)
+@MainActor
+private func outputDeliveryFallsBackWithoutInvokingAutoInsert(
+    failure: OutputFallbackFailure
+) async throws {
+    let clipboard = ClipboardWriterSpy()
+    let target = OutputTargetCoordinatorSpy(error: failure.error)
+    let writer = AutoInsertWriterSpy()
+    let delivery = OutputDeliveryCoordinator(
+        clipboard: clipboard,
+        autoInsertTarget: target,
+        autoInsertWriter: writer
+    )
+
+    let outcome = try await delivery.deliver(
+        "Fallback結果",
+        mode: .autoInsert,
+        usedFormattingFallback: false
+    )
+
+    #expect(outcome == .automaticInsertionFellBackToClipboard)
+    #expect(clipboard.values == ["Fallback結果"])
+    #expect(writer.replacements.isEmpty)
+    #expect(target.clearCount == 1)
+}
+
 @MainActor
 private final class AutoInsertTextAccessSpy: AutoInsertTextAccessing {
     var value: String
@@ -202,6 +235,63 @@ private final class AutoInsertPasteCommandSpy: AutoInsertPasteCommandPerforming 
 
     func performPaste(into target: AutoInsertTargetObservation) throws {
         processIDs.append(target.processID)
+    }
+}
+
+private enum OutputFallbackFailure: CaseIterable {
+    case unsafeElement
+    case permissionRevoked
+    case targetApplicationTerminated
+
+    var error: Error {
+        switch self {
+        case .unsafeElement:
+            AutoInsertTargetValidationError.elementNotEditable
+        case .permissionRevoked:
+            AutoInsertTargetObservationError.accessibilityError(-25_211)
+        case .targetApplicationTerminated:
+            AutoInsertTargetValidationError.applicationChanged
+        }
+    }
+}
+
+@MainActor
+private final class ClipboardWriterSpy: ClipboardWriting {
+    private(set) var values: [String] = []
+
+    func write(_ text: String) throws {
+        values.append(text)
+    }
+}
+
+@MainActor
+private final class OutputTargetCoordinatorSpy: AutoInsertTargetCoordinating {
+    private let error: Error
+    private(set) var clearCount = 0
+
+    init(error: Error) {
+        self.error = error
+    }
+
+    func revalidateForOutput() throws -> AutoInsertTargetObservation {
+        throw error
+    }
+
+    func clear() {
+        clearCount += 1
+    }
+}
+
+@MainActor
+private final class AutoInsertWriterSpy: AutoInsertWriting {
+    private(set) var replacements: [String] = []
+
+    func replaceSelection(
+        with replacement: String,
+        in target: AutoInsertTargetObservation
+    ) async throws -> AutoInsertWriteResult {
+        replacements.append(replacement)
+        return AutoInsertWriteResult(cursorUpdated: true)
     }
 }
 

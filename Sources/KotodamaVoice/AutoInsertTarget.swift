@@ -75,7 +75,13 @@ protocol AutoInsertTargetObserving: AnyObject {
 }
 
 @MainActor
-final class AutoInsertTargetCoordinator {
+protocol AutoInsertTargetCoordinating: AnyObject {
+    func revalidateForOutput() throws -> AutoInsertTargetObservation
+    func clear()
+}
+
+@MainActor
+final class AutoInsertTargetCoordinator: AutoInsertTargetCoordinating {
     private let observer: AutoInsertTargetObserving
     private(set) var capturedTarget: AutoInsertTargetObservation?
 
