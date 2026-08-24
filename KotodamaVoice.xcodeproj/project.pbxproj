@@ -31,6 +31,7 @@
 		473491B0408C052E808733BE /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD938F4BC6FB93AEFA3881B /* HotKey.swift */; };
 		47C139ACBC14BEA8515727C2 /* SpeechRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */; };
 		49655035111E03525A6C578F /* ModelOperationGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D8917CFEEE69E9EDC4070C /* ModelOperationGate.swift */; };
+		4A28DDA617FFF2057E8F42F2 /* ExternalEngineConnectionTesterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CE43E97B52A6A55D502C9D /* ExternalEngineConnectionTesterTests.swift */; };
 		4CE508D579E90463EE067CCE /* KotodamaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4DD6D8B55AF2EAE84DC40D49 /* TextFormattingPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C20967D9755B4A66D1CA24 /* TextFormattingPipelineTests.swift */; };
 		4F4FD8A84D7A95F59165EDF3 /* KotodamaVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */; };
@@ -45,6 +46,7 @@
 		628A758DC07E34E39443B704 /* ModelDownloadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163377464306A3A252A8CC29 /* ModelDownloadCoordinator.swift */; };
 		62E2EA35A72F756453A362CC /* whisper.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F709A1FAA22DD06B2D15FAF /* whisper.xcframework */; };
 		6B2D212637BEFBD0900099D3 /* ModelOperationGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E338AAEA7B5F269E00633067 /* ModelOperationGateTests.swift */; };
+		6BF083E8E04E222BFD873F33 /* ExternalEngineConnectionTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9114BACB5813167812E6816 /* ExternalEngineConnectionTester.swift */; };
 		6C8BD58ADC7D3BE0AE258BC2 /* KotodamaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4440A5288A1BAA902BA980E8 /* KotodamaCore.framework */; };
 		6FAE6C97E0D815A1981FC1AF /* SpeechWorkerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D8D5DFA20028FB8580A6178 /* SpeechWorkerClient.swift */; };
 		73CA258CF64840D8F2AEDFF9 /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A109991F1F9EDAB8AFB2A88C /* llama.xcframework */; };
@@ -322,6 +324,7 @@
 		6841313520F8A935BC9A4DAF /* KotodamaVoiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotodamaVoiceTests.swift; sourceTree = "<group>"; };
 		6C6DADF77368023FCFF7197A /* KotodamaVoiceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KotodamaVoiceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		73F2EF4A4CFD5A7858E3BBA3 /* WorkerMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerMessages.swift; sourceTree = "<group>"; };
+		74CE43E97B52A6A55D502C9D /* ExternalEngineConnectionTesterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalEngineConnectionTesterTests.swift; sourceTree = "<group>"; };
 		77D8917CFEEE69E9EDC4070C /* ModelOperationGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelOperationGate.swift; sourceTree = "<group>"; };
 		7AB9FE6709141882C797E153 /* SpeechWorkerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpeechWorkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D4296D37EDFA9006F91FD7E /* KotodamaCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KotodamaCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -340,6 +343,7 @@
 		A109991F1F9EDAB8AFB2A88C /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = .build/runtimes/artifacts/llama.xcframework; sourceTree = "<group>"; };
 		A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatterWorkerTests.swift; sourceTree = "<group>"; };
 		A5A044366E623A71BFE9CB84 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		A9114BACB5813167812E6816 /* ExternalEngineConnectionTester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalEngineConnectionTester.swift; sourceTree = "<group>"; };
 		B2A0521C534370D92B8A8874 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerDiagnostics.swift; sourceTree = "<group>"; };
 		BD019241ECD56EA3E33594F2 /* FormattingPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattingPromptTests.swift; sourceTree = "<group>"; };
@@ -536,6 +540,7 @@
 				426A21DB0B93F6890E207B08 /* CarbonHotKeyBackendTests.swift */,
 				5B8A0A655F55C34B62C5E0EE /* ClipboardOutputTests.swift */,
 				56629419C9CE473E97605ADA /* EmbeddedWorkerIntegrationTests.swift */,
+				74CE43E97B52A6A55D502C9D /* ExternalEngineConnectionTesterTests.swift */,
 				578E7E6497C00C7D77A304BC /* ExternalFormatterAdapterHTTPIntegrationTests.swift */,
 				355C77CFCDBD8329828E444C /* ExternalSpeechAdapterHTTPIntegrationTests.swift */,
 				042E0413B7131906071AF074 /* FormatterModelEvaluationTests.swift */,
@@ -614,6 +619,7 @@
 				DCDF509CDB9A732EE4F9F2D2 /* AVMicrophonePermission.swift */,
 				F78A93F0ED7F6F8FF212E907 /* CarbonHotKeyBackend.swift */,
 				A0F90A0C2DC66D8FD33B8402 /* ClipboardOutput.swift */,
+				A9114BACB5813167812E6816 /* ExternalEngineConnectionTester.swift */,
 				932B70871235783E29A47C3A /* ExternalFormatterAdapters.swift */,
 				9DC103383789138860E7DF5A /* ExternalSpeechAdapters.swift */,
 				D01F0E84C9DE3124EED51983 /* FormatterWorkerClient.swift */,
@@ -1054,6 +1060,7 @@
 				C569DF0986B25B0E779E336E /* CarbonHotKeyBackendTests.swift in Sources */,
 				8884F151A1F8ECB6949F8C3F /* ClipboardOutputTests.swift in Sources */,
 				14278F37DD287B964F745026 /* EmbeddedWorkerIntegrationTests.swift in Sources */,
+				4A28DDA617FFF2057E8F42F2 /* ExternalEngineConnectionTesterTests.swift in Sources */,
 				95AC0A96E6E91DE023D54443 /* ExternalFormatterAdapterHTTPIntegrationTests.swift in Sources */,
 				ADF09663C9D8DBE0D75DA5DF /* ExternalSpeechAdapterHTTPIntegrationTests.swift in Sources */,
 				C9CBD733B0B8B91B6872D1DE /* FormatterModelEvaluationTests.swift in Sources */,
@@ -1139,6 +1146,7 @@
 				CF0D91917C50BAC095EE932B /* AudioSampleConverter.swift in Sources */,
 				073244A5D4F1D6E902063E3E /* CarbonHotKeyBackend.swift in Sources */,
 				2785B9AD6B1EEC2F8D8D126A /* ClipboardOutput.swift in Sources */,
+				6BF083E8E04E222BFD873F33 /* ExternalEngineConnectionTester.swift in Sources */,
 				C26D3E57BE4EE09AB1691395 /* ExternalFormatterAdapters.swift in Sources */,
 				9B9BDC90596EBB5C6754874A /* ExternalSpeechAdapters.swift in Sources */,
 				18DFD7AF462BAC7CB365547C /* FormatterWorkerClient.swift in Sources */,
