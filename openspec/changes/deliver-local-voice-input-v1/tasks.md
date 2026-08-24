@@ -73,7 +73,7 @@
 ## 9. ClipboardとAuto Insert
 
 - [x] 9.1 Clipboard adapterへ置換、読み戻し、競合、失敗のテストを追加してから実装し、最終テキストと読み戻しが一致することを確認する
-- [ ] 9.2 単一`NSPanel` HUDへ置換、timer reset、非アクティブ、本文非表示のテストを追加してから実装する
+- [x] 9.2 単一`NSPanel` HUDへ置換、timer reset、非アクティブ、本文非表示のテストを追加してから実装する
 - [ ] 9.3 Accessibility権限adapterを実装し、起動時とClipboard利用時にはpromptせずAuto Insert選択時だけpromptすることをUI Testで確認する
 - [ ] 9.4 録音開始時のfrontmost app、focused element、selection captureと出力時再検証を実装し、PID変更、element無効化、selection変更の失敗テストを成功させる
 - [ ] 9.5 選択範囲への置換を実装し、TextEdit、Notes、Safari、Chrome、Slack、VS Code、Xcode、Terminal、ChatGPTでcapture、insert、selection replacementを記録する

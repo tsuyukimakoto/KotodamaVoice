@@ -22,6 +22,7 @@ final class AppRuntime {
   let formatterSettings: FormatterSettingsStore
   let externalEngineSettings: ExternalEngineSettingsStore
   private let clipboardOutput = ClipboardOutput()
+  private let outputHUD = OutputHUDController()
   private let localSpeechPipeline: LocalSpeechPipeline
   private let textFormattingPipeline: TextFormattingPipeline
 
@@ -183,6 +184,9 @@ final class AppRuntime {
             )
             if output.usedFallback {
               completionMessage = "文章整形を適用できなかったため原文を出力しました"
+              outputHUD.show(.clipboardSucceededWithFormattingFallback)
+            } else {
+              outputHUD.show(.clipboardSucceeded)
             }
           } catch {
             _ = try? coordinator.fail(
@@ -219,6 +223,7 @@ final class AppRuntime {
         operationError = "文字起こしに失敗しました"
       } catch is ClipboardOutputError {
         operationError = "クリップボードへ結果を書き込めませんでした"
+        outputHUD.show(.clipboardFailed)
       } catch {
         operationError = "操作を開始できませんでした"
       }
