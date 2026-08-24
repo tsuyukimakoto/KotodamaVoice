@@ -59,6 +59,61 @@ func accessibilityRecheckDoesNotPromptAgain() {
     #expect(settings.permissionPromptRequestCount == 1)
 }
 
+@Test @MainActor
+func pendingAutoInsertIsEnabledWhenApplicationBecomesActiveAfterAuthorization() {
+    let defaults = isolatedOutputDefaults()
+    let permission = AccessibilityPermissionSpy(isTrusted: false)
+    let settings = OutputSettingsStore(defaults: defaults, permission: permission)
+
+    #expect(settings.requestAutoInsertPermission() == .permissionRequired)
+    #expect(settings.mode == .clipboard)
+    #expect(settings.selectedMode == .autoInsert)
+    #expect(settings.isAwaitingAccessibilityPermission)
+
+    permission.isTrusted = true
+    settings.applicationDidBecomeActive()
+
+    #expect(settings.mode == .autoInsert)
+    #expect(settings.selectedMode == .autoInsert)
+    #expect(!settings.isAwaitingAccessibilityPermission)
+    #expect(permission.promptValues == [true, false])
+    #expect(OutputSettingsStore(defaults: defaults, permission: permission).mode == .autoInsert)
+}
+
+@Test @MainActor
+func applicationActivationDoesNotInspectAccessibilityWithoutPendingAutoInsert() {
+    let permission = AccessibilityPermissionSpy(isTrusted: true)
+    let settings = OutputSettingsStore(
+        defaults: isolatedOutputDefaults(),
+        permission: permission
+    )
+
+    settings.applicationDidBecomeActive()
+
+    #expect(settings.mode == .clipboard)
+    #expect(settings.selectedMode == .clipboard)
+    #expect(permission.promptValues.isEmpty)
+}
+
+@Test @MainActor
+func selectingClipboardCancelsPendingAutoInsertAuthorization() {
+    let permission = AccessibilityPermissionSpy(isTrusted: false)
+    let settings = OutputSettingsStore(
+        defaults: isolatedOutputDefaults(),
+        permission: permission
+    )
+
+    _ = settings.requestAutoInsertPermission()
+    settings.selectClipboard()
+    permission.isTrusted = true
+    settings.applicationDidBecomeActive()
+
+    #expect(settings.mode == .clipboard)
+    #expect(settings.selectedMode == .clipboard)
+    #expect(!settings.isAwaitingAccessibilityPermission)
+    #expect(permission.promptValues == [true])
+}
+
 @MainActor
 private final class AccessibilityPermissionSpy: AccessibilityPermissionChecking {
     var isTrusted: Bool

@@ -155,7 +155,7 @@ final class KotodamaVoiceUITests: XCTestCase {
         XCTAssertEqual(promptCount.value as? String, "1")
         XCTAssertEqual(
             settingsWindow.staticTexts["output-mode-value"].value as? String,
-            "Clipboard"
+            "Clipboard（Auto Insertの許可待ち）"
         )
         XCTAssertTrue(
             settingsWindow.staticTexts["accessibility-permission-required"].exists

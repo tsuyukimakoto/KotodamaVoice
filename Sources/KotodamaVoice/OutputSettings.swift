@@ -51,6 +51,11 @@ final class OutputSettingsStore {
     private(set) var mode: OutputMode
     private(set) var permissionResult: AutoInsertPermissionResult?
     private(set) var permissionPromptRequestCount = 0
+    private(set) var isAwaitingAccessibilityPermission = false
+
+    var selectedMode: OutputMode {
+        isAwaitingAccessibilityPermission ? .autoInsert : mode
+    }
 
     init(
         defaults: UserDefaults = .standard,
@@ -65,6 +70,7 @@ final class OutputSettingsStore {
     func selectClipboard() {
         mode = .clipboard
         permissionResult = nil
+        isAwaitingAccessibilityPermission = false
         persistMode()
     }
 
@@ -79,13 +85,20 @@ final class OutputSettingsStore {
         applyPermissionResult(permission.check(prompt: false))
     }
 
+    func applicationDidBecomeActive() {
+        guard isAwaitingAccessibilityPermission else { return }
+        recheckAutoInsertPermission()
+    }
+
     private func applyPermissionResult(_ isTrusted: Bool) -> AutoInsertPermissionResult {
         let result: AutoInsertPermissionResult
         if isTrusted {
             mode = .autoInsert
+            isAwaitingAccessibilityPermission = false
             result = .enabled
         } else {
             mode = .clipboard
+            isAwaitingAccessibilityPermission = true
             result = .permissionRequired
         }
         permissionResult = result

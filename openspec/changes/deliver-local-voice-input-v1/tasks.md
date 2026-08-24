@@ -102,5 +102,5 @@
 - [x] 12.2 Release entitlementsを検査し、App Sandbox、JIT、unsigned executable memory、disable library validationが含まれないことを確認する
 - [x] 12.3 配布物を`notarytool`へ送信して受理後にticketをstapleし、`stapler validate`と`spctl --assess`が成功することを確認する
 - [ ] 12.4 開発ツールとモデルのないクリーンなmacOS 14以降のMacへ配布物を導入し、初回起動、モデル取得、マイク許可、Clipboard音声入力を完了する
-- [ ] 12.5 Accessibilityなしとありの両方で配布版を検証し、通常利用ではマイク以外を要求せずAuto InsertだけがAccessibilityを要求することを確認する
+- [x] 12.5 Accessibilityなしとありの両方で配布版を検証し、通常利用ではマイク以外を要求せずAuto InsertだけがAccessibilityを要求することを確認する
 - [ ] 12.6 SpeechとFormatterモデルをロードしてからアプリを終了し、録音、推論、ネットワーク要求が継続せずモデルメモリが解放されることをActivity Monitorとログで確認する

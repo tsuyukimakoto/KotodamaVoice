@@ -99,6 +99,7 @@ private struct SpeechSettingsView: View {
 }
 
 private struct OutputSettingsView: View {
+    @Environment(\.scenePhase) private var scenePhase
     let settings: OutputSettingsStore
     @State private var showsAccessibilityExplanation = false
 
@@ -108,7 +109,7 @@ private struct OutputSettingsView: View {
                 Picker(
                     "出力方式",
                     selection: Binding(
-                        get: { settings.mode },
+                        get: { settings.selectedMode },
                         set: { mode in select(mode) }
                     )
                 ) {
@@ -120,7 +121,7 @@ private struct OutputSettingsView: View {
                 .accessibilityIdentifier("output-mode-picker")
 
                 LabeledContent("現在の出力") {
-                    Text(settings.mode.displayName)
+                    Text(currentOutputDescription)
                         .accessibilityIdentifier("output-mode-value")
                 }
 
@@ -131,6 +132,8 @@ private struct OutputSettingsView: View {
 
             if settings.permissionResult == .permissionRequired {
                 Section("Accessibility権限") {
+                    Label("Auto Insertの許可待ちです", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
                     Text("システム設定でKotodamaVoiceのAccessibilityを許可してください。許可されるまでClipboardを使用します。")
                         .accessibilityIdentifier("accessibility-permission-required")
                     Button("権限を再確認") {
@@ -159,14 +162,29 @@ private struct OutputSettingsView: View {
         } message: {
             Text("録音開始時に選択されていた入力欄へ結果を挿入するため、macOSのAccessibility権限が必要です。音声入力の内容は権限確認に使用しません。")
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                settings.applicationDidBecomeActive()
+            }
+        }
+    }
+
+    private var currentOutputDescription: String {
+        if settings.isAwaitingAccessibilityPermission {
+            return "Clipboard（Auto Insertの許可待ち）"
+        }
+        return settings.mode.displayName
     }
 
     private var detail: String {
+        if settings.isAwaitingAccessibilityPermission {
+            return "許可されるまでは結果をClipboardへコピーし、許可を確認できた時点でAuto Insertへ切り替えます。"
+        }
         switch settings.mode {
         case .clipboard:
-            "結果をClipboardへコピーします。Accessibility権限は使用しません。"
+            return "結果をClipboardへコピーします。Accessibility権限は使用しません。"
         case .autoInsert:
-            "録音開始時に選択されていた入力欄を再確認して結果を挿入します。"
+            return "録音開始時に選択されていた入力欄を再確認して結果を挿入します。"
         }
     }
 
