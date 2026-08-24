@@ -21,6 +21,7 @@ final class AppRuntime {
   let modelManager: ModelManager
   let formatterSettings: FormatterSettingsStore
   let externalEngineSettings: ExternalEngineSettingsStore
+  let outputSettings: OutputSettingsStore
   private let clipboardOutput = ClipboardOutput()
   private let outputHUD = OutputHUDController()
   private let localSpeechPipeline: LocalSpeechPipeline
@@ -47,6 +48,19 @@ final class AppRuntime {
     )
     let formatterSettings = FormatterSettingsStore(defaults: defaults)
     let externalEngineSettings = ExternalEngineSettingsStore(defaults: defaults)
+    let outputSettings: OutputSettingsStore
+    #if DEBUG
+      if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+        outputSettings = OutputSettingsStore(
+          defaults: defaults,
+          permission: UITestAccessibilityPermissionAdapter()
+        )
+      } else {
+        outputSettings = OutputSettingsStore(defaults: defaults)
+      }
+    #else
+      outputSettings = OutputSettingsStore(defaults: defaults)
+    #endif
     let formatterWorkerClient = FormatterWorkerClient(
       operationGate: modelOperationGate
     )
@@ -125,6 +139,7 @@ final class AppRuntime {
     self.localSpeechPipeline = localSpeechPipeline
     self.formatterSettings = formatterSettings
     self.externalEngineSettings = externalEngineSettings
+    self.outputSettings = outputSettings
     self.textFormattingPipeline = textFormattingPipeline
     self.modelCatalog = modelCatalog
     self.modelManager = modelManager

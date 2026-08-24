@@ -34,10 +34,7 @@ struct SettingsView: View {
                     .accessibilityIdentifier("formatting-settings")
             }
 
-            PlaceholderSettingsView(
-                title: "Output",
-                detail: "ClipboardまたはAuto Insertを選択します。"
-            )
+            OutputSettingsView(settings: runtime.outputSettings)
             .tabItem {
                 Label("Output", systemImage: "clipboard")
                     .accessibilityIdentifier("output-settings")
@@ -54,6 +51,88 @@ struct SettingsView: View {
         }
         .padding(20)
         .frame(width: 620, height: 420)
+    }
+}
+
+private struct OutputSettingsView: View {
+    let settings: OutputSettingsStore
+    @State private var showsAccessibilityExplanation = false
+
+    var body: some View {
+        Form {
+            Section("出力方式") {
+                Picker(
+                    "出力方式",
+                    selection: Binding(
+                        get: { settings.mode },
+                        set: { mode in select(mode) }
+                    )
+                ) {
+                    ForEach(OutputMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("output-mode-picker")
+
+                LabeledContent("現在の出力") {
+                    Text(settings.mode.displayName)
+                        .accessibilityIdentifier("output-mode-value")
+                }
+
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if settings.permissionResult == .permissionRequired {
+                Section("Accessibility権限") {
+                    Text("システム設定でKotodamaVoiceのAccessibilityを許可してください。許可されるまでClipboardを使用します。")
+                        .accessibilityIdentifier("accessibility-permission-required")
+                    Button("権限を再確認") {
+                        settings.recheckAutoInsertPermission()
+                    }
+                    .accessibilityIdentifier("accessibility-permission-recheck")
+                }
+            }
+
+            #if DEBUG
+                if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+                    Text("\(settings.permissionPromptRequestCount)")
+                        .accessibilityIdentifier("accessibility-prompt-count")
+                }
+            #endif
+        }
+        .formStyle(.grouped)
+        .alert(
+            "Auto Insertを有効にしますか？",
+            isPresented: $showsAccessibilityExplanation
+        ) {
+            Button("キャンセル", role: .cancel) {}
+            Button("許可を要求") {
+                settings.requestAutoInsertPermission()
+            }
+        } message: {
+            Text("録音開始時に選択されていた入力欄へ結果を挿入するため、macOSのAccessibility権限が必要です。音声入力の内容は権限確認に使用しません。")
+        }
+    }
+
+    private var detail: String {
+        switch settings.mode {
+        case .clipboard:
+            "結果をClipboardへコピーします。Accessibility権限は使用しません。"
+        case .autoInsert:
+            "録音開始時に選択されていた入力欄を再確認して結果を挿入します。"
+        }
+    }
+
+    private func select(_ mode: OutputMode) {
+        switch mode {
+        case .clipboard:
+            settings.selectClipboard()
+        case .autoInsert:
+            showsAccessibilityExplanation = true
+        }
     }
 }
 

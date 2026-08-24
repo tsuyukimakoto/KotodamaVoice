@@ -8,7 +8,19 @@ struct KotodamaVoiceApp: App {
     @State private var store: PipelineStore
 
     init() {
-        let runtime = AppRuntime()
+        let defaults: UserDefaults
+        #if DEBUG
+            if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+                defaults = UserDefaults(
+                    suiteName: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)"
+                )!
+            } else {
+                defaults = .standard
+            }
+        #else
+            defaults = .standard
+        #endif
+        let runtime = AppRuntime(defaults: defaults)
         _runtime = State(initialValue: runtime)
         _store = State(initialValue: runtime.pipelineStore)
     }

@@ -115,6 +115,42 @@ final class KotodamaVoiceUITests: XCTestCase {
     }
 
     @MainActor
+    func testAccessibilityPromptOccursOnlyAfterAutoInsertConfirmation() {
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launchEnvironment["KOTODAMA_UI_TEST_ACCESSIBILITY_TRUSTED"] = "0"
+        application.launch()
+        application.activate()
+        application.typeKey(",", modifierFlags: .command)
+
+        let settingsWindow = application.windows.firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["Output"].click()
+
+        let promptCount = settingsWindow.staticTexts["accessibility-prompt-count"]
+        XCTAssertTrue(promptCount.waitForExistence(timeout: 3))
+        XCTAssertEqual(promptCount.value as? String, "0")
+
+        settingsWindow.radioButtons["Clipboard"].click()
+        XCTAssertEqual(promptCount.value as? String, "0")
+
+        settingsWindow.radioButtons["Auto Insert"].click()
+        let explanation = settingsWindow.sheets.firstMatch
+        XCTAssertTrue(explanation.waitForExistence(timeout: 3))
+        XCTAssertEqual(promptCount.value as? String, "0")
+        explanation.buttons["許可を要求"].click()
+
+        XCTAssertEqual(promptCount.value as? String, "1")
+        XCTAssertEqual(
+            settingsWindow.staticTexts["output-mode-value"].value as? String,
+            "Clipboard"
+        )
+        XCTAssertTrue(
+            settingsWindow.staticTexts["accessibility-permission-required"].exists
+        )
+    }
+
+    @MainActor
     private func assertModel(
         in window: XCUIElement,
         id: String,
