@@ -51,6 +51,23 @@ struct AutoInsertTargetObservation: Equatable {
     let role: String
     let isEditable: Bool
     let selection: TextSelectionRange
+    let bundleIdentifier: String?
+
+    init(
+        processID: Int32,
+        element: AutoInsertElementReference,
+        role: String,
+        isEditable: Bool,
+        selection: TextSelectionRange,
+        bundleIdentifier: String? = nil
+    ) {
+        self.processID = processID
+        self.element = element
+        self.role = role
+        self.isEditable = isEditable
+        self.selection = selection
+        self.bundleIdentifier = bundleIdentifier
+    }
 }
 
 enum AutoInsertTargetObservationError: Error, Equatable {
@@ -130,29 +147,66 @@ final class AutoInsertTargetCoordinator: AutoInsertTargetCoordinating {
 final class SystemAutoInsertTargetObserver: AutoInsertTargetObserving {
     func observeTarget() throws -> AutoInsertTargetObservation {
         guard let application = NSWorkspace.shared.frontmostApplication else {
-            throw AutoInsertTargetObservationError.noFrontmostApplication
+            throw diagnostic(
+                AutoInsertTargetObservationError.noFrontmostApplication,
+                stage: .focusedApplication
+            )
         }
 
         let processID = application.processIdentifier
+        let bundleIdentifier = application.bundleIdentifier
         let applicationElement = AXUIElementCreateApplication(processID)
-        let focusedElement: AXUIElement = try copyAttribute(
-            kAXFocusedUIElementAttribute as CFString,
-            from: applicationElement
-        )
-        let role: String = try copyAttribute(
-            kAXRoleAttribute as CFString,
-            from: focusedElement
-        )
-        let selectionValue: AXValue = try copyAttribute(
-            kAXSelectedTextRangeAttribute as CFString,
-            from: focusedElement
-        )
+        let focusedElement: AXUIElement
+        do {
+            focusedElement = try copyAttribute(
+                kAXFocusedUIElementAttribute as CFString,
+                from: applicationElement
+            )
+        } catch {
+            throw diagnostic(
+                error,
+                stage: .focusedElement,
+                bundleIdentifier: bundleIdentifier
+            )
+        }
+        let role: String
+        do {
+            role = try copyAttribute(
+                kAXRoleAttribute as CFString,
+                from: focusedElement
+            )
+        } catch {
+            throw diagnostic(
+                error,
+                stage: .role,
+                bundleIdentifier: bundleIdentifier
+            )
+        }
+        let selectionValue: AXValue
+        do {
+            selectionValue = try copyAttribute(
+                kAXSelectedTextRangeAttribute as CFString,
+                from: focusedElement
+            )
+        } catch {
+            throw diagnostic(
+                error,
+                stage: .selectedTextRange,
+                bundleIdentifier: bundleIdentifier,
+                role: role
+            )
+        }
 
         var selectionRange = CFRange()
         guard AXValueGetType(selectionValue) == .cfRange,
             AXValueGetValue(selectionValue, .cfRange, &selectionRange)
         else {
-            throw AutoInsertTargetObservationError.invalidSelectionRange
+            throw diagnostic(
+                AutoInsertTargetObservationError.invalidSelectionRange,
+                stage: .selectedTextRange,
+                bundleIdentifier: bundleIdentifier,
+                role: role
+            )
         }
 
         var isSelectionSettable = DarwinBoolean(false)
@@ -162,8 +216,13 @@ final class SystemAutoInsertTargetObserver: AutoInsertTargetObserving {
             &isSelectionSettable
         )
         guard settableError == .success else {
-            throw AutoInsertTargetObservationError.accessibilityError(
-                settableError.rawValue
+            throw diagnostic(
+                AutoInsertTargetObservationError.accessibilityError(
+                    settableError.rawValue
+                ),
+                stage: .selectionSettable,
+                bundleIdentifier: bundleIdentifier,
+                role: role
             )
         }
 
@@ -175,7 +234,28 @@ final class SystemAutoInsertTargetObserver: AutoInsertTargetObserving {
             selection: TextSelectionRange(
                 location: selectionRange.location,
                 length: selectionRange.length
-            )
+            ),
+            bundleIdentifier: bundleIdentifier
+        )
+    }
+
+    private func diagnostic(
+        _ error: Error,
+        stage: DebugLogStage,
+        bundleIdentifier: String? = nil,
+        role: String? = nil
+    ) -> AutoInsertDiagnosticError {
+        let event = autoInsertDebugEvent(for: error, defaultStage: stage)
+        return AutoInsertDiagnosticError(
+            event: DebugErrorEvent(
+                area: event.area,
+                stage: stage,
+                error: event.error,
+                code: event.code,
+                bundleIdentifier: bundleIdentifier,
+                role: role
+            ),
+            underlyingError: error
         )
     }
 

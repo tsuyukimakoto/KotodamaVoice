@@ -48,14 +48,6 @@ struct SettingsView: View {
                     .accessibilityIdentifier("output-settings")
             }
 
-            PlaceholderSettingsView(
-                title: "Models",
-                detail: "内蔵Engineのモデルを管理します。"
-            )
-            .tabItem {
-                Label("Models", systemImage: "shippingbox")
-                    .accessibilityIdentifier("models-settings")
-            }
         }
         .padding(20)
         .frame(width: 680, height: 560)
@@ -845,6 +837,32 @@ private struct GeneralSettingsView: View {
                 Button("Runtime Monitorを開く…", action: openRuntimeMonitor)
                     .accessibilityIdentifier("runtime-open-button")
             }
+
+            Section("デバッグ") {
+                Toggle(
+                    "エラーログを記録",
+                    isOn: Binding(
+                        get: { runtime.debugLogSettings.isEnabled },
+                        set: { runtime.debugLogSettings.setEnabled($0) }
+                    )
+                )
+                .accessibilityIdentifier("debug-logging-toggle")
+                Text("問題の発生箇所やエラー種別を記録します。入力内容、文字起こし結果、クリップボード内容、API Keyは記録しません。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if runtime.debugLogSettings.isEnabled {
+                    Button("ログフォルダを開く") {
+                        runtime.debugLogSettings.openLogDirectory()
+                    }
+                    .accessibilityIdentifier("debug-log-folder-button")
+                }
+                if let errorMessage = runtime.debugLogSettings.errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("debug-log-error")
+                }
+            }
         }
         .formStyle(.grouped)
         .onAppear {
@@ -859,18 +877,5 @@ private struct GeneralSettingsView: View {
         case .systemError:
             "ショートカットを登録できませんでした。以前の設定を継続します。"
         }
-    }
-}
-
-private struct PlaceholderSettingsView: View {
-    let title: String
-    let detail: String
-
-    var body: some View {
-        ContentUnavailableView(
-            title,
-            systemImage: "slider.horizontal.3",
-            description: Text(detail)
-        )
     }
 }

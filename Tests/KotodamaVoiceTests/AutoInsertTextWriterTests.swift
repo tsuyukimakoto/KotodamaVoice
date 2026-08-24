@@ -160,6 +160,60 @@ private func outputDeliveryFallsBackWithoutInvokingAutoInsert(
     #expect(target.clearCount == 1)
 }
 
+@Test(
+    "Auto Insertの失敗は段階を区別して本文なしで記録する",
+    arguments: [
+        AutoInsertDiagnosticFixture(
+            error: AutoInsertTargetObservationError.noFrontmostApplication,
+            stage: .focusedApplication,
+            diagnosticError: .noFrontmostApplication
+        ),
+        AutoInsertDiagnosticFixture(
+            error: AutoInsertTargetValidationError.selectionChanged,
+            stage: .targetRevalidation,
+            diagnosticError: .selectionChanged
+        ),
+        AutoInsertDiagnosticFixture(
+            error: AutoInsertTextWriterError.pasteActionUnavailable,
+            stage: .pasteMenuItem,
+            diagnosticError: .pasteActionUnavailable
+        ),
+        AutoInsertDiagnosticFixture(
+            error: AutoInsertTextWriterError.verificationFailed,
+            stage: .resultVerification,
+            diagnosticError: .verificationFailed
+        ),
+    ]
+)
+@MainActor
+private func outputDeliveryRecordsTypedAutoInsertFailure(
+    fixture: AutoInsertDiagnosticFixture
+) async throws {
+    let clipboard = ClipboardWriterSpy()
+    let target = OutputTargetCoordinatorSpy(error: fixture.error)
+    let writer = AutoInsertWriterSpy()
+    let logger = DebugErrorLoggerSpy()
+    let delivery = OutputDeliveryCoordinator(
+        clipboard: clipboard,
+        autoInsertTarget: target,
+        autoInsertWriter: writer,
+        debugLogger: logger
+    )
+
+    _ = try await delivery.deliver(
+        "本文_CANARY",
+        mode: .autoInsert,
+        usedFormattingFallback: false,
+        requestID: nil
+    )
+
+    let event = try #require(logger.events.first)
+    #expect(event.area == .autoInsert)
+    #expect(event.stage == fixture.stage)
+    #expect(event.error == fixture.diagnosticError)
+    #expect(!String(describing: event).contains("本文_CANARY"))
+}
+
 @MainActor
 private final class AutoInsertTextAccessSpy: AutoInsertTextAccessing {
     var value: String
@@ -252,6 +306,25 @@ private enum OutputFallbackFailure: CaseIterable {
         case .targetApplicationTerminated:
             AutoInsertTargetValidationError.applicationChanged
         }
+    }
+}
+
+private struct AutoInsertDiagnosticFixture: CustomTestStringConvertible {
+    let error: Error
+    let stage: DebugLogStage
+    let diagnosticError: DebugLogError
+
+    var testDescription: String {
+        "\(stage.rawValue)-\(diagnosticError.rawValue)"
+    }
+}
+
+@MainActor
+private final class DebugErrorLoggerSpy: DebugErrorLogging {
+    private(set) var events: [DebugErrorEvent] = []
+
+    func record(_ event: DebugErrorEvent) {
+        events.append(event)
     }
 }
 

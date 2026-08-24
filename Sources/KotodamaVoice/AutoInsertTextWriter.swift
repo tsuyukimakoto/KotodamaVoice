@@ -54,12 +54,26 @@ final class AutoInsertTextWriter: AutoInsertWriting {
         with replacement: String,
         in target: AutoInsertTargetObservation
     ) async throws -> AutoInsertWriteResult {
-        let currentSelection = try access.readSelection(from: target.element)
+        let currentSelection: TextSelectionRange
+        do {
+            currentSelection = try access.readSelection(from: target.element)
+        } catch {
+            throw autoInsertDiagnosticError(
+                error,
+                stage: .selectedTextRange,
+                target: target
+            )
+        }
         guard currentSelection == target.selection else {
             throw AutoInsertTextWriterError.selectionChanged
         }
 
-        let original = try access.readValue(from: target.element)
+        let original: String
+        do {
+            original = try access.readValue(from: target.element)
+        } catch {
+            throw autoInsertDiagnosticError(error, stage: .valueRead, target: target)
+        }
         let originalUTF16 = original as NSString
         let range = NSRange(
             location: currentSelection.location,
@@ -80,7 +94,17 @@ final class AutoInsertTextWriter: AutoInsertWriting {
         try access.paste(replacement, into: target)
 
         for attempt in 0..<10 {
-            if try access.readValue(from: target.element) == updated {
+            let currentValue: String
+            do {
+                currentValue = try access.readValue(from: target.element)
+            } catch {
+                throw autoInsertDiagnosticError(
+                    error,
+                    stage: .resultVerification,
+                    target: target
+                )
+            }
+            if currentValue == updated {
                 let expectedCursor = TextSelectionRange(
                     location: range.location + (replacement as NSString).length,
                     length: 0
@@ -174,24 +198,61 @@ final class SystemAutoInsertTextAccess: AutoInsertTextAccessing {
 @MainActor
 final class SystemPasteMenuCommand: AutoInsertPasteCommandPerforming {
     func performPaste(into target: AutoInsertTargetObservation) throws {
-        let application = try validateCurrentTarget(target)
-        let menuBar: AXUIElement = try copyAttribute(
-            kAXMenuBarAttribute as CFString,
-            from: application
-        )
-        guard let pasteItem = try findOrRevealPasteItem(
-            in: menuBar,
-            target: target
-        ) else {
-            throw AutoInsertTextWriterError.pasteActionUnavailable
+        let application: AXUIElement
+        do {
+            application = try validateCurrentTarget(target)
+        } catch {
+            throw autoInsertDiagnosticError(
+                error,
+                stage: .targetRevalidation,
+                target: target
+            )
         }
-        _ = try validateCurrentTarget(target)
+        let menuBar: AXUIElement
+        do {
+            menuBar = try copyAttribute(
+                kAXMenuBarAttribute as CFString,
+                from: application
+            )
+        } catch {
+            throw autoInsertDiagnosticError(error, stage: .pasteMenuBar, target: target)
+        }
+        let pasteItem: AXUIElement?
+        do {
+            pasteItem = try findOrRevealPasteItem(in: menuBar, target: target)
+        } catch {
+            throw autoInsertDiagnosticError(
+                error,
+                stage: .targetRevalidation,
+                target: target
+            )
+        }
+        guard let pasteItem else {
+            throw autoInsertDiagnosticError(
+                AutoInsertTextWriterError.pasteActionUnavailable,
+                stage: .pasteMenuItem,
+                target: target
+            )
+        }
+        do {
+            _ = try validateCurrentTarget(target)
+        } catch {
+            throw autoInsertDiagnosticError(
+                error,
+                stage: .targetRevalidation,
+                target: target
+            )
+        }
         let error = AXUIElementPerformAction(
             pasteItem,
             kAXPressAction as CFString
         )
         guard error == .success else {
-            throw AutoInsertTextWriterError.accessibilityError(error.rawValue)
+            throw autoInsertDiagnosticError(
+                AutoInsertTextWriterError.accessibilityError(error.rawValue),
+                stage: .pasteAction,
+                target: target
+            )
         }
     }
 

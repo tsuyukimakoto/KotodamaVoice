@@ -24,6 +24,7 @@ final class AppRuntime {
   let formatterEngineSelection: FormatterEngineSelectionCoordinator
   let externalEngineSettings: ExternalEngineSettingsStore
   let outputSettings: OutputSettingsStore
+  let debugLogSettings: DebugLogSettingsStore
   private(set) var modelNavigationTargetID: String?
   private var outputSelectionWindow: OutputSelectionWindowPresenter?
   private let clipboardOutput = ClipboardOutput()
@@ -62,6 +63,21 @@ final class AppRuntime {
       speech: selectedSpeech
     )
     let formatterSettings = FormatterSettingsStore(defaults: defaults)
+    let debugLogSettings: DebugLogSettingsStore
+    #if DEBUG
+      if let testLogPath = ProcessInfo.processInfo.environment[
+        "KOTODAMA_UI_TEST_LOG_DIRECTORY"
+      ] {
+        debugLogSettings = DebugLogSettingsStore(
+          defaults: defaults,
+          logsDirectoryURL: URL(filePath: testLogPath, directoryHint: .isDirectory)
+        )
+      } else {
+        debugLogSettings = DebugLogSettingsStore(defaults: defaults)
+      }
+    #else
+      debugLogSettings = DebugLogSettingsStore(defaults: defaults)
+    #endif
     let outputSettings: OutputSettingsStore
     #if DEBUG
       if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
@@ -182,6 +198,7 @@ final class AppRuntime {
     self.formatterEngineSelection = formatterEngineSelection
     self.externalEngineSettings = externalEngineSettings
     self.outputSettings = outputSettings
+    self.debugLogSettings = debugLogSettings
     self.textFormattingPipeline = textFormattingPipeline
     self.modelCatalog = modelCatalog
     self.modelManager = modelManager
@@ -209,6 +226,15 @@ final class AppRuntime {
     do {
       try hotKeySettings.activate()
     } catch {
+      debugLogSettings.record(
+        DebugErrorEvent(
+          area: .hotKey,
+          stage: .hotKeyRegistration,
+          error: (error as? HotKeyRegistrationError) == .conflict
+            ? .hotKeyConflict
+            : .systemFailure
+        )
+      )
       operationError = "グローバルショートカットを登録できませんでした"
     }
 
@@ -245,7 +271,8 @@ final class AppRuntime {
           do {
             let outputOutcome = try await deliverOutput(
               output.text,
-              usedFormattingFallback: output.usedFallback
+              usedFormattingFallback: output.usedFallback,
+              requestID: transcription.requestID.rawValue
             )
             _ = try coordinator.completeOutput(
               requestID: transcription.requestID
@@ -267,6 +294,13 @@ final class AppRuntime {
             _ = try coordinator.recover()
           }
           guard selectedSpeechModelID() != nil else {
+            debugLogSettings.record(
+              DebugErrorEvent(
+                area: .speech,
+                stage: .recordingStart,
+                error: .speechModelUnavailable
+              )
+            )
             operationError = speechSettings.engine == .builtIn
               ? "使用するSpeechモデルをモデル画面で取得・選択してください"
               : "外部Speech Engineを設定してください"
@@ -276,6 +310,9 @@ final class AppRuntime {
             do {
               try autoInsertTarget.captureForRecording()
             } catch {
+              debugLogSettings.record(
+                autoInsertDebugEvent(for: error, defaultStage: .targetCapture)
+              )
               autoInsertTarget.clear()
             }
           } else {
@@ -293,15 +330,43 @@ final class AppRuntime {
         }
         operationError = completionMessage
       } catch RecordingStartError.microphonePermissionDenied {
+        debugLogSettings.record(
+          DebugErrorEvent(
+            area: .audio,
+            stage: .recordingStart,
+            error: .microphonePermissionDenied
+          )
+        )
         autoInsertTarget.clear()
         operationError = "マイクの使用が許可されていません"
       } catch VoiceInputError.speechModelUnavailable {
+        debugLogSettings.record(
+          DebugErrorEvent(
+            area: .speech,
+            stage: .transcription,
+            error: .speechModelUnavailable
+          )
+        )
         autoInsertTarget.clear()
         operationError = "使用するSpeechモデルが見つかりません"
       } catch let error where isSpeechTranscriptionFailure(error) {
+        debugLogSettings.record(
+          DebugErrorEvent(
+            area: .speech,
+            stage: .transcription,
+            error: .speechTranscriptionFailed
+          )
+        )
         autoInsertTarget.clear()
         operationError = "文字起こしに失敗しました"
       } catch is ClipboardOutputError {
+        debugLogSettings.record(
+          DebugErrorEvent(
+            area: .output,
+            stage: .delivery,
+            error: .clipboardWriteFailed
+          )
+        )
         autoInsertTarget.clear()
         operationError = "クリップボードへ結果を書き込めませんでした"
         outputHUD.show(.clipboardFailed)
@@ -371,12 +436,14 @@ final class AppRuntime {
 
   private func deliverOutput(
     _ text: String,
-    usedFormattingFallback: Bool
+    usedFormattingFallback: Bool,
+    requestID: UUID?
   ) async throws -> OutputDeliveryOutcome {
     let delivery = OutputDeliveryCoordinator(
       clipboard: clipboardOutput,
       autoInsertTarget: autoInsertTarget,
-      autoInsertWriter: autoInsertWriter
+      autoInsertWriter: autoInsertWriter,
+      debugLogger: debugLogSettings
     )
     guard let mode = outputSettings.mode else {
       throw VoiceInputError.outputModeUnavailable
@@ -384,11 +451,21 @@ final class AppRuntime {
     return try await delivery.deliver(
       text,
       mode: mode,
-      usedFormattingFallback: usedFormattingFallback
+      usedFormattingFallback: usedFormattingFallback,
+      requestID: requestID
     )
   }
 
   private func handleAudioRecordingFailure(_ error: Error) {
+    debugLogSettings.record(
+      DebugErrorEvent(
+        area: .audio,
+        stage: .recording,
+        error: (error as? AudioRecordingError) == .unavailableInput
+          ? .inputDeviceUnavailable
+          : .systemFailure
+      )
+    )
     autoInsertTarget.clear()
     localSpeechPipeline.recordingDidFail(error)
     switch error as? AudioRecordingError {
@@ -449,21 +526,25 @@ final class OutputDeliveryCoordinator {
   private let clipboard: ClipboardWriting
   private let autoInsertTarget: AutoInsertTargetCoordinating
   private let autoInsertWriter: AutoInsertWriting
+  private let debugLogger: DebugErrorLogging?
 
   init(
     clipboard: ClipboardWriting,
     autoInsertTarget: AutoInsertTargetCoordinating,
-    autoInsertWriter: AutoInsertWriting
+    autoInsertWriter: AutoInsertWriting,
+    debugLogger: DebugErrorLogging? = nil
   ) {
     self.clipboard = clipboard
     self.autoInsertTarget = autoInsertTarget
     self.autoInsertWriter = autoInsertWriter
+    self.debugLogger = debugLogger
   }
 
   func deliver(
     _ text: String,
     mode: OutputMode,
-    usedFormattingFallback: Bool
+    usedFormattingFallback: Bool,
+    requestID: UUID? = nil
   ) async throws -> OutputDeliveryOutcome {
     defer { autoInsertTarget.clear() }
     guard mode == .autoInsert else {
@@ -478,6 +559,13 @@ final class OutputDeliveryCoordinator {
       try await autoInsertWriter.replaceSelection(with: text, in: target)
       return .automaticInsertionSucceeded
     } catch {
+      debugLogger?.record(
+        autoInsertDebugEvent(
+          for: error,
+          defaultStage: .delivery,
+          requestID: requestID
+        )
+      )
       try clipboard.write(text)
       return .automaticInsertionFellBackToClipboard
     }

@@ -128,6 +128,16 @@ API KeyはKeychainへ保存し、UserDefaultsや通常ログには記録しま�
 - モデル取得が中断した場合は、Models画面から再試行する
 - 外部Engineを利用できない場合は、Endpoint、API方式、モデル、API Keyを確認して接続テストを行う
 
+### エラーログを記録する
+
+再現する問題を調べる場合は、SettingsのGeneralにある「エラーログを記録」をオンにします。
+オンにした時点から、問題の発生箇所、エラー種別、対象アプリのBundle IDなどの診断情報を `~/.kotodamavoice/logs` に記録します。
+ログファイルは `KotodamaVoice-YYYYMMDD-HHmmss-SSS.log` という名前で、記録を有効にしたセッションごとに作成します。
+
+ログには録音音声、入力内容、文字起こし結果、Prompt、整形結果、Clipboard内容、API Key、ウィンドウ名、Accessibilityラベルを記録しません。
+設定画面の「ログフォルダを開く」からファイルを確認できます。
+問題を再現して必要なログを保存したら、「エラーログを記録」をオフにしてください。
+
 ## 開発者向け情報
 
 ソースコードの構成、ビルド、署名、テストについては[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)を参照してください。

@@ -23,10 +23,10 @@ final class KotodamaVoiceUITests: XCTestCase {
             "Speech",
             "Formatting",
             "Output",
-            "Models",
         ] {
             XCTAssertTrue(settingsWindow.buttons[title].exists)
         }
+        XCTAssertFalse(settingsWindow.buttons["Models"].exists)
 
         settingsWindow.buttons["Speech"].click()
         XCTAssertTrue(settingsWindow.radioGroups["speech-engine-picker"].exists)
@@ -90,6 +90,43 @@ final class KotodamaVoiceUITests: XCTestCase {
         XCTAssertTrue(runtimeWindow.waitForExistence(timeout: 3))
         XCTAssertFalse(runtimeWindow.staticTexts["GPU使用率"].exists)
         XCTAssertFalse(runtimeWindow.staticTexts["独立VRAM"].exists)
+    }
+
+    @MainActor
+    func testDebugLoggingCanBeEnabledFromGeneralSettings() throws {
+        let logsURL = FileManager.default.temporaryDirectory.appending(
+            path: "KotodamaVoiceUITestLogs-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        defer { try? FileManager.default.removeItem(at: logsURL) }
+
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launchEnvironment["KOTODAMA_UI_TEST_LOG_DIRECTORY"] = logsURL.path
+        application.launch()
+        chooseClipboardIfNeeded(in: application)
+        application.activate()
+        application.typeKey(",", modifierFlags: .command)
+
+        let settingsWindow = application.windows.firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["General"].click()
+
+        let toggle = settingsWindow.switches["debug-logging-toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        XCTAssertEqual(toggle.value as? String, "0")
+        toggle.click()
+        XCTAssertEqual(toggle.value as? String, "1")
+        XCTAssertTrue(settingsWindow.buttons["debug-log-folder-button"].exists)
+
+        let files = try FileManager.default.contentsOfDirectory(
+            at: logsURL,
+            includingPropertiesForKeys: nil
+        )
+        XCTAssertEqual(files.count, 1)
+        XCTAssertTrue(files[0].lastPathComponent.hasPrefix("KotodamaVoice-"))
+        XCTAssertEqual(files[0].pathExtension, "log")
+        XCTAssertEqual(try Data(contentsOf: files[0]), Data())
     }
 
     @MainActor

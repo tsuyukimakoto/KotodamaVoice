@@ -81,7 +81,7 @@
 - [ ] 9.5 選択範囲への置換を実装し、TextEdit、Notes、Safari、Chrome、Slack、VS Code、Xcode、Terminal、ChatGPTでcapture、insert、selection replacementを記録する
 - [x] 9.6 安全に挿入できないelement、権限失効、対象アプリ終了でClipboardへFallbackし、既存入力全体を変更しないことを互換性試験で確認する
 - [x] 9.7 出力方式の未設定、選択、保存、選択画面を閉じた後の再表示について失敗テストを追加してから実装し、初回起動では権限を要求せず、Clipboard選択は即時確定し、Auto Insert選択はAccessibility許可後だけ確定することをUI Testで確認する
-- [ ] 9.8 Auto Insertの対象取得、属性取得、settable確認、再検証、Paste項目探索、Paste action、結果検証の失敗段階を区別するテストを先に追加し、Clipboardへの安全なFallbackを維持したまま型付き診断を記録できるようにする
+- [x] 9.8 Auto Insertの対象取得、属性取得、settable確認、再検証、Paste項目探索、Paste action、結果検証の失敗段階を区別するテストを先に追加し、Clipboardへの安全なFallbackを維持したまま型付き診断を記録できるようにする
 
 ## 10. Runtime Monitorとプライバシー
 
@@ -90,7 +90,7 @@
 - [x] 10.3 取得不能なGPU使用率と独立VRAMを表示しないUI Testを追加し、利用可能なmetricsだけが表示されることを確認する
 - [x] 10.4 音声、文字起こし、Prompt本文、整形本文、Clipboard、API Keyを含むcanary文字列を全失敗経路へ流し、OSLogとRuntime Monitorに現れないことを確認する
 - [x] 10.5 request IDからApp、Speech Worker、Formatter Workerの正常要求とクラッシュ要求を追跡し、段階と時間が一致することを診断手順で確認する
-- [ ] 10.6 初期値オフのデバッグログ設定、`~/.kotodamavoice/logs`の日時付きファイル、`0700`と`0600`の権限、起動単位のファイル、無効化後の書き込み停止、Finderで開く操作について失敗テストを先に追加してから実装する
+- [x] 10.6 初期値オフのデバッグログ設定、`~/.kotodamavoice/logs`の日時付きファイル、`0700`と`0600`の権限、起動単位のファイル、無効化後の書き込み停止、Finderで開く操作について失敗テストを先に追加してから実装する
 - [ ] 10.7 全失敗段階へ音声、文字起こし、Prompt、整形本文、Clipboard、API Key、ウィンドウタイトル、Accessibility labelのcanaryを流し、デバッグログには許可された診断項目だけが含まれることをUnit TestとUI Testで確認する
 
 ## 11. V1統合試験
