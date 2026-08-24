@@ -5,11 +5,16 @@ Engine、Prompt、出力、起動方法を永続設定として管理し、秘�
 ## ADDED Requirements
 
 ### Requirement: 設定を分類して提供する
-アプリはGeneral、Speech、Formatting、Output、Modelsの設定画面を提供し、変更を次回起動後も保持しなければならない（SHALL）。
+アプリはGeneral、Speech、Formatting、Outputの設定画面を提供し、変更を次回起動後も保持しなければならない（SHALL）。モデルの取得、選択、削除はSettings内の空または重複した項目ではなく、独立したModels画面へ集約しなければならない（SHALL）。
 
 #### Scenario: 設定を変更して再起動する
 - **WHEN** ユーザーがEngineまたは出力方式を変更してアプリを再起動する
 - **THEN** システムは保存された設定を復元する
+
+#### Scenario: モデルを管理する
+- **WHEN** ユーザーがメニューバーまたはモデル取得確認からModels画面を開く
+- **THEN** システムはモデルの取得、選択、削除ができるModels画面を表示する
+- **THEN** システムはSettings内に別のModels項目を表示しない
 
 ### Requirement: API KeyをKeychainへ保存する
 アプリは外部EndpointのAPI KeyをKeychainへ保存し、設定ファイル、UserDefaults、ログへ書き込んではならない（MUST NOT）。
@@ -42,3 +47,25 @@ Engine、Prompt、出力、起動方法を永続設定として管理し、秘�
 #### Scenario: Pipelineが失敗する
 - **WHEN** 任意の処理段階でエラーが発生する
 - **THEN** システムは本文を含まないエラー種別、request ID、処理時間だけを診断ログへ記録する
+
+### Requirement: デバッグ用エラーログを明示的に有効化する
+アプリは初期値が無効のデバッグログ設定をGeneralで提供し、有効化された場合だけ`~/.kotodamavoice/logs`へ日時を含む新しいエラーログファイルを作成しなければならない（SHALL）。設定は次回起動後も保持し、有効な状態で起動するたびに新しいファイルを作成しなければならない（SHALL）。
+
+#### Scenario: デバッグログを有効にする
+- **WHEN** ユーザーがデバッグログを有効にする
+- **THEN** システムは所有者だけが読み書きと探索をできるログディレクトリを作成する
+- **THEN** システムは所有者だけが読み書きできる`KotodamaVoice-YYYYMMDD-HHmmss-SSS.log`形式のファイルを作成する
+- **THEN** システムはGeneralからログディレクトリをFinderで開けるようにする
+
+#### Scenario: デバッグログを無効にする
+- **WHEN** ユーザーがデバッグログを無効にする
+- **THEN** システムは現在のファイルへの書き込みを終了する
+- **THEN** システムは無効の間に新しいログファイルを作成または更新しない
+
+### Requirement: デバッグログでも入力内容と秘密情報を保護する
+デバッグログはエラー発生日時、処理領域、失敗段階、型付きエラー、OSまたはAccessibility APIのエラーコード、対象アプリのBundle Identifier、Accessibility role、利用可能なrequest IDだけを記録しなければならない（SHALL）。音声、文字起こし本文、Prompt、整形本文、Clipboard内容、API Key、ウィンドウタイトル、Accessibility elementのラベルを記録してはならない（MUST NOT）。
+
+#### Scenario: デバッグモード中に失敗する
+- **WHEN** canary文字列を含む処理が任意の段階で失敗する
+- **THEN** システムは失敗段階と型付きエラーを日時付きファイルへ記録する
+- **THEN** システムはcanary文字列と秘密情報をファイルへ記録しない

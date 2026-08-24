@@ -65,6 +65,11 @@ Auto Insertは録音開始時に前面アプリ、focused element、選択範囲
 - **THEN** システムはAuto Insertを行わずClipboardへ出力する
 - **THEN** システムはFallbackしたことを本文なしで表示する
 
+#### Scenario: デバッグログを有効にしてFallbackする
+- **WHEN** デバッグログが有効な状態でAuto Insertの対象取得、再検証、Paste操作、結果検証のいずれかに失敗する
+- **THEN** システムはClipboardへFallbackする
+- **THEN** システムは失敗した段階と型付きエラーをデバッグログへ記録する
+
 ### Requirement: 権限の失効を正常に扱う
 アプリはAuto Insert設定後にAccessibility権限が失効した場合、設定画面を繰り返し開かずClipboardへ出力しなければならない（SHALL）。
 

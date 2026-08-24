@@ -31,3 +31,11 @@ Runtime Monitorは直近のSpeechとFormatter要求についてrequest ID、結�
 #### Scenario: Worker障害が発生する
 - **WHEN** 推論中にWorker接続が中断する
 - **THEN** システムは対応request IDと中断段階をRuntime Monitorへ表示する
+
+### Requirement: Auto Insertの失敗段階を区別する
+デバッグログが有効な場合、アプリはAuto Insertについてfocused element、`AXValue`、`AXSelectedTextRange`、settable確認、対象再検証、Paste項目探索、Paste action、結果検証のどの段階で失敗したかを区別して記録しなければならない（SHALL）。
+
+#### Scenario: 対象アプリが必要なAccessibility属性を提供しない
+- **WHEN** 録音開始時または出力時に対象アプリから必要なAccessibility属性を取得できない
+- **THEN** システムは属性名、処理段階、AXError code、対象アプリのBundle Identifier、取得できた場合はroleを記録する
+- **THEN** システムはAccessibility elementの値、ラベル、ウィンドウタイトルを記録しない

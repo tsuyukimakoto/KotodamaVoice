@@ -62,6 +62,9 @@ WorkerだけがCまたはC++の推論Runtimeへリンクする。
 ライフサイクル、Accessibility、非アクティブHUD、必要なウィンドウ制御にはAppKitを使う。
 `LSUIElement`でDock非表示を宣言し、設定画面を開くときだけ通常ウィンドウを表示する。
 
+SettingsはGeneral、Speech、Formatting、Outputで構成する。
+モデル管理は独立したModels画面へ集約し、Settings内に内容のないModelsタブを設けない。
+
 HUDは一つの`NSPanel`を再利用する。
 SwiftUIのWindowだけで実装すると、フォーカス、Space、画面配置の制御が不十分になるため採用しない。
 
@@ -248,6 +251,9 @@ Auto Insertはユーザーが設定で選択した場合だけ`AXIsProcessTruste
 出力時にPID、element role、editable属性、選択範囲を再取得して一致を確認する。
 安全な置換を確認できない場合はClipboardへFallbackする。
 
+Auto Insertの各Accessibility操作は、対象取得、属性取得、settable確認、再検証、Paste項目探索、Paste action、結果検証を区別する型付き診断へ変換する。
+Fallback自体は利用者の入力を守る正常な回復動作として維持し、デバッグログが有効な場合だけ具体的な失敗段階をファイルへ記録する。
+
 キーボードイベントで貼り付けを模倣する方式は採用しない。
 対象と選択範囲を検証できず、Input Monitoringまたは追加の権限問題を生むためである。
 
@@ -268,6 +274,16 @@ Unified Memory環境で独立VRAMまたは推測GPU使用率を表示しない�
 OSLogはsubsystemを共通化し、categoryをapp、pipeline、speech-worker、formatter-worker、model、network、outputへ分ける。
 request IDでプロセスをまたいだログを検索できるようにする。
 
+利用者がGeneralでデバッグログを有効にした場合だけ、`~/.kotodamavoice/logs`へセッション単位のエラーログを作成する。
+ファイル名はローカル時刻を使う`KotodamaVoice-YYYYMMDD-HHmmss-SSS.log`とし、同名が存在する場合は衝突しないsuffixを付ける。
+ディレクトリは`0700`、ファイルは`0600`とし、無効化時はfile handleを閉じる。
+設定はUserDefaultsへ保存し、有効な状態で起動するたびに新しいファイルを作成する。
+
+ファイルloggerへの書き込みは専用の直列化境界で行い、一行を一つのJSON objectとする。
+項目はtimestamp、area、stage、error、code、bundle_id、role、request_idに限定し、値がない項目は省略する。
+音声、本文、Prompt、Clipboard、API Key、ウィンドウタイトル、Accessibility labelをloggerの入力型として受け取らない。
+Generalには現在の記録状態と「ログフォルダを開く」を表示する。
+
 ### 配布と署名
 
 App Sandboxは有効にしない。
@@ -285,6 +301,7 @@ exportした配布物を`notarytool`で送信し、受理後にticketをstaple�
 - [Gemma 4とllama.cppの固定組み合わせが安定しない] → Runtimeとモデルを一組として回帰試験し、合格しない組み合わせをManifestへ追加しない
 - [SpeechとFormatterの同時ロードが16GB Macでmemory pressureを起こす] → 16GB実機で測定し、Formatterの遅延ロードと明示的unloadを提供する
 - [Accessibility elementの実装差で誤挿入する] → 対象と選択範囲を再検証し、確証がない場合はClipboardへFallbackする
+- [Accessibility elementの実装差でFallback理由を特定できない] → 明示的に有効化する本文なしのファイルログで属性取得から結果検証までの失敗段階を区別する
 - [外部Endpointが互換APIの一部だけを実装する] → adapterごとに実要求を使う接続テストを行い、Engine種別を自動推測しない
 - [モデル配布元のファイルが差し替わる] → revision、サイズ、SHA-256を固定し、不一致を導入失敗として扱う
 
