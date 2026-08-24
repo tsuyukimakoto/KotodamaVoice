@@ -63,7 +63,7 @@
 
 ## 8. 外部Engineと設定
 
-- [ ] 8.1 OpenAI Audio Transcriptions adapterとwhisper.cpp `/inference` adapterを別々に実装し、fixture serverでrequestとresponse契約をテストする
+- [x] 8.1 OpenAI Audio Transcriptions adapterとwhisper.cpp `/inference` adapterを別々に実装し、fixture serverでrequestとresponse契約をテストする
 - [ ] 8.2 OpenAI Responses adapterとChat Completions adapterを別々に実装し、LM Studio形式とllama-server形式のfixtureで本文抽出をテストする
 - [ ] 8.3 Engine種別ごとの接続テストを実装し、TCP接続だけ成功して契約が欠けるserverをReadyにしないことを確認する
 - [ ] 8.4 loopback判定、外部送信確認、外部平文HTTP警告を実装し、IPv4、IPv6、localhost、外部hostの境界テストを成功させる
