@@ -7,6 +7,55 @@ enum ExternalEngineKind: String, Codable, CaseIterable, Sendable {
   case whisperCppInference
   case responses
   case chatCompletions
+
+  var purpose: ExternalEndpointPurpose {
+    switch self {
+    case .openAIAudioTranscriptions, .whisperCppInference:
+      .speech
+    case .responses, .chatCompletions:
+      .formatter
+    }
+  }
+}
+
+enum SpeechEngine: String, Codable, CaseIterable, Identifiable, Sendable {
+  case builtIn
+  case external
+
+  var id: Self { self }
+
+  var displayName: String {
+    switch self {
+    case .builtIn: "内蔵"
+    case .external: "外部"
+    }
+  }
+}
+
+@Observable
+@MainActor
+final class SpeechSettingsStore {
+  private(set) var engine: SpeechEngine
+
+  @ObservationIgnored
+  private let defaults: UserDefaults?
+  private static let engineKey = "speech.engine"
+
+  init(defaults: UserDefaults = .standard) {
+    self.defaults = defaults
+    engine = defaults.string(forKey: Self.engineKey)
+      .flatMap(SpeechEngine.init(rawValue:)) ?? .builtIn
+  }
+
+  init(engine: SpeechEngine) {
+    defaults = nil
+    self.engine = engine
+  }
+
+  func setEngine(_ engine: SpeechEngine) {
+    self.engine = engine
+    defaults?.set(engine.rawValue, forKey: Self.engineKey)
+  }
 }
 
 struct ExternalEngineConfiguration: Codable, Equatable, Identifiable, Sendable {
@@ -15,6 +64,7 @@ struct ExternalEngineConfiguration: Codable, Equatable, Identifiable, Sendable {
   let endpointURL: URL
   let model: String
   let timeout: TimeInterval
+  let acceptedConfirmations: Set<ExternalEndpointConfirmationRequirement>
   fileprivate(set) var apiKeyReference: APIKeyReference?
 
   init(
@@ -23,6 +73,7 @@ struct ExternalEngineConfiguration: Codable, Equatable, Identifiable, Sendable {
     endpointURL: URL,
     model: String,
     timeout: TimeInterval,
+    acceptedConfirmations: Set<ExternalEndpointConfirmationRequirement> = [],
     apiKeyReference: APIKeyReference? = nil
   ) {
     self.id = id
@@ -30,6 +81,7 @@ struct ExternalEngineConfiguration: Codable, Equatable, Identifiable, Sendable {
     self.endpointURL = endpointURL
     self.model = model
     self.timeout = timeout
+    self.acceptedConfirmations = acceptedConfirmations
     self.apiKeyReference = apiKeyReference
   }
 }
@@ -158,6 +210,12 @@ final class ExternalEngineSettingsStore {
       return nil
     }
     return try apiKeys.read(reference)
+  }
+
+  func configuration(
+    for purpose: ExternalEndpointPurpose
+  ) -> ExternalEngineConfiguration? {
+    configurations.first { $0.kind.purpose == purpose }
   }
 
   func remove(id: UUID) throws {

@@ -18,6 +18,7 @@ struct OpenAIAudioTranscriptionsAdapter: Sendable {
   let apiKey: String?
   let language: String?
   let confirmation: ExternalEndpointConfirmation?
+  let timeout: TimeInterval
   private let session: URLSession
 
   init(
@@ -26,6 +27,7 @@ struct OpenAIAudioTranscriptionsAdapter: Sendable {
     apiKey: String? = nil,
     language: String? = nil,
     confirmation: ExternalEndpointConfirmation? = nil,
+    timeout: TimeInterval = 60,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
@@ -33,6 +35,7 @@ struct OpenAIAudioTranscriptionsAdapter: Sendable {
     self.apiKey = apiKey
     self.language = language
     self.confirmation = confirmation
+    self.timeout = timeout
     self.session = session
   }
 
@@ -59,6 +62,7 @@ struct OpenAIAudioTranscriptionsAdapter: Sendable {
     if let apiKey, !apiKey.isEmpty {
       request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
     }
+    request.timeoutInterval = timeout
     return try await SpeechTranscriptionHTTPResponse.perform(
       request,
       session: session
@@ -70,17 +74,20 @@ struct WhisperCppInferenceAdapter: Sendable {
   let endpointURL: URL
   let language: String?
   let confirmation: ExternalEndpointConfirmation?
+  let timeout: TimeInterval
   private let session: URLSession
 
   init(
     endpointURL: URL,
     language: String? = nil,
     confirmation: ExternalEndpointConfirmation? = nil,
+    timeout: TimeInterval = 60,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
     self.language = language
     self.confirmation = confirmation
+    self.timeout = timeout
     self.session = session
   }
 
@@ -101,8 +108,10 @@ struct WhisperCppInferenceAdapter: Sendable {
       form.appendField(name: "language", value: language)
     }
     form.appendField(name: "response_format", value: "json")
+    var request = form.request(url: endpointURL)
+    request.timeoutInterval = timeout
     return try await SpeechTranscriptionHTTPResponse.perform(
-      form.request(url: endpointURL),
+      request,
       session: session
     )
   }

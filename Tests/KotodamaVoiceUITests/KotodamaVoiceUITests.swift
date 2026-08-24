@@ -27,6 +27,17 @@ final class KotodamaVoiceUITests: XCTestCase {
             XCTAssertTrue(settingsWindow.buttons[title].exists)
         }
 
+        settingsWindow.buttons["Speech"].click()
+        XCTAssertTrue(settingsWindow.radioGroups["speech-engine-picker"].exists)
+        settingsWindow.radioButtons["外部"].click()
+        XCTAssertTrue(settingsWindow.textFields["external-endpoint"].exists)
+
+        settingsWindow.buttons["Formatting"].click()
+        settingsWindow.radioButtons["外部"].click()
+        XCTAssertTrue(settingsWindow.textFields["external-endpoint"].exists)
+
+        settingsWindow.buttons["General"].click()
+
         settingsWindow.buttons["models-open-button"].click()
         let modelsWindow = application.windows["モデル"]
         XCTAssertTrue(modelsWindow.waitForExistence(timeout: 3))

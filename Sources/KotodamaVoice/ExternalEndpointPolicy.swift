@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-enum ExternalEndpointPurpose: Sendable {
+enum ExternalEndpointPurpose: Hashable, Sendable {
   case speech
   case formatter
 
@@ -21,7 +21,7 @@ enum ExternalEndpointPayload: Hashable, Sendable {
   case prompt
 }
 
-enum ExternalEndpointConfirmationRequirement: Hashable, Sendable {
+enum ExternalEndpointConfirmationRequirement: String, Codable, Hashable, Sendable {
   case externalTransmission
   case unencryptedHTTP
 }

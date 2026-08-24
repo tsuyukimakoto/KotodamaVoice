@@ -19,6 +19,7 @@ final class AppRuntime {
   let workerDiagnostics: WorkerDiagnostics
   let modelCatalog: ModelCatalog
   let modelManager: ModelManager
+  let speechSettings: SpeechSettingsStore
   let formatterSettings: FormatterSettingsStore
   let externalEngineSettings: ExternalEngineSettingsStore
   let outputSettings: OutputSettingsStore
@@ -41,15 +42,23 @@ final class AppRuntime {
     let speechWorkerClient = SpeechWorkerClient(
       operationGate: modelOperationGate
     )
+    let speechSettings = SpeechSettingsStore(defaults: defaults)
+    let externalEngineSettings = ExternalEngineSettingsStore(defaults: defaults)
+    let selectedSpeech = SelectedSpeechTranscriber(
+      settings: speechSettings,
+      builtIn: speechWorkerClient,
+      external: ConfiguredExternalSpeechTranscriber(
+        settings: externalEngineSettings
+      )
+    )
     let localSpeechPipeline = LocalSpeechPipeline(
       store: pipelineStore,
       coordinator: coordinator,
       recorder: audioRecording,
       temporaryAudioStore: TemporaryAudioStore(),
-      speech: speechWorkerClient
+      speech: selectedSpeech
     )
     let formatterSettings = FormatterSettingsStore(defaults: defaults)
-    let externalEngineSettings = ExternalEngineSettingsStore(defaults: defaults)
     let outputSettings: OutputSettingsStore
     #if DEBUG
       if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
@@ -117,7 +126,12 @@ final class AppRuntime {
       coordinator: coordinator,
       settings: formatterSettings,
       builtIn: formatterWorkerClient,
-      external: UnavailableTextFormatter()
+      external: ConfiguredExternalTextFormatter(
+        settings: externalEngineSettings,
+        prompt: { [weak formatterSettings] in
+          formatterSettings?.activePrompt ?? ""
+        }
+      )
     )
     let hotKeyBackend: HotKeyRegistering
 
@@ -139,6 +153,7 @@ final class AppRuntime {
     self.pipelineStore = pipelineStore
     self.coordinator = coordinator
     self.localSpeechPipeline = localSpeechPipeline
+    self.speechSettings = speechSettings
     self.formatterSettings = formatterSettings
     self.externalEngineSettings = externalEngineSettings
     self.outputSettings = outputSettings
@@ -178,18 +193,14 @@ final class AppRuntime {
       do {
         var completionMessage: String?
         if pipelineStore.state == .recording {
-          guard
-            let speechModel = modelManager.selectedModel(
-              for: .speech
-            )
-          else {
+          guard let speechModelID = selectedSpeechModelID() else {
             localSpeechPipeline.cancelRecording()
             throw VoiceInputError.speechModelUnavailable
           }
           let transcription =
             try await localSpeechPipeline
             .stopAndTranscribe(
-              modelID: speechModel.id
+              modelID: speechModelID
             )
           let output = try await textFormattingPipeline.process(
             transcription
@@ -218,10 +229,10 @@ final class AppRuntime {
           if case .failed = pipelineStore.state {
             _ = try coordinator.recover()
           }
-          guard let speechModel = modelManager.selectedModel(for: .speech),
-            modelManager.states[speechModel.id] == .installed
-          else {
-            operationError = "使用するSpeechモデルをモデル画面で取得・選択してください"
+          guard selectedSpeechModelID() != nil else {
+            operationError = speechSettings.engine == .builtIn
+              ? "使用するSpeechモデルをモデル画面で取得・選択してください"
+              : "外部Speech Engineを設定してください"
             return
           }
           if outputSettings.mode == .autoInsert {
@@ -250,7 +261,7 @@ final class AppRuntime {
       } catch VoiceInputError.speechModelUnavailable {
         autoInsertTarget.clear()
         operationError = "使用するSpeechモデルが見つかりません"
-      } catch is SpeechWorkerClientError {
+      } catch let error where isSpeechTranscriptionFailure(error) {
         autoInsertTarget.clear()
         operationError = "文字起こしに失敗しました"
       } catch is ClipboardOutputError {
@@ -262,6 +273,31 @@ final class AppRuntime {
         operationError = "操作を開始できませんでした"
       }
     }
+  }
+
+  private func selectedSpeechModelID() -> String? {
+    switch speechSettings.engine {
+    case .builtIn:
+      guard let model = modelManager.selectedModel(for: .speech),
+        modelManager.states[model.id] == .installed
+      else {
+        return nil
+      }
+      return model.id
+    case .external:
+      return externalEngineSettings.configuration(for: .speech) == nil
+        ? nil
+        : ""
+    }
+  }
+
+  private func isSpeechTranscriptionFailure(_ error: Error) -> Bool {
+    error is SpeechWorkerClientError
+      || error is ExternalSpeechAdapterError
+      || error is ExternalSpeechInputError
+      || error is ExternalEndpointPolicyError
+      || error is ExternalEngineRuntimeError
+      || error is URLError
   }
 
   private func deliverOutput(

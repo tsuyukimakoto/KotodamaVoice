@@ -90,9 +90,9 @@
 ## 11. V1統合試験
 
 - [ ] 11.1 モデル未導入状態からSpeechモデル取得、録音、内蔵文字起こし、Clipboard出力、二回目の録音までをUI Testと実機操作で完了する
-- [ ] 11.2 Formatter Off、内蔵、外部の各経路を実行し、成功時の本文と失敗時の原文Fallbackがspecに一致することを確認する
-- [ ] 11.3 ClipboardとAuto Insertの各経路で権限要求、入力先検証、Fallback、HUDがspecに一致することを確認する
-- [ ] 11.4 モデル取得失敗、マイク拒否、Worker crash、外部timeout、hash不一致、disk不足、権限失効を順に再現し、Appが継続して復旧操作を提示することを確認する
+- [x] 11.2 Formatter Off、内蔵、外部の各経路を実行し、成功時の本文と失敗時の原文Fallbackがspecに一致することを確認する
+- [x] 11.3 ClipboardとAuto Insertの各経路で権限要求、入力先検証、Fallback、HUDがspecに一致することを確認する
+- [x] 11.4 モデル取得失敗、マイク拒否、Worker crash、外部timeout、hash不一致、disk不足、権限失効を順に再現し、Appが継続して復旧操作を提示することを確認する
 - [ ] 11.5 16GB Apple Silicon MacでSpeechとFormatterの連続10回利用を実行し、memory pressure、モデル再ロード回数、処理時間、終了後のモデル解放を記録する
 - [ ] 11.6 全Unit Test、Worker Test、UI Test、OpenSpec strict validationを実行し、失敗がないことを確認する
 

@@ -4,6 +4,35 @@ import KotodamaCore
 import Testing
 @testable import KotodamaVoice
 
+@Test(arguments: [SpeechEngine.builtIn, .external])
+@MainActor
+func selectedSpeechEngineUsesOnlyItsConfiguredTranscriber(
+    engine: SpeechEngine
+) async throws {
+    let settings = SpeechSettingsStore(engine: engine)
+    let builtIn = SpeechTranscriberSpy(outcome: .success)
+    let external = SpeechTranscriberSpy(outcome: .success)
+    let selected = SelectedSpeechTranscriber(
+        settings: settings,
+        builtIn: builtIn,
+        external: external
+    )
+
+    _ = try await selected.transcribe(
+        modelID: "built-in-model",
+        audioInput: WorkerAudioInput(
+            fileHandle: FileHandle.nullDevice,
+            sampleRate: 16_000,
+            channelCount: 1,
+            sampleCount: 0
+        ),
+        requestID: PipelineRequestID()
+    )
+
+    #expect(builtIn.callCount == (engine == .builtIn ? 1 : 0))
+    #expect(external.callCount == (engine == .external ? 1 : 0))
+}
+
 @Test @MainActor
 func emptyRecordingDoesNotReachSpeechAndReturnsToReady() async throws {
     let fixture = try LocalSpeechPipelineFixture(

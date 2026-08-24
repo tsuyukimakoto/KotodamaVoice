@@ -5,6 +5,95 @@ import Testing
 
 @testable import KotodamaVoice
 
+@Test @MainActor
+func configuredExternalFormatterUsesSavedConfigurationAndAPIKey() async throws {
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"設定経由の整形結果"}]}]}"#.utf8
+    )
+  )
+  let suiteName = "ConfiguredExternalFormatterTests.\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suiteName))
+  defer { defaults.removePersistentDomain(forName: suiteName) }
+  let apiKeys = FormatterAPIKeyStoreSpy()
+  let settings = ExternalEngineSettingsStore(
+    defaults: defaults,
+    apiKeys: apiKeys
+  )
+  let configuration = ExternalEngineConfiguration(
+    id: UUID(),
+    kind: .responses,
+    endpointURL: server.url(path: "/v1/responses"),
+    model: "configured-model",
+    timeout: 2
+  )
+  try settings.save(configuration, apiKey: "configured-secret")
+  let formatter = ConfiguredExternalTextFormatter(
+    settings: settings,
+    prompt: { "configured-prompt" }
+  )
+
+  let output = try await formatter.format(
+    "configured-input",
+    requestID: PipelineRequestID()
+  )
+  let request = try #require(server.receivedRequest)
+  let body = try #require(
+    JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+  )
+
+  #expect(output == "設定経由の整形結果")
+  #expect(request.headers["authorization"] == "Bearer configured-secret")
+  #expect(body["model"] as? String == "configured-model")
+  #expect(body["instructions"] as? String == "configured-prompt")
+  #expect(body["input"] as? String == "configured-input")
+}
+
+@Test @MainActor
+func configuredExternalFormatterTimeoutReturnsOriginalText() async throws {
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"遅すぎる結果"}]}]}"#.utf8
+    ),
+    responseDelayMilliseconds: 500
+  )
+  let suiteName = "ConfiguredExternalTimeoutTests.\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suiteName))
+  defer { defaults.removePersistentDomain(forName: suiteName) }
+  let settings = ExternalEngineSettingsStore(
+    defaults: defaults,
+    apiKeys: FormatterAPIKeyStoreSpy()
+  )
+  try settings.save(
+    ExternalEngineConfiguration(
+      id: UUID(),
+      kind: .responses,
+      endpointURL: server.url(path: "/v1/responses"),
+      model: "configured-model",
+      timeout: 0.05
+    )
+  )
+  let requestID = PipelineRequestID()
+  let pipeline = TextFormattingPipeline(
+    coordinator: PipelineCoordinator(
+      store: PipelineStore(initialState: .transcribing(requestID))
+    ),
+    settings: FormatterSettingsStore(engine: .external),
+    builtIn: UnavailableTextFormatter(),
+    external: ConfiguredExternalTextFormatter(
+      settings: settings,
+      prompt: { "prompt" }
+    )
+  )
+
+  let output = try await pipeline.process(
+    LocalTranscription(requestID: requestID, text: "timeout原文")
+  )
+
+  #expect(output == FormattingOutput(text: "timeout原文", usedFallback: true))
+  #expect(server.receivedRequest != nil)
+}
+
 @Test
 func responsesFormatterAdapterUsesLMStudioResponseContract() async throws {
   let server = try FormatterAdapterFixtureServer(
@@ -188,14 +277,20 @@ private struct FormatterReceivedHTTPRequest: Sendable {
 private final class FormatterAdapterFixtureServer: @unchecked Sendable {
   private let statusCode: Int
   private let responseBody: Data
+  private let responseDelayMilliseconds: Int
   private let listener: NWListener
   private let queue = DispatchQueue(label: "FormatterAdapterFixtureServer")
   private let lock = NSLock()
   private var request: FormatterReceivedHTTPRequest?
 
-  init(statusCode: Int = 200, responseBody: Data) throws {
+  init(
+    statusCode: Int = 200,
+    responseBody: Data,
+    responseDelayMilliseconds: Int = 0
+  ) throws {
     self.statusCode = statusCode
     self.responseBody = responseBody
+    self.responseDelayMilliseconds = responseDelayMilliseconds
     listener = try NWListener(using: .tcp, on: .any)
     let ready = DispatchSemaphore(value: 0)
     listener.stateUpdateHandler = { state in
@@ -250,6 +345,18 @@ private final class FormatterAdapterFixtureServer: @unchecked Sendable {
   }
 
   private func respond(on connection: NWConnection) {
+    guard responseDelayMilliseconds > 0 else {
+      sendResponse(on: connection)
+      return
+    }
+    queue.asyncAfter(
+      deadline: .now() + .milliseconds(responseDelayMilliseconds)
+    ) { [weak self] in
+      self?.sendResponse(on: connection)
+    }
+  }
+
+  private func sendResponse(on connection: NWConnection) {
     let headers = [
       "HTTP/1.1 \(statusCode) \(statusCode == 200 ? "OK" : "Error")",
       "Content-Type: application/json",
@@ -291,5 +398,23 @@ private final class FormatterAdapterFixtureServer: @unchecked Sendable {
       headers: headers,
       body: data.subdata(in: bodyStart..<(bodyStart + contentLength))
     )
+  }
+}
+
+private final class FormatterAPIKeyStoreSpy: APIKeyStoring,
+  @unchecked Sendable
+{
+  private var values: [APIKeyReference: String] = [:]
+
+  func save(_ apiKey: String, for reference: APIKeyReference) throws {
+    values[reference] = apiKey
+  }
+
+  func read(_ reference: APIKeyReference) throws -> String? {
+    values[reference]
+  }
+
+  func delete(_ reference: APIKeyReference) throws {
+    values[reference] = nil
   }
 }

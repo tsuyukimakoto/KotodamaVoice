@@ -19,6 +19,90 @@ enum ExternalSpeechInputError: Error, Equatable {
   case invalidAudio
 }
 
+enum ExternalEngineRuntimeError: Error, Equatable {
+  case notConfigured(ExternalEndpointPurpose)
+  case incompatibleEngineKind
+}
+
+@MainActor
+final class SelectedSpeechTranscriber: SpeechTranscribing {
+  private let settings: SpeechSettingsStore
+  private let builtIn: SpeechTranscribing
+  private let external: SpeechTranscribing
+
+  init(
+    settings: SpeechSettingsStore,
+    builtIn: SpeechTranscribing,
+    external: SpeechTranscribing
+  ) {
+    self.settings = settings
+    self.builtIn = builtIn
+    self.external = external
+  }
+
+  func transcribe(
+    modelID: String,
+    audioInput: WorkerAudioInput,
+    requestID: PipelineRequestID
+  ) async throws -> String {
+    let selected = settings.engine == .builtIn ? builtIn : external
+    return try await selected.transcribe(
+      modelID: modelID,
+      audioInput: audioInput,
+      requestID: requestID
+    )
+  }
+}
+
+@MainActor
+final class ConfiguredExternalSpeechTranscriber: SpeechTranscribing {
+  private let settings: ExternalEngineSettingsStore
+
+  init(settings: ExternalEngineSettingsStore) {
+    self.settings = settings
+  }
+
+  func transcribe(
+    modelID _: String,
+    audioInput: WorkerAudioInput,
+    requestID: PipelineRequestID
+  ) async throws -> String {
+    guard let configuration = settings.configuration(for: .speech) else {
+      throw ExternalEngineRuntimeError.notConfigured(.speech)
+    }
+    let apiKey = try settings.apiKey(for: configuration.id)
+    let confirmation = confirmation(for: configuration)
+    let adapter: ExternalSpeechPipelineAdapter
+    switch configuration.kind {
+    case .openAIAudioTranscriptions:
+      adapter = .openAI(
+        OpenAIAudioTranscriptionsAdapter(
+          endpointURL: configuration.endpointURL,
+          model: configuration.model,
+          apiKey: apiKey,
+          confirmation: confirmation,
+          timeout: configuration.timeout
+        )
+      )
+    case .whisperCppInference:
+      adapter = .whisperCpp(
+        WhisperCppInferenceAdapter(
+          endpointURL: configuration.endpointURL,
+          confirmation: confirmation,
+          timeout: configuration.timeout
+        )
+      )
+    case .responses, .chatCompletions:
+      throw ExternalEngineRuntimeError.incompatibleEngineKind
+    }
+    return try await ExternalSpeechTranscriber(adapter: adapter).transcribe(
+      modelID: "",
+      audioInput: audioInput,
+      requestID: requestID
+    )
+  }
+}
+
 @MainActor
 final class ExternalSpeechTranscriber: SpeechTranscribing {
   private let adapter: ExternalSpeechPipelineAdapter
@@ -76,6 +160,67 @@ final class ExternalTextFormatter: TextFormatting {
   ) async throws -> String {
     try await adapter.format(text: text, prompt: prompt())
   }
+}
+
+@MainActor
+final class ConfiguredExternalTextFormatter: TextFormatting {
+  private let settings: ExternalEngineSettingsStore
+  private let prompt: () -> String
+
+  init(
+    settings: ExternalEngineSettingsStore,
+    prompt: @escaping () -> String
+  ) {
+    self.settings = settings
+    self.prompt = prompt
+  }
+
+  func format(
+    _ text: String,
+    requestID _: PipelineRequestID
+  ) async throws -> String {
+    guard let configuration = settings.configuration(for: .formatter) else {
+      throw ExternalEngineRuntimeError.notConfigured(.formatter)
+    }
+    let apiKey = try settings.apiKey(for: configuration.id)
+    let confirmation = confirmation(for: configuration)
+    let adapter: ExternalFormatterPipelineAdapter
+    switch configuration.kind {
+    case .responses:
+      adapter = .responses(
+        OpenAIResponsesFormatterAdapter(
+          endpointURL: configuration.endpointURL,
+          model: configuration.model,
+          apiKey: apiKey,
+          confirmation: confirmation,
+          timeout: configuration.timeout
+        )
+      )
+    case .chatCompletions:
+      adapter = .chatCompletions(
+        ChatCompletionsFormatterAdapter(
+          endpointURL: configuration.endpointURL,
+          model: configuration.model,
+          apiKey: apiKey,
+          confirmation: confirmation,
+          timeout: configuration.timeout
+        )
+      )
+    case .openAIAudioTranscriptions, .whisperCppInference:
+      throw ExternalEngineRuntimeError.incompatibleEngineKind
+    }
+    return try await adapter.format(text: text, prompt: prompt())
+  }
+}
+
+private func confirmation(
+  for configuration: ExternalEngineConfiguration
+) -> ExternalEndpointConfirmation? {
+  guard !configuration.acceptedConfirmations.isEmpty else { return nil }
+  return ExternalEndpointConfirmation(
+    endpoint: configuration.endpointURL,
+    accepted: configuration.acceptedConfirmations
+  )
 }
 
 private enum WaveAudioEncoder {

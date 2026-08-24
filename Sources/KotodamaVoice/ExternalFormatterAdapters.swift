@@ -11,6 +11,7 @@ struct OpenAIResponsesFormatterAdapter: Sendable {
   let model: String
   let apiKey: String?
   let confirmation: ExternalEndpointConfirmation?
+  let timeout: TimeInterval
   private let session: URLSession
 
   init(
@@ -18,12 +19,14 @@ struct OpenAIResponsesFormatterAdapter: Sendable {
     model: String,
     apiKey: String? = nil,
     confirmation: ExternalEndpointConfirmation? = nil,
+    timeout: TimeInterval = 60,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
     self.model = model
     self.apiKey = apiKey
     self.confirmation = confirmation
+    self.timeout = timeout
     self.session = session
   }
 
@@ -39,11 +42,12 @@ struct OpenAIResponsesFormatterAdapter: Sendable {
       input: text,
       store: false
     )
-    let request = try ExternalFormatterHTTPRequest.make(
+    var request = try ExternalFormatterHTTPRequest.make(
       url: endpointURL,
       body: body,
       apiKey: apiKey
     )
+    request.timeoutInterval = timeout
     let response: ResponseBody =
       try await ExternalFormatterHTTPResponse
       .perform(request, session: session)
@@ -110,6 +114,7 @@ struct ChatCompletionsFormatterAdapter: Sendable {
   let model: String
   let apiKey: String?
   let confirmation: ExternalEndpointConfirmation?
+  let timeout: TimeInterval
   private let session: URLSession
 
   init(
@@ -117,12 +122,14 @@ struct ChatCompletionsFormatterAdapter: Sendable {
     model: String,
     apiKey: String? = nil,
     confirmation: ExternalEndpointConfirmation? = nil,
+    timeout: TimeInterval = 60,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
     self.model = model
     self.apiKey = apiKey
     self.confirmation = confirmation
+    self.timeout = timeout
     self.session = session
   }
 
@@ -140,11 +147,12 @@ struct ChatCompletionsFormatterAdapter: Sendable {
       ],
       stream: false
     )
-    let request = try ExternalFormatterHTTPRequest.make(
+    var request = try ExternalFormatterHTTPRequest.make(
       url: endpointURL,
       body: body,
       apiKey: apiKey
     )
+    request.timeoutInterval = timeout
     let response: ResponseBody =
       try await ExternalFormatterHTTPResponse
       .perform(request, session: session)
