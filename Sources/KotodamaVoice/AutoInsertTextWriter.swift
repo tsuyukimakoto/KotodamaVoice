@@ -170,7 +170,10 @@ final class SystemPasteMenuCommand: AutoInsertPasteCommandPerforming {
             kAXMenuBarAttribute as CFString,
             from: application
         )
-        guard let pasteItem = findPasteItem(in: menuBar) else {
+        guard let pasteItem = try findOrRevealPasteItem(
+            in: menuBar,
+            target: target
+        ) else {
             throw AutoInsertTextWriterError.pasteActionUnavailable
         }
         _ = try validateCurrentTarget(target)
@@ -181,6 +184,52 @@ final class SystemPasteMenuCommand: AutoInsertPasteCommandPerforming {
         guard error == .success else {
             throw AutoInsertTextWriterError.accessibilityError(error.rawValue)
         }
+    }
+
+    private func findOrRevealPasteItem(
+        in menuBar: AXUIElement,
+        target: AutoInsertTargetObservation
+    ) throws -> AXUIElement? {
+        if let pasteItem = findPasteItem(in: menuBar) {
+            return pasteItem
+        }
+
+        let menuBarItems: [AXUIElement] = optionalAttribute(
+            kAXChildrenAttribute as CFString,
+            from: menuBar
+        ) ?? []
+        for menuBarItem in menuBarItems where role(of: menuBarItem) == kAXMenuBarItemRole as String {
+            _ = try validateCurrentTarget(target)
+            guard showMenu(menuBarItem) else {
+                continue
+            }
+            if let pasteItem = findPasteItem(in: menuBarItem) {
+                return pasteItem
+            }
+            _ = AXUIElementPerformAction(
+                menuBarItem,
+                kAXCancelAction as CFString
+            )
+        }
+        return nil
+    }
+
+    private func showMenu(_ menuBarItem: AXUIElement) -> Bool {
+        let showError = AXUIElementPerformAction(
+            menuBarItem,
+            kAXShowMenuAction as CFString
+        )
+        if showError == .success {
+            return true
+        }
+        return AXUIElementPerformAction(
+            menuBarItem,
+            kAXPressAction as CFString
+        ) == .success
+    }
+
+    private func role(of element: AXUIElement) -> String? {
+        optionalAttribute(kAXRoleAttribute as CFString, from: element)
     }
 
     private func validateCurrentTarget(
