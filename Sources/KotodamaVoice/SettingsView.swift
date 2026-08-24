@@ -114,7 +114,7 @@ private struct OutputSettingsView: View {
                     )
                 ) {
                     ForEach(OutputMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
+                        Text(mode.displayName).tag(Optional(mode))
                     }
                 }
                 .pickerStyle(.radioGroup)
@@ -134,7 +134,7 @@ private struct OutputSettingsView: View {
                 Section("Accessibility権限") {
                     Label("Auto Insertの許可待ちです", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
-                    Text("システム設定でKotodamaVoiceのAccessibilityを許可してください。許可されるまでClipboardを使用します。")
+                    Text("システム設定でKotodamaVoiceのAccessibilityを許可してください。許可が確認できるまで出力方式は未設定のままです。")
                         .accessibilityIdentifier("accessibility-permission-required")
                     Button("権限を再確認") {
                         settings.recheckAutoInsertPermission()
@@ -171,16 +171,18 @@ private struct OutputSettingsView: View {
 
     private var currentOutputDescription: String {
         if settings.isAwaitingAccessibilityPermission {
-            return "Clipboard（Auto Insertの許可待ち）"
+            return "未設定（Auto Insertの許可待ち）"
         }
-        return settings.mode.displayName
+        return settings.mode?.displayName ?? "未設定"
     }
 
     private var detail: String {
         if settings.isAwaitingAccessibilityPermission {
-            return "許可されるまでは結果をClipboardへコピーし、許可を確認できた時点でAuto Insertへ切り替えます。"
+            return "許可を確認できた時点でAuto Insertが設定されます。それまでは録音を開始できません。"
         }
         switch settings.mode {
+        case nil:
+            return "録音結果の出力先を選択してください。Clipboardは追加の権限を使用しません。"
         case .clipboard:
             return "結果をClipboardへコピーします。Accessibility権限は使用しません。"
         case .autoInsert:
@@ -188,13 +190,166 @@ private struct OutputSettingsView: View {
         }
     }
 
-    private func select(_ mode: OutputMode) {
+    private func select(_ mode: OutputMode?) {
+        guard let mode else { return }
         switch mode {
         case .clipboard:
             settings.selectClipboard()
         case .autoInsert:
             showsAccessibilityExplanation = true
         }
+    }
+}
+
+@MainActor
+final class OutputSelectionWindowPresenter {
+    private let settings: OutputSettingsStore
+    private var window: NSWindow?
+
+    init(settings: OutputSettingsStore) {
+        self.settings = settings
+    }
+
+    func show() {
+        let window = window ?? makeWindow()
+        self.window = window
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
+    private func makeWindow() -> NSWindow {
+        let rootView = OutputSelectionView(
+            settings: settings,
+            complete: { [weak self] in self?.window?.close() }
+        )
+        let controller = NSHostingController(rootView: rootView)
+        let window = NSWindow(contentViewController: controller)
+        window.title = "出力方式を選択"
+        window.styleMask = [.titled, .closable]
+        window.isReleasedWhenClosed = false
+        window.setContentSize(NSSize(width: 500, height: 360))
+        window.setFrameAutosaveName("OutputSelectionWindow")
+        window.identifier = NSUserInterfaceItemIdentifier("output-selection-window")
+        return window
+    }
+}
+
+private struct OutputSelectionView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    let settings: OutputSettingsStore
+    let complete: () -> Void
+    @State private var showsAccessibilityExplanation = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("録音結果の出力先を選択してください")
+                    .font(.title2.bold())
+                Text("選択するまでは録音を開始しません。後から設定で変更できます。")
+                    .foregroundStyle(.secondary)
+            }
+
+            choice(
+                title: "Clipboard",
+                description: "結果をクリップボードへコピーします。追加の権限は不要です。",
+                systemImage: "clipboard",
+                recommended: true
+            ) {
+                settings.selectClipboard()
+                complete()
+            }
+            .accessibilityIdentifier("choose-clipboard-output")
+
+            choice(
+                title: "Auto Insert",
+                description: "録音開始時に選択されていた入力欄へ挿入します。Accessibility権限が必要です。",
+                systemImage: "text.cursor",
+                recommended: false
+            ) {
+                showsAccessibilityExplanation = true
+            }
+            .accessibilityIdentifier("choose-auto-insert-output")
+
+            if settings.isAwaitingAccessibilityPermission {
+                Label(
+                    "Accessibilityの許可を確認できるまで未設定です",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                .foregroundStyle(.orange)
+                .accessibilityIdentifier("output-selection-permission-required")
+            }
+
+            #if DEBUG
+                if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+                    Text("\(settings.permissionPromptRequestCount)")
+                        .accessibilityIdentifier("output-selection-prompt-count")
+                }
+            #endif
+        }
+        .padding(28)
+        .alert(
+            "Auto Insertを有効にしますか？",
+            isPresented: $showsAccessibilityExplanation
+        ) {
+            Button("キャンセル", role: .cancel) {}
+            Button("許可を要求") {
+                if settings.requestAutoInsertPermission() == .enabled {
+                    complete()
+                }
+            }
+        } message: {
+            Text("録音開始時に選択されていた入力欄へ結果を挿入するため、macOSのAccessibility権限が必要です。")
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                settings.applicationDidBecomeActive()
+            }
+        }
+        .onChange(of: settings.mode) { _, mode in
+            if mode != nil {
+                complete()
+            }
+        }
+    }
+
+    private func choice(
+        title: String,
+        description: String,
+        systemImage: String,
+        recommended: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: systemImage)
+                    .font(.title2)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(title).font(.headline)
+                        if recommended {
+                            Text("おすすめ")
+                                .font(.caption)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .background(.blue.opacity(0.15), in: Capsule())
+                        }
+                    }
+                    Text(description)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 

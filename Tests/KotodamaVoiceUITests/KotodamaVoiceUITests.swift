@@ -6,6 +6,7 @@ final class KotodamaVoiceUITests: XCTestCase {
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
         application.launch()
+        chooseClipboardIfNeeded(in: application)
         application.activate()
         application.typeKey(",", modifierFlags: .command)
 
@@ -96,6 +97,7 @@ final class KotodamaVoiceUITests: XCTestCase {
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
         application.launch()
+        chooseClipboardIfNeeded(in: application)
         application.activate()
         application.typeKey(",", modifierFlags: .command)
 
@@ -127,39 +129,87 @@ final class KotodamaVoiceUITests: XCTestCase {
     }
 
     @MainActor
-    func testAccessibilityPromptOccursOnlyAfterAutoInsertConfirmation() {
+    func testInitialOutputSelectionChoosesClipboardWithoutPermission() {
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
         application.launchEnvironment["KOTODAMA_UI_TEST_ACCESSIBILITY_TRUSTED"] = "0"
         application.launch()
-        application.activate()
-        application.typeKey(",", modifierFlags: .command)
 
-        let settingsWindow = application.windows.firstMatch
-        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
-        settingsWindow.buttons["Output"].click()
-
-        let promptCount = settingsWindow.staticTexts["accessibility-prompt-count"]
+        let selectionWindow = application.windows["出力方式を選択"]
+        XCTAssertTrue(selectionWindow.waitForExistence(timeout: 5))
+        let promptCount = selectionWindow.staticTexts["output-selection-prompt-count"]
         XCTAssertTrue(promptCount.waitForExistence(timeout: 3))
         XCTAssertEqual(promptCount.value as? String, "0")
 
-        settingsWindow.radioButtons["Clipboard"].click()
+        selectionWindow.buttons["choose-clipboard-output"].click()
+        XCTAssertTrue(selectionWindow.waitForNonExistence(timeout: 3))
+
+        application.typeKey(",", modifierFlags: .command)
+        let settingsWindow = application.windows.firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["Output"].click()
+        XCTAssertEqual(
+            settingsWindow.staticTexts["output-mode-value"].value as? String,
+            "Clipboard"
+        )
+        XCTAssertEqual(
+            settingsWindow.staticTexts["accessibility-prompt-count"].value as? String,
+            "0"
+        )
+    }
+
+    @MainActor
+    func testDismissedOutputSelectionReopensBeforeRecording() {
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launch()
+
+        let selectionWindow = application.windows["出力方式を選択"]
+        XCTAssertTrue(selectionWindow.waitForExistence(timeout: 5))
+        selectionWindow.buttons[XCUIIdentifierCloseWindow].click()
+        XCTAssertTrue(selectionWindow.waitForNonExistence(timeout: 3))
+
+        application.typeKey(" ", modifierFlags: [.control, .option])
+
+        XCTAssertTrue(selectionWindow.waitForExistence(timeout: 3))
+        XCTAssertEqual(
+            selectionWindow.staticTexts["output-selection-prompt-count"].value as? String,
+            "0"
+        )
+    }
+
+    @MainActor
+    func testAutoInsertRemainsUnsetUntilAccessibilityIsTrusted() {
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launchEnvironment["KOTODAMA_UI_TEST_ACCESSIBILITY_TRUSTED"] = "0"
+        application.launch()
+
+        let selectionWindow = application.windows["出力方式を選択"]
+        XCTAssertTrue(selectionWindow.waitForExistence(timeout: 5))
+        let promptCount = selectionWindow.staticTexts["output-selection-prompt-count"]
         XCTAssertEqual(promptCount.value as? String, "0")
 
-        settingsWindow.radioButtons["Auto Insert"].click()
-        let explanation = settingsWindow.sheets.firstMatch
+        selectionWindow.buttons["choose-auto-insert-output"].click()
+        let explanation = selectionWindow.sheets.firstMatch
         XCTAssertTrue(explanation.waitForExistence(timeout: 3))
         XCTAssertEqual(promptCount.value as? String, "0")
         explanation.buttons["許可を要求"].click()
 
         XCTAssertEqual(promptCount.value as? String, "1")
-        XCTAssertEqual(
-            settingsWindow.staticTexts["output-mode-value"].value as? String,
-            "Clipboard（Auto Insertの許可待ち）"
-        )
         XCTAssertTrue(
-            settingsWindow.staticTexts["accessibility-permission-required"].exists
+            selectionWindow.staticTexts["output-selection-permission-required"].exists
         )
+        XCTAssertTrue(selectionWindow.exists)
+    }
+
+    @MainActor
+    private func chooseClipboardIfNeeded(in application: XCUIApplication) {
+        let selectionWindow = application.windows["出力方式を選択"]
+        if selectionWindow.waitForExistence(timeout: 5) {
+            selectionWindow.buttons["choose-clipboard-output"].click()
+            XCTAssertTrue(selectionWindow.waitForNonExistence(timeout: 3))
+        }
     }
 
     @MainActor

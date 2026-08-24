@@ -77,6 +77,12 @@ private struct MenuBarContent: View {
         }
         .disabled(store.state.isBusy && store.state != .recording)
         Divider()
+        if runtime.outputSettings.mode == nil {
+            Button("出力方式を選択…") {
+                runtime.showOutputSelection()
+            }
+            Divider()
+        }
         Button("設定…") {
             openSettings()
         }

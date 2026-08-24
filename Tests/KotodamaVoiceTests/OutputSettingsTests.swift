@@ -8,15 +8,21 @@ func outputSettingsDoNotInspectAccessibilityAtInitializationOrForClipboard() {
     let permission = AccessibilityPermissionSpy(isTrusted: false)
     let settings = OutputSettingsStore(defaults: defaults, permission: permission)
 
+    #expect(settings.mode == nil)
+    #expect(settings.selectedMode == nil)
+    #expect(permission.promptValues.isEmpty)
+
     settings.selectClipboard()
 
     #expect(settings.mode == .clipboard)
+    #expect(settings.selectedMode == .clipboard)
     #expect(permission.promptValues.isEmpty)
     #expect(settings.permissionPromptRequestCount == 0)
+    #expect(OutputSettingsStore(defaults: defaults, permission: permission).mode == .clipboard)
 }
 
 @Test @MainActor
-func autoInsertSelectionPromptsAndKeepsClipboardUntilTrusted() {
+func autoInsertSelectionPromptsAndRemainsUnsetUntilTrusted() {
     let defaults = isolatedOutputDefaults()
     let permission = AccessibilityPermissionSpy(isTrusted: false)
     let settings = OutputSettingsStore(defaults: defaults, permission: permission)
@@ -24,9 +30,25 @@ func autoInsertSelectionPromptsAndKeepsClipboardUntilTrusted() {
     let result = settings.requestAutoInsertPermission()
 
     #expect(result == .permissionRequired)
-    #expect(settings.mode == .clipboard)
+    #expect(settings.mode == nil)
+    #expect(settings.selectedMode == nil)
     #expect(permission.promptValues == [true])
     #expect(settings.permissionPromptRequestCount == 1)
+    #expect(OutputSettingsStore(defaults: defaults, permission: permission).mode == nil)
+}
+
+@Test @MainActor
+func requestingAutoInsertClearsPreviouslySavedClipboardUntilTrusted() {
+    let defaults = isolatedOutputDefaults()
+    let permission = AccessibilityPermissionSpy(isTrusted: false)
+    let settings = OutputSettingsStore(defaults: defaults, permission: permission)
+    settings.selectClipboard()
+
+    #expect(settings.requestAutoInsertPermission() == .permissionRequired)
+
+    #expect(settings.mode == nil)
+    #expect(settings.selectedMode == nil)
+    #expect(OutputSettingsStore(defaults: defaults, permission: permission).mode == nil)
 }
 
 @Test @MainActor
@@ -66,8 +88,8 @@ func pendingAutoInsertIsEnabledWhenApplicationBecomesActiveAfterAuthorization() 
     let settings = OutputSettingsStore(defaults: defaults, permission: permission)
 
     #expect(settings.requestAutoInsertPermission() == .permissionRequired)
-    #expect(settings.mode == .clipboard)
-    #expect(settings.selectedMode == .autoInsert)
+    #expect(settings.mode == nil)
+    #expect(settings.selectedMode == nil)
     #expect(settings.isAwaitingAccessibilityPermission)
 
     permission.isTrusted = true
@@ -90,8 +112,8 @@ func applicationActivationDoesNotInspectAccessibilityWithoutPendingAutoInsert() 
 
     settings.applicationDidBecomeActive()
 
-    #expect(settings.mode == .clipboard)
-    #expect(settings.selectedMode == .clipboard)
+    #expect(settings.mode == nil)
+    #expect(settings.selectedMode == nil)
     #expect(permission.promptValues.isEmpty)
 }
 

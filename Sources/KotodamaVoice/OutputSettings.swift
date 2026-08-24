@@ -48,14 +48,12 @@ final class OutputSettingsStore {
     private let defaults: UserDefaults
     private let permission: AccessibilityPermissionChecking
 
-    private(set) var mode: OutputMode
+    private(set) var mode: OutputMode?
     private(set) var permissionResult: AutoInsertPermissionResult?
     private(set) var permissionPromptRequestCount = 0
     private(set) var isAwaitingAccessibilityPermission = false
 
-    var selectedMode: OutputMode {
-        isAwaitingAccessibilityPermission ? .autoInsert : mode
-    }
+    var selectedMode: OutputMode? { mode }
 
     init(
         defaults: UserDefaults = .standard,
@@ -63,8 +61,7 @@ final class OutputSettingsStore {
     ) {
         self.defaults = defaults
         self.permission = permission
-        mode = OutputMode(rawValue: defaults.string(forKey: Key.mode) ?? "")
-            ?? .clipboard
+        mode = defaults.string(forKey: Key.mode).flatMap(OutputMode.init(rawValue:))
     }
 
     func selectClipboard() {
@@ -97,7 +94,7 @@ final class OutputSettingsStore {
             isAwaitingAccessibilityPermission = false
             result = .enabled
         } else {
-            mode = .clipboard
+            mode = nil
             isAwaitingAccessibilityPermission = true
             result = .permissionRequired
         }
@@ -107,7 +104,11 @@ final class OutputSettingsStore {
     }
 
     private func persistMode() {
-        defaults.set(mode.rawValue, forKey: Key.mode)
+        if let mode {
+            defaults.set(mode.rawValue, forKey: Key.mode)
+        } else {
+            defaults.removeObject(forKey: Key.mode)
+        }
     }
 }
 

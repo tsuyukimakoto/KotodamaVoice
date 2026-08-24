@@ -78,7 +78,7 @@
 - [x] 9.4 録音開始時のfrontmost app、focused element、selection captureと出力時再検証を実装し、PID変更、element無効化、selection変更の失敗テストを成功させる
 - [ ] 9.5 選択範囲への置換を実装し、TextEdit、Notes、Safari、Chrome、Slack、VS Code、Xcode、Terminal、ChatGPTでcapture、insert、selection replacementを記録する
 - [x] 9.6 安全に挿入できないelement、権限失効、対象アプリ終了でClipboardへFallbackし、既存入力全体を変更しないことを互換性試験で確認する
-- [ ] 9.7 出力方式の未設定、選択、保存、選択画面を閉じた後の再表示について失敗テストを追加してから実装し、初回起動では権限を要求せず、Clipboard選択は即時確定し、Auto Insert選択はAccessibility許可後だけ確定することをUI Testで確認する
+- [x] 9.7 出力方式の未設定、選択、保存、選択画面を閉じた後の再表示について失敗テストを追加してから実装し、初回起動では権限を要求せず、Clipboard選択は即時確定し、Auto Insert選択はAccessibility許可後だけ確定することをUI Testで確認する
 
 ## 10. Runtime Monitorとプライバシー
 

@@ -23,6 +23,7 @@ final class AppRuntime {
   let formatterSettings: FormatterSettingsStore
   let externalEngineSettings: ExternalEngineSettingsStore
   let outputSettings: OutputSettingsStore
+  private var outputSelectionWindow: OutputSelectionWindowPresenter?
   private let clipboardOutput = ClipboardOutput()
   private let outputHUD = OutputHUDController()
   private let autoInsertTarget = AutoInsertTargetCoordinator()
@@ -186,9 +187,21 @@ final class AppRuntime {
     } catch {
       operationError = "グローバルショートカットを登録できませんでした"
     }
+
+    if outputSettings.mode == nil {
+      Task { @MainActor [weak self] in
+        self?.showOutputSelection()
+      }
+    }
   }
 
   func toggleRecording() {
+    if pipelineStore.state != .recording, outputSettings.mode == nil {
+      operationError = "録音を始める前に出力方式を選択してください"
+      showOutputSelection()
+      return
+    }
+
     Task {
       do {
         var completionMessage: String?
@@ -275,6 +288,15 @@ final class AppRuntime {
     }
   }
 
+  func showOutputSelection() {
+    if outputSelectionWindow == nil {
+      outputSelectionWindow = OutputSelectionWindowPresenter(
+        settings: outputSettings
+      )
+    }
+    outputSelectionWindow?.show()
+  }
+
   private func selectedSpeechModelID() -> String? {
     switch speechSettings.engine {
     case .builtIn:
@@ -309,9 +331,12 @@ final class AppRuntime {
       autoInsertTarget: autoInsertTarget,
       autoInsertWriter: autoInsertWriter
     )
+    guard let mode = outputSettings.mode else {
+      throw VoiceInputError.outputModeUnavailable
+    }
     return try await delivery.deliver(
       text,
-      mode: outputSettings.mode,
+      mode: mode,
       usedFormattingFallback: usedFormattingFallback
     )
   }
@@ -372,6 +397,7 @@ final class OutputDeliveryCoordinator {
 
 private enum VoiceInputError: Error {
   case speechModelUnavailable
+  case outputModeUnavailable
 }
 
 @MainActor
