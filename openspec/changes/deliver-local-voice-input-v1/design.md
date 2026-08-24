@@ -221,12 +221,18 @@ Formatter出力は空、上限超過、制御token混入、本文外の説明を
 
 ### ClipboardとAuto Insert
 
+出力方式は`unset`、`clipboard`、`autoInsert`の三状態として管理する。
+保存値がない場合は`unset`とし、起動時にClipboardとAuto Insertの違いを示す選択画面を表示する。
+Clipboardは権限不要の推奨選択肢として表示するが、自動選択はしない。
+選択画面を閉じた場合も`unset`を維持し、メニューまたはホットキーで録音を開始しようとしたときに選択画面を再表示する。
+出力方式が確定するまで録音を開始せず、マイク権限も要求しない。
+
 Clipboardは`NSPasteboard`へplain textを書き込み、change countと読み戻しで直後の成功を確認する。
 Clipboard成功、Auto InsertからClipboardへのFallback、出力失敗は本文を含まないHUDで通知する。
 Auto Insert成功は入力欄への反映自体で確認できるためHUDを表示しない。
 
 Auto Insertはユーザーが設定で選択した場合だけ`AXIsProcessTrustedWithOptions`を呼ぶ。
-アプリ起動時にはAccessibility権限を要求しない。
+選択画面の表示だけではAccessibility権限を要求せず、許可が確認できるまで`autoInsert`を保存しない。
 
 録音開始時にfrontmost application、focused element、selected text rangeを取得する。
 出力時にPID、element role、editable属性、選択範囲を再取得して一致を確認する。

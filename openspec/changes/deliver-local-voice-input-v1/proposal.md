@@ -10,7 +10,7 @@ KotodamaVoiceは、音声取得から文字起こし、文章整形、出力ま�
 - whisper.cppを内蔵するSpeech XPC Serviceと、llama.cppを内蔵するFormatter XPC Serviceをアプリへ組み込む
 - モデルManifest、ダウンロード、ハッシュ検証、ライセンス表示、削除、再取得を実装する
 - 内蔵Speechと外部Speech、FormatterのOff、内蔵、外部を同じPipelineから利用できるようにする
-- Clipboardを標準出力とし、ユーザーが選択した場合だけAccessibility権限を要求するAuto Insertを実装する
+- 初回にClipboardまたはAuto Insertを選択させ、Clipboardを権限不要の推奨選択肢として提供し、Auto Insertを選択した場合だけAccessibility権限を要求する
 - 設定、Keychain、単一HUD、Runtime Monitor、プライバシーを保つ診断ログを実装する
 - Developer ID署名、Hardened Runtime、Notarizationによる直接配布を成立させる
 - 履歴DB、録音の永続保存、クラウドサービス固有連携、任意コードの取得実行、複数処理キュー、VAD自動停止はV1に含めない

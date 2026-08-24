@@ -4,8 +4,22 @@
 
 ## ADDED Requirements
 
-### Requirement: Clipboardを標準出力にする
-アプリは初期設定で最終テキストをシステムClipboardへ書き込み、前面アプリのUI情報へアクセスしてはならない（MUST NOT）。
+### Requirement: 初回に出力方式を選択する
+アプリは保存済みの出力方式がない場合に出力を未設定として扱い、ClipboardまたはAuto Insertをユーザーが明示的に選択するまで録音を開始してはならない（MUST NOT）。
+
+#### Scenario: 初めて起動する
+- **WHEN** 保存済みの出力方式がない状態でアプリを起動する
+- **THEN** システムはClipboardとAuto Insertの違いを示す選択画面を表示する
+- **THEN** システムはClipboardを権限不要の推奨選択肢として表示する
+- **THEN** システムは選択前にマイクまたはAccessibility権限を要求しない
+
+#### Scenario: 選択せず画面を閉じる
+- **WHEN** ユーザーが出力方式を選択せず選択画面を閉じる
+- **THEN** システムは出力を未設定のまま維持する
+- **THEN** システムは録音操作を受けたときに選択画面を再表示する
+
+### Requirement: Clipboardを権限不要の出力として提供する
+アプリはClipboardが選択された場合に最終テキストをシステムClipboardへ書き込み、前面アプリのUI情報へアクセスしてはならない（MUST NOT）。
 
 #### Scenario: Clipboard出力に成功する
 - **WHEN** 最終テキストが確定する
@@ -34,7 +48,7 @@
 #### Scenario: 権限なしでAuto Insertを選ぶ
 - **WHEN** Accessibility権限がない状態でユーザーがAuto Insertを選択する
 - **THEN** システムは用途を説明してユーザー操作により許可要求を開始する
-- **THEN** 許可されるまでClipboardを維持する
+- **THEN** 許可されるまで出力方式を未設定のまま維持する
 
 ### Requirement: 録音開始時の入力先を対象にする
 Auto Insertは録音開始時に前面アプリ、focused element、選択範囲を取得し、出力時に同じ対象が有効であることを再検証しなければならない（SHALL）。
