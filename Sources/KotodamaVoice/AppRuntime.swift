@@ -24,6 +24,7 @@ final class AppRuntime {
   let outputSettings: OutputSettingsStore
   private let clipboardOutput = ClipboardOutput()
   private let outputHUD = OutputHUDController()
+  private let autoInsertTarget = AutoInsertTargetCoordinator()
   private let localSpeechPipeline: LocalSpeechPipeline
   private let textFormattingPipeline: TextFormattingPipeline
 
@@ -218,6 +219,15 @@ final class AppRuntime {
           else {
             operationError = "使用するSpeechモデルをモデル画面で取得・選択してください"
             return
+          }
+          if outputSettings.mode == .autoInsert {
+            do {
+              try autoInsertTarget.captureForRecording()
+            } catch {
+              autoInsertTarget.clear()
+            }
+          } else {
+            autoInsertTarget.clear()
           }
           let result = try await recordingStartCoordinator.beginRecording()
           if result == .applied {
