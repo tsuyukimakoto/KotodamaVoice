@@ -25,6 +25,7 @@ final class AppRuntime {
   private let clipboardOutput = ClipboardOutput()
   private let outputHUD = OutputHUDController()
   private let autoInsertTarget = AutoInsertTargetCoordinator()
+  private let autoInsertWriter = AutoInsertTextWriter()
   private let localSpeechPipeline: LocalSpeechPipeline
   private let textFormattingPipeline: TextFormattingPipeline
 
@@ -194,16 +195,17 @@ final class AppRuntime {
             transcription
           )
           do {
-            try clipboardOutput.write(output.text)
+            let hudNotification = try await deliverOutput(
+              output.text,
+              usedFormattingFallback: output.usedFallback
+            )
             _ = try coordinator.completeOutput(
               requestID: transcription.requestID
             )
             if output.usedFallback {
               completionMessage = "文章整形を適用できなかったため原文を出力しました"
-              outputHUD.show(.clipboardSucceededWithFormattingFallback)
-            } else {
-              outputHUD.show(.clipboardSucceeded)
             }
+            outputHUD.show(hudNotification)
           } catch {
             _ = try? coordinator.fail(
               requestID: transcription.requestID
@@ -241,21 +243,49 @@ final class AppRuntime {
         }
         operationError = completionMessage
       } catch RecordingStartError.microphonePermissionDenied {
+        autoInsertTarget.clear()
         operationError = "マイクの使用が許可されていません"
       } catch VoiceInputError.speechModelUnavailable {
+        autoInsertTarget.clear()
         operationError = "使用するSpeechモデルが見つかりません"
       } catch is SpeechWorkerClientError {
+        autoInsertTarget.clear()
         operationError = "文字起こしに失敗しました"
       } catch is ClipboardOutputError {
+        autoInsertTarget.clear()
         operationError = "クリップボードへ結果を書き込めませんでした"
         outputHUD.show(.clipboardFailed)
       } catch {
+        autoInsertTarget.clear()
         operationError = "操作を開始できませんでした"
       }
     }
   }
 
+  private func deliverOutput(
+    _ text: String,
+    usedFormattingFallback: Bool
+  ) async throws -> OutputHUDNotification {
+    defer { autoInsertTarget.clear() }
+    guard outputSettings.mode == .autoInsert else {
+      try clipboardOutput.write(text)
+      return usedFormattingFallback
+        ? .clipboardSucceededWithFormattingFallback
+        : .clipboardSucceeded
+    }
+
+    do {
+      let target = try autoInsertTarget.revalidateForOutput()
+      try await autoInsertWriter.replaceSelection(with: text, in: target)
+      return .automaticInsertionSucceeded
+    } catch {
+      try clipboardOutput.write(text)
+      return .automaticInsertionFellBackToClipboard
+    }
+  }
+
   private func handleAudioRecordingFailure(_ error: Error) {
+    autoInsertTarget.clear()
     localSpeechPipeline.recordingDidFail(error)
     switch error as? AudioRecordingError {
     case .inputConfigurationChanged, .unavailableInput:
