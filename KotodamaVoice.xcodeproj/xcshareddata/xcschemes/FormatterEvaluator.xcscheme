@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0EF7A75C12F9019C72867BA0"
-               BuildableName = "FormatterWorker.xpc"
-               BlueprintName = "FormatterWorker"
+               BlueprintIdentifier = "8F8E51965EE87A2DFE7F7F98"
+               BuildableName = "FormatterEvaluator"
+               BlueprintName = "FormatterEvaluator"
                ReferencedContainer = "container:KotodamaVoice.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -27,39 +27,19 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "NO"
+      shouldUseLaunchSchemeArgsEnv = "YES"
       onlyGenerateCoverageForSpecifiedTargets = "NO">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0EF7A75C12F9019C72867BA0"
-            BuildableName = "FormatterWorker.xpc"
-            BlueprintName = "FormatterWorker"
+            BlueprintIdentifier = "8F8E51965EE87A2DFE7F7F98"
+            BuildableName = "FormatterEvaluator"
+            BlueprintName = "FormatterEvaluator"
             ReferencedContainer = "container:KotodamaVoice.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FA5A8597454049A1729BFE85"
-               BuildableName = "FormatterWorkerTests.xctest"
-               BlueprintName = "FormatterWorkerTests"
-               ReferencedContainer = "container:KotodamaVoice.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
-      <CommandLineArguments>
-      </CommandLineArguments>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "KOTODAMA_FORMATTER_MODEL"
-            value = "$(KOTODAMA_FORMATTER_MODEL)"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -71,15 +51,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0EF7A75C12F9019C72867BA0"
-            BuildableName = "FormatterWorker.xpc"
-            BlueprintName = "FormatterWorker"
+            BlueprintIdentifier = "8F8E51965EE87A2DFE7F7F98"
+            BuildableName = "FormatterEvaluator"
+            BlueprintName = "FormatterEvaluator"
             ReferencedContainer = "container:KotodamaVoice.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -87,15 +68,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0EF7A75C12F9019C72867BA0"
-            BuildableName = "FormatterWorker.xpc"
-            BlueprintName = "FormatterWorker"
+            BlueprintIdentifier = "8F8E51965EE87A2DFE7F7F98"
+            BuildableName = "FormatterEvaluator"
+            BlueprintName = "FormatterEvaluator"
             ReferencedContainer = "container:KotodamaVoice.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

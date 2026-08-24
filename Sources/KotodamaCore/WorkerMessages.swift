@@ -75,6 +75,14 @@ public protocol SpeechTranscribingRuntime: WorkerRuntimeManaging {
     ) throws -> String
 }
 
+public protocol TextFormattingRuntime: WorkerRuntimeManaging {
+    func format(
+        text: String,
+        prompt: String,
+        requestID: PipelineRequestID
+    ) throws -> String
+}
+
 @objc(KVWorkerAudioInput)
 public final class WorkerAudioInput: NSObject, NSSecureCoding, @unchecked Sendable {
     public static var supportsSecureCoding: Bool { true }
@@ -485,6 +493,27 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 runtime: speechRuntime
             )
 
+        case .format:
+            lock.lock()
+            let formatterRuntime = runtime as? TextFormattingRuntime
+            let canFormat = lifecycleState == .loaded
+            lock.unlock()
+            guard canFormat,
+                  let formatterRuntime,
+                  let text = request.options["text"],
+                  let prompt = request.options["prompt"],
+                  !text.isEmpty,
+                  !prompt.isEmpty
+            else {
+                return invalidRequestReply(for: request.requestID)
+            }
+            return format(
+                text: text,
+                prompt: prompt,
+                requestID: request.requestID,
+                runtime: formatterRuntime
+            )
+
         default:
             lock.lock()
             defer { lock.unlock() }
@@ -603,6 +632,44 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             return WorkerReply(
                 requestID: requestID,
                 payload: Data(text.utf8)
+            )
+        } catch WorkerRuntimeError.cancelled {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(code: .cancelled, isRetryable: true)
+            )
+        } catch WorkerRuntimeError.invalidInput {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(code: .invalidRequest, isRetryable: false)
+            )
+        } catch {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(
+                    code: .processingFailed,
+                    isRetryable: true,
+                    underlyingCode: (error as NSError).code
+                )
+            )
+        }
+    }
+
+    private func format(
+        text: String,
+        prompt: String,
+        requestID: PipelineRequestID,
+        runtime: TextFormattingRuntime
+    ) -> WorkerReply {
+        do {
+            let formattedText = try runtime.format(
+                text: text,
+                prompt: prompt,
+                requestID: requestID
+            )
+            return WorkerReply(
+                requestID: requestID,
+                payload: Data(formattedText.utf8)
             )
         } catch WorkerRuntimeError.cancelled {
             return WorkerReply(

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "evaluatedAt": "2026-08-24",
+  "environment": {
+    "hardwareModel": "Mac17,7",
+    "chip": "Apple M5 Max",
+    "memoryBytes": 68719476736,
+    "macOSVersion": "26.5.2",
+    "runtimeRevision": "bb4caa7540188872173c44d161602d9271386413"
+  },
+  "candidate": {
+    "modelID": "gemma-4-E4B-q4-0-it",
+    "fileName": "gemma-4-E4B_q4_0-it.gguf",
+    "fileByteCount": 5154941280,
+    "fileSHA256": "676c35070db6dbe52f93e9c864ee0fba4eddea94b9c875d9cb10daff453fbaee",
+    "source": "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf"
+  },
+  "measurement": {
+    "caseConfiguration": "Config/FormatterEvaluationCases.json",
+    "decoding": "greedy",
+    "contentNormalization": "NFKC, case-insensitive, width-insensitive, whitespace/punctuation/symbols excluded",
+    "loadMilliseconds": 6261.629208,
+    "baselinePhysicalFootprintBytes": 2064768,
+    "loadedPhysicalFootprintBytes": 266277208,
+    "maximumFormattingPhysicalFootprintBytes": 289264032,
+    "minimumGenerationTokensPerSecond": 48.29261461044762,
+    "maximumGenerationTokensPerSecond": 103.3727786506964,
+    "requiredTermMatches": 19,
+    "requiredTermTotal": 19,
+    "remainingFillers": 0,
+    "contentInsertions": 0
+  },
+  "cases": [
+    {
+      "id": "filler-and-punctuation",
+      "output": "今日は少し早めに仕事を終えて、帰りに買い物をしようと思います。",
+      "requiredTermMatches": 3,
+      "requiredTermTotal": 3,
+      "remainingFillers": 0,
+      "contentInsertions": 0,
+      "contentDeletions": 3,
+      "contentSubstitutions": 0,
+      "outputPunctuationCount": 2,
+      "generationTokensPerSecond": 48.29261461044762
+    },
+    {
+      "id": "proper-nouns",
+      "output": "OpenAIのChatGPTとAppleのXcodeを使ってKotodamaVoiceを開発しています。",
+      "requiredTermMatches": 5,
+      "requiredTermTotal": 5,
+      "remainingFillers": 0,
+      "contentInsertions": 0,
+      "contentDeletions": 0,
+      "contentSubstitutions": 0,
+      "outputPunctuationCount": 1,
+      "generationTokensPerSecond": 86.49900967283826
+    },
+    {
+      "id": "alphanumeric",
+      "output": "Wi-Fi 6EのSSIDはKV-Test-2026です。",
+      "requiredTermMatches": 3,
+      "requiredTermTotal": 3,
+      "remainingFillers": 0,
+      "contentInsertions": 0,
+      "contentDeletions": 0,
+      "contentSubstitutions": 0,
+      "outputPunctuationCount": 1,
+      "generationTokensPerSecond": 90.07164609477557
+    },
+    {
+      "id": "date-and-time",
+      "output": "次回の打ち合わせは2026年9月15日火曜日の午後3時30分です。",
+      "requiredTermMatches": 3,
+      "requiredTermTotal": 3,
+      "remainingFillers": 0,
+      "contentInsertions": 0,
+      "contentDeletions": 0,
+      "contentSubstitutions": 0,
+      "outputPunctuationCount": 1,
+      "generationTokensPerSecond": 95.27866719802846
+    },
+    {
+      "id": "long-meaning-preservation",
+      "output": "音声入力を使うと、キーボードから手を離したまま考えを文章にできます。\nただし、固有名詞や数字を正確に認識できること、処理を途中で止めても安全に戻れること、録音内容が外部へ送信されないことが重要です。",
+      "requiredTermMatches": 5,
+      "requiredTermTotal": 5,
+      "remainingFillers": 0,
+      "contentInsertions": 0,
+      "contentDeletions": 0,
+      "contentSubstitutions": 0,
+      "outputPunctuationCount": 6,
+      "generationTokensPerSecond": 103.3727786506964
+    }
+  ],
+  "conclusion": {
+    "qualityAcceptedOnEvaluationSet": true,
+    "selectedAsDefault": false,
+    "reasonDefaultSelectionPending": "Speech同時ロードを含む16GB実機評価が未実施"
+  }
+}

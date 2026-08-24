@@ -11,7 +11,7 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
             with: WorkerServiceProtocol.self
         )
         newConnection.exportedObject = WorkerService(
-            runtime: FormatterRuntimePlaceholder(),
+            runtime: FormatterRuntime(resolveModelURL: resolveFormatterModelURL),
             logger: OSLogDiagnosticLogger(component: .formatterWorker),
             component: .formatterWorker,
             diagnosticFixtureMapper: {
@@ -25,15 +25,27 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
     }
 }
 
-private final class FormatterRuntimePlaceholder: WorkerRuntimeManaging {
-    func load(modelID: String) throws {}
-    func cancel(requestID: PipelineRequestID) {}
-    func cancelAll() {}
-    func unload() {}
+private func resolveFormatterModelURL(modelID: String) throws -> URL {
+    guard let containerURL = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+    ) else {
+        throw WorkerRuntimeError.processingFailed
+    }
+    let modelDirectory = containerURL
+        .appending(path: "Models", directoryHint: .isDirectory)
+        .appending(path: modelID, directoryHint: .isDirectory)
+    let files = try FileManager.default.contentsOfDirectory(
+        at: modelDirectory,
+        includingPropertiesForKeys: nil,
+        options: [.skipsHiddenFiles]
+    )
+    guard files.count == 1, files[0].pathExtension == "gguf" else {
+        throw WorkerRuntimeError.invalidInput
+    }
+    return files[0]
 }
 
 let delegate = FormatterWorkerDelegate()
-_ = llama_model_default_params()
 let listener = NSXPCListener.service()
 listener.delegate = delegate
 listener.resume()

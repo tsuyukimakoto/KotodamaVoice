@@ -84,6 +84,20 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechEvaluator
         GENERATE_INFOPLIST_FILE: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
+  FormatterEvaluator:
+    type: tool
+    platform: macOS
+    sources:
+      - Tools/FormatterEvaluator
+      - Sources/FormatterWorker/FormatterRuntime.swift
+    dependencies:
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/llama.xcframework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterEvaluator
+        GENERATE_INFOPLIST_FILE: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
   FormatterWorker:
     type: xpc-service
     platform: macOS
@@ -193,8 +207,10 @@ targets:
     platform: macOS
     sources:
       - Tests/FormatterWorkerTests
+      - Sources/FormatterWorker/FormatterRuntime.swift
     dependencies:
-      - target: FormatterWorker
+      - target: KotodamaCore
+      - framework: .build/runtimes/artifacts/llama.xcframework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterWorkerTests
@@ -255,10 +271,16 @@ schemes:
     build:
       targets:
         SpeechEvaluator: all
+  FormatterEvaluator:
+    build:
+      targets:
+        FormatterEvaluator: all
   FormatterWorker:
     build:
       targets:
         FormatterWorker: all
     test:
+      environmentVariables:
+        KOTODAMA_FORMATTER_MODEL: "$(KOTODAMA_FORMATTER_MODEL)"
       targets:
         - FormatterWorkerTests

@@ -54,9 +54,9 @@
 ## 7. Formatter
 
 - [x] 7.1 Formatter Off、内蔵、外部と、失敗時に原文へ戻るPipelineテストを先に追加してからEngine selectionを実装する
-- [ ] 7.2 llama Runtime wrapperへmodel load、format、cancel、unloadの失敗テストをfixture Runtimeで追加してからFormatter Workerへ実装する
-- [ ] 7.3 Gemma 4 E4B候補を固定llama.cpp revisionで変換または取得し、ロード、連続生成、キャンセル、終了、制御token除去を検証する
-- [ ] 7.4 日本語評価セットで意味、固有名詞、数値、日付、フィラー、句読点、情報追加、ロード時間、速度、physical footprintを測定する
+- [x] 7.2 llama Runtime wrapperへmodel load、format、cancel、unloadの失敗テストをfixture Runtimeで追加してからFormatter Workerへ実装する
+- [x] 7.3 Gemma 4 E4B候補を固定llama.cpp revisionで変換または取得し、ロード、連続生成、キャンセル、終了、制御token除去を検証する
+- [x] 7.4 日本語評価セットで意味、固有名詞、数値、日付、フィラー、句読点、情報追加、ロード時間、速度、physical footprintを測定する
 - [ ] 7.5 16GB環境でSpeechと同時利用できる合格モデルをManifestへ固定し、合格しない場合は同じ評価条件で代替GGUFモデルを選定する
 - [ ] 7.6 版付きDefault Prompt、Custom Prompt、上書き確認を実装し、Default resourceがユーザー編集で変化しないことをUI Testで確認する
 - [ ] 7.7 空出力、長すぎる出力、説明文、timeout、Worker障害で原文が出力へ渡り、別Formatterへ切り替わらないことを統合テストする

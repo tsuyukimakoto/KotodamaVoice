@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "prompt": "入力の意味、事実、数値、日付、固有名詞を変えず、情報の追加、推測、要約を行わないでください。フィラーを除き、句読点と改行だけを自然に整え、整形後の本文だけを返してください。",
+  "cases": [
+    {
+      "id": "filler-and-punctuation",
+      "source": "ええと、今日は少し早めに仕事を終えて、帰りに買い物をしようと思います。",
+      "requiredTerms": ["今日", "仕事", "買い物"],
+      "fillers": ["ええと"]
+    },
+    {
+      "id": "proper-nouns",
+      "source": "OpenAIのChatGPTとAppleのXcodeを使って、KotodamaVoiceを開発しています。",
+      "requiredTerms": ["OpenAI", "ChatGPT", "Apple", "Xcode", "KotodamaVoice"],
+      "fillers": []
+    },
+    {
+      "id": "alphanumeric",
+      "source": "Wi-Fi 6EのSSIDは、KV-Test-2026です。",
+      "requiredTerms": ["Wi-Fi 6E", "SSID", "KV-Test-2026"],
+      "fillers": []
+    },
+    {
+      "id": "date-and-time",
+      "source": "次回の打ち合わせは、2026年9月15日火曜日の午後3時30分です。",
+      "requiredTerms": ["2026年9月15日", "火曜日", "午後3時30分"],
+      "fillers": []
+    },
+    {
+      "id": "long-meaning-preservation",
+      "source": "音声入力を使うと、キーボードから手を離したまま考えを文章にできます。ただし、固有名詞や数字を正確に認識できること、処理を途中で止めても安全に戻れること、録音内容が外部へ送信されないことが重要です。",
+      "requiredTerms": ["固有名詞", "数字", "安全", "録音内容", "外部"],
+      "fillers": []
+    }
+  ]
+}
