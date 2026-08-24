@@ -1,4 +1,5 @@
 import Foundation
+import KotodamaCore
 import Network
 import Testing
 @testable import KotodamaVoice
@@ -74,6 +75,54 @@ func externalSpeechAdaptersRejectAResponseWithoutText(
     }
 }
 
+@Test @MainActor
+func externalSpeechFailureDoesNotSendAudioToAnotherEndpoint() async throws {
+    let failingServer = try SpeechAdapterFixtureServer(
+        statusCode: 503,
+        responseBody: Data(#"{"error":"unavailable"}"#.utf8)
+    )
+    let alternateServer = try SpeechAdapterFixtureServer(
+        responseBody: Data(#"{"text":"unexpected fallback"}"#.utf8)
+    )
+    let inputURL = FileManager.default.temporaryDirectory.appending(
+        path: "external-speech-\(UUID().uuidString).raw"
+    )
+    try Data(count: 16 * MemoryLayout<Float>.size).write(to: inputURL)
+    let handle = try FileHandle(forReadingFrom: inputURL)
+    defer {
+        try? handle.close()
+        try? FileManager.default.removeItem(at: inputURL)
+    }
+    let input = WorkerAudioInput(
+        fileHandle: handle,
+        sampleRate: 16_000,
+        channelCount: 1,
+        sampleCount: 16
+    )
+    let speech = ExternalSpeechTranscriber(
+        adapter: .openAI(
+            OpenAIAudioTranscriptionsAdapter(
+                endpointURL: failingServer.url(path: "/v1/audio/transcriptions"),
+                model: "speech-model"
+            )
+        )
+    )
+
+    await #expect(throws: ExternalSpeechAdapterError.unsuccessfulStatus(503)) {
+        _ = try await speech.transcribe(
+            modelID: "unused-by-external-engine",
+            audioInput: input,
+            requestID: PipelineRequestID()
+        )
+    }
+
+    let request = try #require(failingServer.receivedRequest)
+    #expect(request.bodyString.contains("Content-Type: audio/wav"))
+    #expect(request.bodyString.contains("RIFF"))
+    #expect(request.bodyString.contains("WAVE"))
+    #expect(alternateServer.receivedRequest == nil)
+}
+
 enum ExternalSpeechFixtureKind: CaseIterable, Sendable {
     case openAI
     case whisperCpp
@@ -98,13 +147,15 @@ private struct ReceivedHTTPRequest: Sendable {
 }
 
 private final class SpeechAdapterFixtureServer: @unchecked Sendable {
+    private let statusCode: Int
     private let responseBody: Data
     private let listener: NWListener
     private let queue = DispatchQueue(label: "SpeechAdapterFixtureServer")
     private let lock = NSLock()
     private var request: ReceivedHTTPRequest?
 
-    init(responseBody: Data) throws {
+    init(statusCode: Int = 200, responseBody: Data) throws {
+        self.statusCode = statusCode
         self.responseBody = responseBody
         listener = try NWListener(using: .tcp, on: .any)
         let ready = DispatchSemaphore(value: 0)
@@ -164,7 +215,7 @@ private final class SpeechAdapterFixtureServer: @unchecked Sendable {
 
     private func respond(on connection: NWConnection) {
         let headers = [
-            "HTTP/1.1 200 OK",
+            "HTTP/1.1 \(statusCode) \(statusCode == 200 ? "OK" : "Error")",
             "Content-Type: application/json",
             "Content-Length: \(responseBody.count)",
             "Connection: close",

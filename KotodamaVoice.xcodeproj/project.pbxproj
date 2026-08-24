@@ -72,6 +72,7 @@
 		97BF379C3E87222694CAE20C /* SpeechRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */; };
 		9B9BDC90596EBB5C6754874A /* ExternalSpeechAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC103383789138860E7DF5A /* ExternalSpeechAdapters.swift */; };
 		9EA32DF5C5D509C9266ECA9E /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95952C9E4529C496BDA938B /* AudioRecordingService.swift */; };
+		A01D8CCBBEC574619C778DA1 /* ExternalPipelineAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57ABA303685B4F7D46DC230 /* ExternalPipelineAdapters.swift */; };
 		A1B67994B2BDB1363FC031D2 /* ModelWorkerUnloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11BB1CFF6A074E17DA1435F /* ModelWorkerUnloader.swift */; };
 		A294710DB7F3A6153FB6BE0A /* ExternalEngineSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02912027904EE01F3799E9AD /* ExternalEngineSettings.swift */; };
 		A59E16B231D25AA7BC376A5E /* SpeechRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */; };
@@ -355,6 +356,7 @@
 		A656038F127099AAAAF5D31B /* KeychainAPIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAPIKeyStore.swift; sourceTree = "<group>"; };
 		A9114BACB5813167812E6816 /* ExternalEngineConnectionTester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalEngineConnectionTester.swift; sourceTree = "<group>"; };
 		B2A0521C534370D92B8A8874 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		B57ABA303685B4F7D46DC230 /* ExternalPipelineAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalPipelineAdapters.swift; sourceTree = "<group>"; };
 		B68A26A3F8A16DD25A1FE1C5 /* WorkerDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerDiagnostics.swift; sourceTree = "<group>"; };
 		BD019241ECD56EA3E33594F2 /* FormattingPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattingPromptTests.swift; sourceTree = "<group>"; };
 		C2FB953D49A31BF61348484A /* ModelDownloadHTTPIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloadHTTPIntegrationTests.swift; sourceTree = "<group>"; };
@@ -635,6 +637,7 @@
 				A9114BACB5813167812E6816 /* ExternalEngineConnectionTester.swift */,
 				02912027904EE01F3799E9AD /* ExternalEngineSettings.swift */,
 				932B70871235783E29A47C3A /* ExternalFormatterAdapters.swift */,
+				B57ABA303685B4F7D46DC230 /* ExternalPipelineAdapters.swift */,
 				9DC103383789138860E7DF5A /* ExternalSpeechAdapters.swift */,
 				D01F0E84C9DE3124EED51983 /* FormatterWorkerClient.swift */,
 				E45567485DBCDB5A19EAAA58 /* FormattingPrompt.swift */,
@@ -1167,6 +1170,7 @@
 				6BF083E8E04E222BFD873F33 /* ExternalEngineConnectionTester.swift in Sources */,
 				A294710DB7F3A6153FB6BE0A /* ExternalEngineSettings.swift in Sources */,
 				C26D3E57BE4EE09AB1691395 /* ExternalFormatterAdapters.swift in Sources */,
+				A01D8CCBBEC574619C778DA1 /* ExternalPipelineAdapters.swift in Sources */,
 				9B9BDC90596EBB5C6754874A /* ExternalSpeechAdapters.swift in Sources */,
 				18DFD7AF462BAC7CB365547C /* FormatterWorkerClient.swift in Sources */,
 				0C7CBBFFBFADE626C4C903D9 /* FormattingPrompt.swift in Sources */,

@@ -68,7 +68,7 @@
 - [x] 8.3 Engine種別ごとの接続テストを実装し、TCP接続だけ成功して契約が欠けるserverをReadyにしないことを確認する
 - [x] 8.4 loopback判定、外部送信確認、外部平文HTTP警告を実装し、IPv4、IPv6、localhost、外部hostの境界テストを成功させる
 - [x] 8.5 API KeyをKeychainへ保存する実装とテストを追加し、UserDefaults、設定export、OSLogに秘密情報が含まれないことを確認する
-- [ ] 8.6 外部Speech障害時に音声が別Endpointへ送られず、外部Formatter障害時に原文だけが出力されることを通信fixtureで確認する
+- [x] 8.6 外部Speech障害時に音声が別Endpointへ送られず、外部Formatter障害時に原文だけが出力されることを通信fixtureで確認する
 
 ## 9. ClipboardとAuto Insert
 

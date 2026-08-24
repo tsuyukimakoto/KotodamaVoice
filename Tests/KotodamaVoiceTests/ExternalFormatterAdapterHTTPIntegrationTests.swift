@@ -1,4 +1,5 @@
 import Foundation
+import KotodamaCore
 import Network
 import Testing
 
@@ -118,6 +119,61 @@ func externalFormatterAdaptersRejectTheOtherResponseContract(
   }
 }
 
+@Test @MainActor
+func externalFormatterFailureReturnsOriginalWithoutTryingAnotherEndpoint()
+  async throws
+{
+  let failingServer = try FormatterAdapterFixtureServer(
+    statusCode: 503,
+    responseBody: Data(#"{"error":"unavailable"}"#.utf8)
+  )
+  let alternateServer = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"unexpected fallback"}]}]}"#.utf8
+    )
+  )
+  let requestID = PipelineRequestID()
+  let store = PipelineStore(initialState: .transcribing(requestID))
+  let settings = FormatterSettingsStore(engine: .external)
+  let selected = ExternalTextFormatter(
+    adapter: .responses(
+      OpenAIResponsesFormatterAdapter(
+        endpointURL: failingServer.url(path: "/v1/responses"),
+        model: "formatter-model"
+      )
+    ),
+    prompt: { "整形指示" }
+  )
+  let unselected = ExternalTextFormatter(
+    adapter: .responses(
+      OpenAIResponsesFormatterAdapter(
+        endpointURL: alternateServer.url(path: "/v1/responses"),
+        model: "alternate-model"
+      )
+    ),
+    prompt: { "使用されない指示" }
+  )
+  let pipeline = TextFormattingPipeline(
+    coordinator: PipelineCoordinator(store: store),
+    settings: settings,
+    builtIn: unselected,
+    external: selected
+  )
+
+  let output = try await pipeline.process(
+    LocalTranscription(requestID: requestID, text: "文字起こし原文")
+  )
+
+  #expect(output == FormattingOutput(text: "文字起こし原文", usedFallback: true))
+  let request = try #require(failingServer.receivedRequest)
+  let body = try #require(
+    JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+  )
+  #expect(body["input"] as? String == "文字起こし原文")
+  #expect(body["instructions"] as? String == "整形指示")
+  #expect(alternateServer.receivedRequest == nil)
+}
+
 enum ExternalFormatterFixtureKind: CaseIterable, Sendable {
   case responses
   case chatCompletions
@@ -130,13 +186,15 @@ private struct FormatterReceivedHTTPRequest: Sendable {
 }
 
 private final class FormatterAdapterFixtureServer: @unchecked Sendable {
+  private let statusCode: Int
   private let responseBody: Data
   private let listener: NWListener
   private let queue = DispatchQueue(label: "FormatterAdapterFixtureServer")
   private let lock = NSLock()
   private var request: FormatterReceivedHTTPRequest?
 
-  init(responseBody: Data) throws {
+  init(statusCode: Int = 200, responseBody: Data) throws {
+    self.statusCode = statusCode
     self.responseBody = responseBody
     listener = try NWListener(using: .tcp, on: .any)
     let ready = DispatchSemaphore(value: 0)
@@ -193,7 +251,7 @@ private final class FormatterAdapterFixtureServer: @unchecked Sendable {
 
   private func respond(on connection: NWConnection) {
     let headers = [
-      "HTTP/1.1 200 OK",
+      "HTTP/1.1 \(statusCode) \(statusCode == 200 ? "OK" : "Error")",
       "Content-Type: application/json",
       "Content-Length: \(responseBody.count)",
       "Connection: close",
