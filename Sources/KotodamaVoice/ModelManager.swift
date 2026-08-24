@@ -22,6 +22,16 @@ enum ModelDeletionError: Error, Equatable {
     case fileSystem
 }
 
+@MainActor
+protocol ModelInstalling: AnyObject {
+    func install(
+        _ model: ModelManifestEntry,
+        progress: @escaping @MainActor (Double) -> Void
+    ) async throws -> URL
+}
+
+extension ModelDownloadCoordinator: ModelInstalling {}
+
 @Observable
 @MainActor
 final class ModelManager {
@@ -29,7 +39,9 @@ final class ModelManager {
     private(set) var selectedModelIDs: [ModelPurpose: String] = [:]
     private(set) var deletionErrors: [String: String] = [:]
 
-    private var coordinator: ModelDownloadCoordinator?
+    private var installer: (any ModelInstalling)?
+    private var installationCompletions: [String: [(Bool) -> Void]] = [:]
+    private var selectAfterInstallationIDs = Set<String>()
     private let modelsByID: [String: ModelManifestEntry]
     private let defaults: UserDefaults
     private let fileManager: FileManager
@@ -64,7 +76,8 @@ final class ModelManager {
         fileManager: FileManager = .default,
         defaults: UserDefaults = .standard,
         workerUnloader: ModelWorkerUnloading = XPCModelWorkerUnloader(),
-        operationGate: ModelOperationGate = ModelOperationGate()
+        operationGate: ModelOperationGate = ModelOperationGate(),
+        installer: (any ModelInstalling)? = nil
     ) {
         modelsByID = Dictionary(
             uniqueKeysWithValues: models.map { ($0.id, $0) }
@@ -74,7 +87,12 @@ final class ModelManager {
         self.rootURL = rootURL
         self.workerUnloader = workerUnloader
         self.operationGate = operationGate
-        configure(models: models, rootURL: rootURL, fileManager: fileManager)
+        configure(
+            models: models,
+            rootURL: rootURL,
+            fileManager: fileManager,
+            installer: installer
+        )
     }
 
     func selectedModel(for purpose: ModelPurpose) -> ModelManifestEntry? {
@@ -93,10 +111,32 @@ final class ModelManager {
         defaults.set(model.id, forKey: selectionKey(for: model.purpose))
     }
 
-    func install(_ model: ModelManifestEntry) {
-        guard states[model.id] != .installed else { return }
-        guard coordinator != nil else {
+    func install(
+        _ model: ModelManifestEntry,
+        selectAfterInstallation: Bool = false,
+        completion: ((Bool) -> Void)? = nil
+    ) {
+        guard modelsByID[model.id] != nil else {
+            completion?(false)
+            return
+        }
+        if let completion {
+            installationCompletions[model.id, default: []].append(completion)
+        }
+        if selectAfterInstallation {
+            selectAfterInstallationIDs.insert(model.id)
+        }
+        if states[model.id] == .installed {
+            let succeeded = selectIfRequested(model)
+            completeInstallation(for: model.id, succeeded: succeeded)
+            return
+        }
+        if case .downloading = states[model.id] {
+            return
+        }
+        guard installer != nil else {
             states[model.id] = .storageUnavailable
+            completeInstallation(for: model.id, succeeded: false)
             return
         }
         states[model.id] = .downloading(0)
@@ -104,32 +144,40 @@ final class ModelManager {
             do {
                 try await operationGate.withOperation(for: model.id) {
                     guard self.states[model.id] != .installed else { return }
-                    guard let coordinator = self.coordinator else {
+                    guard let installer = self.installer else {
                         self.states[model.id] = .storageUnavailable
                         return
                     }
                     self.states[model.id] = .downloading(0)
-                    _ = try await coordinator.install(model) { [weak self] progress in
+                    _ = try await installer.install(model) { [weak self] progress in
                         self?.states[model.id] = .downloading(progress)
                     }
                     self.states[model.id] = .installed
-                    if self.selectedModel(for: model.purpose) == nil {
+                    if self.selectAfterInstallationIDs.contains(model.id)
+                        || self.selectedModel(for: model.purpose) == nil {
                         try self.select(model)
                     }
                 }
+                completeInstallation(for: model.id, succeeded: true)
             } catch {
                 states[model.id] = .failed(message(for: error))
+                completeInstallation(for: model.id, succeeded: false)
             }
         }
     }
 
-    func requestDeletion(_ model: ModelManifestEntry) {
+    func requestDeletion(
+        _ model: ModelManifestEntry,
+        completion: ((Bool) -> Void)? = nil
+    ) {
         deletionErrors[model.id] = nil
         Task {
             do {
                 try await deleteInstalledModel(model)
+                completion?(true)
             } catch {
                 deletionErrors[model.id] = deletionMessage(for: error)
+                completion?(false)
             }
         }
     }
@@ -171,7 +219,8 @@ final class ModelManager {
     private func configure(
         models: [ModelManifestEntry],
         rootURL: URL?,
-        fileManager: FileManager
+        fileManager: FileManager,
+        installer: (any ModelInstalling)? = nil
     ) {
         guard let rootURL else {
             for model in models {
@@ -180,18 +229,19 @@ final class ModelManager {
             return
         }
 
-        coordinator = ModelDownloadCoordinator(
-            rootURL: rootURL,
-            downloader: URLSessionModelDownloader(),
-            storage: FoundationModelStorage(fileManager: fileManager),
-            resumeStore: FileModelResumeDataStore(
-                directoryURL: rootURL.appending(
-                    path: ".resume",
-                    directoryHint: .isDirectory
-                ),
-                fileManager: fileManager
+        self.installer = installer
+            ?? ModelDownloadCoordinator(
+                rootURL: rootURL,
+                downloader: URLSessionModelDownloader(),
+                storage: FoundationModelStorage(fileManager: fileManager),
+                resumeStore: FileModelResumeDataStore(
+                    directoryURL: rootURL.appending(
+                        path: ".resume",
+                        directoryHint: .isDirectory
+                    ),
+                    fileManager: fileManager
+                )
             )
-        )
 
         for model in models {
             let installedURL = rootURL
@@ -231,6 +281,24 @@ final class ModelManager {
 
     private func selectionKey(for purpose: ModelPurpose) -> String {
         "selectedModel.\(purpose.rawValue)"
+    }
+
+    private func selectIfRequested(_ model: ModelManifestEntry) -> Bool {
+        guard selectAfterInstallationIDs.contains(model.id) else { return true }
+        do {
+            try select(model)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func completeInstallation(for modelID: String, succeeded: Bool) {
+        selectAfterInstallationIDs.remove(modelID)
+        let completions = installationCompletions.removeValue(forKey: modelID) ?? []
+        for completion in completions {
+            completion(succeeded)
+        }
     }
 
     private func message(for error: Error) -> String {

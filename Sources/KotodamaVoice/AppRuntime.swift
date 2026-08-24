@@ -21,8 +21,10 @@ final class AppRuntime {
   let modelManager: ModelManager
   let speechSettings: SpeechSettingsStore
   let formatterSettings: FormatterSettingsStore
+  let formatterEngineSelection: FormatterEngineSelectionCoordinator
   let externalEngineSettings: ExternalEngineSettingsStore
   let outputSettings: OutputSettingsStore
+  private(set) var modelNavigationTargetID: String?
   private var outputSelectionWindow: OutputSelectionWindowPresenter?
   private let clipboardOutput = ClipboardOutput()
   private let outputHUD = OutputHUDController()
@@ -88,12 +90,24 @@ final class AppRuntime {
           path: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)",
           directoryHint: .isDirectory
         )
+        let installResult = ProcessInfo.processInfo.environment[
+          "KOTODAMA_UI_TEST_MODEL_INSTALL_RESULT"
+        ]
+        let testInstaller = installResult.map {
+          UITestModelInstaller(
+            rootURL: testRootURL,
+            succeeds: $0 == "success"
+          )
+        }
         modelManager = ModelManager(
           models: modelCatalog.models,
           rootURL: testRootURL,
           defaults: defaults,
-          workerUnloader: workerUnloader,
-          operationGate: modelOperationGate
+          workerUnloader: testInstaller == nil
+            ? workerUnloader
+            : UITestModelWorkerUnloader(),
+          operationGate: modelOperationGate,
+          installer: testInstaller
         )
       } else {
         modelManager = ModelManager(
@@ -109,6 +123,15 @@ final class AppRuntime {
         operationGate: modelOperationGate
       )
     #endif
+    let formatterEngineSelection = FormatterEngineSelectionCoordinator(
+      settings: formatterSettings,
+      models: modelCatalog.models,
+      isInstalledAndSelected: { [weak modelManager] model in
+        guard let modelManager else { return false }
+        return modelManager.states[model.id] == .installed
+          && modelManager.selectedModel(for: .formatter)?.id == model.id
+      }
+    )
     formatterWorkerClient.configure(
       modelID: { [weak modelManager] in
         guard let modelManager,
@@ -156,6 +179,7 @@ final class AppRuntime {
     self.localSpeechPipeline = localSpeechPipeline
     self.speechSettings = speechSettings
     self.formatterSettings = formatterSettings
+    self.formatterEngineSelection = formatterEngineSelection
     self.externalEngineSettings = externalEngineSettings
     self.outputSettings = outputSettings
     self.textFormattingPipeline = textFormattingPipeline
@@ -297,6 +321,29 @@ final class AppRuntime {
     outputSelectionWindow?.show()
   }
 
+  func beginPendingFormatterModelAcquisition() {
+    guard let model = formatterEngineSelection
+      .beginPendingModelAcquisition()
+    else { return }
+    modelNavigationTargetID = model.id
+    modelManager.install(
+      model,
+      selectAfterInstallation: true
+    ) { [weak formatterEngineSelection] succeeded in
+      formatterEngineSelection?.modelAcquisitionDidFinish(
+        model,
+        succeeded: succeeded
+      )
+    }
+  }
+
+  func requestModelDeletion(_ model: ModelManifestEntry) {
+    modelManager.requestDeletion(model) { [weak formatterEngineSelection] succeeded in
+      guard succeeded else { return }
+      formatterEngineSelection?.modelWasDeleted(model)
+    }
+  }
+
   private func selectedSpeechModelID() -> String? {
     switch speechSettings.engine {
     case .builtIn:
@@ -354,6 +401,48 @@ final class AppRuntime {
     }
   }
 }
+
+#if DEBUG
+  @MainActor
+  private final class UITestModelInstaller: ModelInstalling {
+    private let rootURL: URL
+    private let succeeds: Bool
+
+    init(rootURL: URL, succeeds: Bool) {
+      self.rootURL = rootURL
+      self.succeeds = succeeds
+    }
+
+    func install(
+      _ model: ModelManifestEntry,
+      progress: @escaping @MainActor (Double) -> Void
+    ) async throws -> URL {
+      progress(0.5)
+      await Task.yield()
+      guard succeeds else { throw ModelInstallError.downloadFailed }
+      let directory = rootURL.appending(
+        path: model.id,
+        directoryHint: .isDirectory
+      )
+      try FileManager.default.createDirectory(
+        at: directory,
+        withIntermediateDirectories: true
+      )
+      let fileURL = directory.appending(
+        path: model.fileName,
+        directoryHint: .notDirectory
+      )
+      try Data().write(to: fileURL)
+      progress(1)
+      return fileURL
+    }
+  }
+
+  @MainActor
+  private final class UITestModelWorkerUnloader: ModelWorkerUnloading {
+    func unload(_ model: ModelManifestEntry) async throws {}
+  }
+#endif
 
 @MainActor
 final class OutputDeliveryCoordinator {

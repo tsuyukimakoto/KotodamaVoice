@@ -21,6 +21,94 @@ enum FormattingEngine: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+enum FormatterEngineSelectionOutcome: Equatable {
+    case applied
+    case requiresModel(ModelManifestEntry)
+    case unavailable
+}
+
+@Observable
+@MainActor
+final class FormatterEngineSelectionCoordinator {
+    private(set) var pendingModel: ModelManifestEntry?
+
+    @ObservationIgnored
+    private let settings: FormatterSettingsStore
+
+    @ObservationIgnored
+    private let formatterModels: [ModelManifestEntry]
+
+    @ObservationIgnored
+    private let isInstalledAndSelected: (ModelManifestEntry) -> Bool
+
+    init(
+        settings: FormatterSettingsStore,
+        models: [ModelManifestEntry],
+        isInstalledAndSelected: @escaping (ModelManifestEntry) -> Bool
+    ) {
+        self.settings = settings
+        formatterModels = models.filter { $0.purpose == .formatter }
+        self.isInstalledAndSelected = isInstalledAndSelected
+
+        if settings.engine == .builtIn,
+           !formatterModels.contains(where: isInstalledAndSelected) {
+            settings.setEngine(.off)
+        }
+    }
+
+    func select(_ engine: FormattingEngine) -> FormatterEngineSelectionOutcome {
+        guard engine == .builtIn else {
+            pendingModel = nil
+            settings.setEngine(engine)
+            return .applied
+        }
+
+        if formatterModels.contains(where: isInstalledAndSelected) {
+            pendingModel = nil
+            settings.setEngine(.builtIn)
+            return .applied
+        }
+
+        guard let model = acquisitionTarget else {
+            return .unavailable
+        }
+        pendingModel = model
+        return .requiresModel(model)
+    }
+
+    func beginPendingModelAcquisition() -> ModelManifestEntry? {
+        pendingModel
+    }
+
+    func cancelPendingModelAcquisition() {
+        pendingModel = nil
+    }
+
+    func modelAcquisitionDidFinish(
+        _ model: ModelManifestEntry,
+        succeeded: Bool
+    ) {
+        guard pendingModel?.id == model.id else { return }
+        defer { pendingModel = nil }
+        guard succeeded, isInstalledAndSelected(model) else { return }
+        settings.setEngine(.builtIn)
+    }
+
+    func modelWasDeleted(_ model: ModelManifestEntry) {
+        if pendingModel?.id == model.id {
+            pendingModel = nil
+        }
+        if model.purpose == .formatter, settings.engine == .builtIn {
+            settings.setEngine(.off)
+        }
+    }
+
+    private var acquisitionTarget: ModelManifestEntry? {
+        formatterModels.first(where: \.isDefault)
+            ?? (formatterModels.count == 1 ? formatterModels.first : nil)
+    }
+}
+
 @Observable
 @MainActor
 final class FormatterSettingsStore {

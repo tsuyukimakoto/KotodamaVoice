@@ -129,6 +129,72 @@ final class KotodamaVoiceUITests: XCTestCase {
     }
 
     @MainActor
+    func testBuiltInFormatterIsSavedOnlyAfterModelInstallation() {
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launchEnvironment["KOTODAMA_UI_TEST_MODEL_INSTALL_RESULT"] = "success"
+        application.launch()
+        chooseClipboardIfNeeded(in: application)
+        application.activate()
+        application.typeKey(",", modifierFlags: .command)
+
+        let settingsWindow = application.windows.firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["Formatting"].click()
+        XCTAssertEqual(
+            settingsWindow.staticTexts["formatter-engine-value"].value as? String,
+            "Off"
+        )
+
+        settingsWindow.radioButtons["内蔵"].click()
+        let confirmation = settingsWindow.sheets.firstMatch
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 3))
+        XCTAssertTrue(confirmation.staticTexts["モデルを取得しますか？"].exists)
+        let modelDetails = confirmation.staticTexts.matching(
+            NSPredicate(
+                format: "value CONTAINS %@",
+                "Gemma 4 E4B IT QAT Q4_0"
+            )
+        ).firstMatch
+        XCTAssertTrue(modelDetails.exists)
+        XCTAssertEqual(
+            application.staticTexts["formatter-engine-value"].value as? String,
+            "Off"
+        )
+        confirmation.buttons["キャンセル"].click()
+        XCTAssertEqual(
+            application.staticTexts["formatter-engine-value"].value as? String,
+            "Off"
+        )
+
+        settingsWindow.radioButtons["内蔵"].click()
+        let secondConfirmation = settingsWindow.sheets.firstMatch
+        XCTAssertTrue(secondConfirmation.waitForExistence(timeout: 3))
+        secondConfirmation.buttons["取得して内蔵を使用"].click()
+
+        let modelsWindow = application.windows["モデル"]
+        XCTAssertTrue(modelsWindow.waitForExistence(timeout: 3))
+        let status = modelsWindow.staticTexts[
+            "model-gemma-4-e4b-it-qat-q4-0-status"
+        ]
+        XCTAssertTrue(status.waitForExistence(timeout: 3))
+        XCTAssertEqual(status.value as? String, "導入済み")
+        XCTAssertEqual(
+            application.staticTexts["formatter-engine-value"].value as? String,
+            "内蔵"
+        )
+
+        modelsWindow.buttons["delete-gemma-4-e4b-it-qat-q4-0"].click()
+        let notInstalled = NSPredicate(format: "value == %@", "未導入")
+        expectation(for: notInstalled, evaluatedWith: status)
+        waitForExpectations(timeout: 3)
+        XCTAssertEqual(
+            application.staticTexts["formatter-engine-value"].value as? String,
+            "Off"
+        )
+    }
+
+    @MainActor
     func testInitialOutputSelectionChoosesClipboardWithoutPermission() {
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"

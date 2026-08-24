@@ -18,6 +18,86 @@ func formatterSelectionDefaultsToOffAndPersistsChanges() throws {
 }
 
 @Test @MainActor
+func builtInFormatterSelectionStaysPendingUntilItsModelIsReady() throws {
+    let suiteName = "jp.tsuyuki.FormatterSelectionTests.\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    let settings = FormatterSettingsStore(defaults: defaults)
+    settings.setEngine(.external)
+    let model = formatterSelectionModel()
+    var isReady = false
+    let selection = FormatterEngineSelectionCoordinator(
+        settings: settings,
+        models: [model],
+        isInstalledAndSelected: { _ in isReady }
+    )
+
+    #expect(selection.select(.builtIn) == .requiresModel(model))
+    #expect(settings.engine == .external)
+    #expect(FormatterSettingsStore(defaults: defaults).engine == .external)
+    #expect(selection.pendingModel == model)
+    #expect(selection.beginPendingModelAcquisition() == model)
+
+    isReady = true
+    selection.modelAcquisitionDidFinish(model, succeeded: true)
+
+    #expect(settings.engine == .builtIn)
+    #expect(FormatterSettingsStore(defaults: defaults).engine == .builtIn)
+    #expect(selection.pendingModel == nil)
+}
+
+@Test @MainActor
+func cancellingOrFailingFormatterModelAcquisitionKeepsCurrentEngine() {
+    let settings = FormatterSettingsStore(engine: .external)
+    let model = formatterSelectionModel()
+    let selection = FormatterEngineSelectionCoordinator(
+        settings: settings,
+        models: [model],
+        isInstalledAndSelected: { _ in false }
+    )
+
+    #expect(selection.select(.builtIn) == .requiresModel(model))
+    selection.cancelPendingModelAcquisition()
+    #expect(settings.engine == .external)
+    #expect(selection.pendingModel == nil)
+
+    #expect(selection.select(.builtIn) == .requiresModel(model))
+    selection.modelAcquisitionDidFinish(model, succeeded: false)
+    #expect(settings.engine == .external)
+    #expect(selection.pendingModel == nil)
+}
+
+@Test @MainActor
+func installedFormatterCanBeSelectedImmediatelyAndDeletionReturnsToOff() {
+    let settings = FormatterSettingsStore(engine: .off)
+    let model = formatterSelectionModel()
+    let selection = FormatterEngineSelectionCoordinator(
+        settings: settings,
+        models: [model],
+        isInstalledAndSelected: { _ in true }
+    )
+
+    #expect(selection.select(.builtIn) == .applied)
+    #expect(settings.engine == .builtIn)
+
+    selection.modelWasDeleted(model)
+
+    #expect(settings.engine == .off)
+}
+
+@Test @MainActor
+func unavailablePersistedBuiltInFormatterIsResetToOff() {
+    let settings = FormatterSettingsStore(engine: .builtIn)
+    _ = FormatterEngineSelectionCoordinator(
+        settings: settings,
+        models: [formatterSelectionModel()],
+        isInstalledAndSelected: { _ in false }
+    )
+
+    #expect(settings.engine == .off)
+}
+
+@Test @MainActor
 func formatterOffPassesTheTranscriptionThroughUnchanged() async throws {
     let fixture = FormattingPipelineFixture(engine: .off)
 
@@ -117,6 +197,23 @@ enum FormattingContractViolationCase: CaseIterable, Sendable {
 
 private enum FormattingTestError: Error {
     case failed
+}
+
+private func formatterSelectionModel() -> ModelManifestEntry {
+    ModelManifestEntry(
+        id: "formatter-model",
+        displayName: "Formatter Model",
+        purpose: .formatter,
+        version: "1",
+        sourceURL: URL(string: "https://example.com/formatter.gguf")!,
+        revision: String(repeating: "a", count: 40),
+        fileName: "formatter.gguf",
+        byteCount: 1_024,
+        sha256: String(repeating: "b", count: 64),
+        licenseName: "Apache-2.0",
+        licenseURL: URL(string: "https://example.com/license")!,
+        runtime: .llama
+    )
 }
 
 @MainActor

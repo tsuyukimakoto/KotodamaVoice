@@ -13,22 +13,43 @@ struct ModelsView: View {
                     description: Text(loadError)
                 )
             } else {
-                List(runtime.modelCatalog.models) { model in
-                    ModelRow(
-                        model: model,
-                        state: runtime.modelManager.states[model.id]
-                            ?? .notInstalled,
-                        isSelected: runtime.modelManager
-                            .selectedModel(for: model.purpose)?.id == model.id,
-                        deletionError: runtime.modelManager.deletionErrors[model.id],
-                        install: { runtime.modelManager.install(model) },
-                        select: { try? runtime.modelManager.select(model) },
-                        delete: { runtime.modelManager.requestDeletion(model) }
-                    )
+                ScrollViewReader { proxy in
+                    List(runtime.modelCatalog.models) { model in
+                        ModelRow(
+                            model: model,
+                            state: runtime.modelManager.states[model.id]
+                                ?? .notInstalled,
+                            isSelected: runtime.modelManager
+                                .selectedModel(for: model.purpose)?.id == model.id,
+                            deletionError: runtime.modelManager.deletionErrors[model.id],
+                            install: { runtime.modelManager.install(model) },
+                            select: { try? runtime.modelManager.select(model) },
+                            delete: { runtime.requestModelDeletion(model) }
+                        )
+                        .id(model.id)
+                        .listRowBackground(
+                            model.id == runtime.modelNavigationTargetID
+                                ? Color.accentColor.opacity(0.12)
+                                : Color.clear
+                        )
+                    }
+                    .onAppear {
+                        scrollToNavigationTarget(using: proxy)
+                    }
+                    .onChange(of: runtime.modelNavigationTargetID) {
+                        scrollToNavigationTarget(using: proxy)
+                    }
                 }
             }
         }
         .navigationTitle("モデル")
+    }
+
+    private func scrollToNavigationTarget(using proxy: ScrollViewProxy) {
+        guard let modelID = runtime.modelNavigationTargetID else { return }
+        Task { @MainActor in
+            proxy.scrollTo(modelID, anchor: .center)
+        }
     }
 }
 

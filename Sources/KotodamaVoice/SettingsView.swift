@@ -30,7 +30,12 @@ struct SettingsView: View {
 
             FormattingSettingsView(
                 settings: runtime.formatterSettings,
-                externalSettings: runtime.externalEngineSettings
+                externalSettings: runtime.externalEngineSettings,
+                engineSelection: runtime.formatterEngineSelection,
+                beginModelAcquisition: {
+                    runtime.beginPendingFormatterModelAcquisition()
+                    openWindow(id: "models")
+                }
             )
             .tabItem {
                 Label("Formatting", systemImage: "text.alignleft")
@@ -356,7 +361,11 @@ private struct OutputSelectionView: View {
 private struct FormattingSettingsView: View {
     let settings: FormatterSettingsStore
     let externalSettings: ExternalEngineSettingsStore
+    let engineSelection: FormatterEngineSelectionCoordinator
+    let beginModelAcquisition: () -> Void
     @State private var showsOverwriteConfirmation = false
+    @State private var showsModelAcquisitionConfirmation = false
+    @State private var selectionError: String?
 
     var body: some View {
         Form {
@@ -365,7 +374,7 @@ private struct FormattingSettingsView: View {
                     "Formatter",
                     selection: Binding(
                         get: { settings.engine },
-                        set: { settings.setEngine($0) }
+                        set: { select($0) }
                     )
                 ) {
                     ForEach(FormattingEngine.allCases) { engine in
@@ -375,10 +384,21 @@ private struct FormattingSettingsView: View {
                 .pickerStyle(.radioGroup)
                 .accessibilityIdentifier("formatter-engine-picker")
 
+                LabeledContent("現在のFormatter") {
+                    Text(settings.engine.displayName)
+                        .accessibilityIdentifier("formatter-engine-value")
+                }
+
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("formatter-engine-detail")
+
+                if let selectionError {
+                    Text(selectionError)
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("formatter-engine-error")
+                }
             }
 
             Section("Prompt") {
@@ -445,6 +465,43 @@ private struct FormattingSettingsView: View {
         } message: {
             Text("現在のCustom Promptは失われます。")
         }
+        .alert(
+            "モデルを取得しますか？",
+            isPresented: $showsModelAcquisitionConfirmation
+        ) {
+            Button("キャンセル", role: .cancel) {
+                engineSelection.cancelPendingModelAcquisition()
+            }
+            Button("取得して内蔵を使用") {
+                beginModelAcquisition()
+            }
+        } message: {
+            Text(modelAcquisitionMessage)
+        }
+    }
+
+    private func select(_ engine: FormattingEngine) {
+        selectionError = nil
+        switch engineSelection.select(engine) {
+        case .applied:
+            break
+        case .requiresModel:
+            showsModelAcquisitionConfirmation = true
+        case .unavailable:
+            selectionError = "取得できるFormatterモデルがありません。モデル情報を確認してください。"
+        }
+    }
+
+    private var modelAcquisitionMessage: String {
+        guard let model = engineSelection.pendingModel else {
+            return "Formatterモデルの情報を確認できません。"
+        }
+        return """
+        \(model.displayName)
+        容量: \(ByteCountFormatter.string(fromByteCount: model.byteCount, countStyle: .file))
+        取得元: \(model.sourceURL.host() ?? "-")
+        ライセンス: \(model.licenseName)
+        """
     }
 
     private var detail: String {
