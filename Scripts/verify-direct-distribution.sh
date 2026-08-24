@@ -13,6 +13,13 @@ if [[ ! -d $app_path ]]; then
     exit 66
 fi
 
+appledouble_path=$(/usr/bin/find "$app_path" -name '._*' -print -quit)
+if [[ -n $appledouble_path ]]; then
+    print -u2 "AppleDouble metadata file found inside signed bundle: $appledouble_path"
+    print -u2 "The app was modified while packaging or extracting and must not be distributed."
+    exit 1
+fi
+
 forbidden_entitlements=(
     com.apple.security.app-sandbox
     com.apple.security.cs.allow-jit
