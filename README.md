@@ -1,54 +1,134 @@
 # KotodamaVoice
 
-KotodamaVoiceは、音声の取得、文字起こし、文章整形、出力をMac上で処理するローカルファーストの音声入力アプリです。
-メニューバーに常駐し、権限を増やさず登録できるグローバルショートカットから操作します。
+KotodamaVoiceは、macOSのメニューバーから使う音声入力アプリです。
+録音した音声を文字に変換し、必要に応じて文章を整えてから、Clipboardまたは入力欄へ渡します。
 
-推論Runtimeはアプリ本体へ直接リンクせず、Speech WorkerとFormatter WorkerのXPC Serviceへ分離します。
-アプリとWorkerはversion付きのsecure coding契約とrequest IDを使って通信します。
+文字起こしと文章整形には、公開されているモデルをMacへ取得してローカルで実行する方式を選べます。
+この方式で処理している音声、文字起こし結果、Promptは外部サービスへ送信しません。
+外部Engineを明示的に設定した場合に限り、設定した接続先へ対象データを送信します。
+
+## 主な特徴
+
+- メニューバーに常駐し、作業中のアプリを切り替えずに録音を開始、停止
+- 変更可能なグローバルショートカットで操作
+- 公開モデルを使ったローカル文字起こし
+- 文章整形をオフ、ローカル、外部Endpointから選択
+- ClipboardまたはAuto Insertによる出力
+- モデルの取得元、容量、ライセンス、導入状態をアプリ内で表示
+- 音声、文字起こし結果、整形結果、Clipboard内容を履歴や通常ログへ保存しない
+- Auto Insertの対象を安全に確認できない場合は、入力欄を変更せずClipboardへ出力
 
 ## 動作環境
 
 - Apple Silicon Mac
 - macOS 14以降
-- Xcode 26
-- XcodeGen
-- CMake
-- App Group `group.jp.tsuyuki.KotodamaVoice`を利用できるApple Developer Team
+- 使用するモデルを保存できる空き容量
+- モデル取得時のインターネット接続
 
-## セットアップ
+## 初回設定
 
-```sh
-brew install xcodegen cmake
-./Scripts/build-runtime-xcframeworks.sh
-xcodegen generate
-open KotodamaVoice.xcodeproj
-```
+1. KotodamaVoiceを起動する
+2. ClipboardまたはAuto Insertを出力方式として選ぶ
+3. Models画面でSpeechモデルを取得して選択する
+4. 必要に応じてFormattingを設定する
+5. 最初に録音するとき、macOSのマイク使用確認を許可する
 
-XcodeのSigning & CapabilitiesでTeam `B7VP34NYD2`の有効なアカウントとprovisioning profileが解決されると、App、Speech Worker、Formatter WorkerをApp Group付きで実行できます。
+出力方式を選ぶまでは録音を開始しません。
+追加の権限を使わずに始める場合はClipboardを選択します。
 
-## テスト
+## 音声を入力する
 
-CoreのUnit Testは署名なしで実行できます。
+1. テキストを使いたいアプリを開く
+2. 設定されているグローバルショートカットを一度押して録音を開始する
+3. 発話する
+4. 同じショートカットをもう一度押して録音を停止する
+5. 文字起こしと、設定されている場合は文章整形が終わるまで待つ
+6. Clipboardから貼り付けるか、Auto Insertによって反映された入力欄を確認する
 
-```sh
-xcodebuild \
-  -project KotodamaVoice.xcodeproj \
-  -scheme KotodamaCore \
-  -configuration Debug \
-  -destination 'platform=macOS,arch=arm64' \
-  CODE_SIGNING_ALLOWED=NO \
-  test
-```
+ショートカットは、開始時に一度、停止時にもう一度押します。
+連続して二度押す操作ではありません。
+初期設定は `Control + Option + Space` で、SettingsのGeneralから変更できます。
 
-アプリのUnit Testには`KotodamaVoiceUnitTests` schemeを使用します。
-UI Testと実プロセス間XPC Testには、App Groupを含む署名済みbuildが必要です。
+文字起こし中、整形中、出力中にショートカットを押しても、次の録音は予約されません。
 
-## 構成
+## 出力方式
 
-- `Sources/KotodamaCore`: 状態機械、XPC契約、接続管理、Manifest検証
-- `Sources/KotodamaVoice`: メニューバーUI、設定、macOS API adapter
-- `Sources/SpeechWorker`: whisper.cppを保持するXPC Service
-- `Sources/FormatterWorker`: llama.cppを保持するXPC Service
-- `Resources/Models.json`: revision、size、SHA-256を固定したモデル候補
-- `Config/runtime-lock.json`: 推論Runtimeの固定revisionと生成物hash
-- `openspec/changes/deliver-local-voice-input-v1`: V1の仕様、設計、実装タスク
+### Clipboard
+
+確定したテキストでClipboardの内容を置き換えます。
+Accessibility権限は使用しません。
+出力に成功すると、本文を含まないHUDを表示します。
+
+### Auto Insert
+
+録音開始時に選択されていた入力欄と選択範囲を記録し、出力時に同じ対象が有効であることを確認してからテキストを反映します。
+利用にはmacOSのAccessibility権限が必要です。
+権限の確認は、利用者がAuto Insertを選択したときだけ始まります。
+
+Auto Insertに成功した場合、HUDは表示しません。
+入力先や選択範囲を安全に確認できない場合は、既存の入力を変更せずClipboardへ出力し、その結果をHUDで知らせます。
+アプリや入力欄の実装によってはAuto Insertを利用できない場合があります。
+
+## 文字起こしと文章整形
+
+Speech Engineでは、公開されているSpeechモデルをMacへ取得してローカルで実行する方式と、外部Endpointを使用する方式を選べます。
+ローカル実行では録音音声を外部へ送信しません。
+外部Speechを選ぶと、録音音声を設定したEndpointへ送信します。
+
+Formattingでは次の方式を選べます。
+
+- **オフ**：文字起こし結果を変更せず出力
+- **内蔵（ローカル実行）**：公開されているFormatterモデルをMacへ取得し、Mac上で文章を整形
+- **外部**：文字起こし結果とPromptを設定したEndpointへ送信して整形
+
+画面上の「内蔵」は、クラウド上のモデルを呼び出す設定ではなく、取得した公開モデルをMac上で実行する設定です。
+必要なモデルの取得、検証、導入、選択が完了してから有効になります。
+整形に失敗した場合は別のFormatterへ切り替えず、文字起こし結果をそのまま出力します。
+
+## モデルの取得と管理
+
+Models画面では、各モデルの名称、用途、容量、取得元、ライセンス、導入状態を確認できます。
+モデルは一時ファイルとして取得し、ファイルサイズとSHA-256が一致した場合だけ利用可能になります。
+モデル管理機能から実行コードを取得または実行することはありません。
+
+使用中のモデルを削除する場合は、対応するWorkerからモデルを解放してからファイルを削除します。
+内蔵Formattingで使用しているモデルを削除すると、Formattingはオフになります。
+
+## 権限と通信
+
+| 項目 | 必要になる場面 | 用途 |
+| --- | --- | --- |
+| マイク | 初めて録音するとき | 音声の取得 |
+| Accessibility | Auto Insertを選択したときだけ | 入力欄と選択範囲の確認、テキストの反映 |
+| Input Monitoring | 不要 | グローバルショートカットには使用しない |
+| ネットワーク | モデル取得または外部Engineの利用時 | モデルデータの取得、設定したEndpointとの通信 |
+
+ローカルのSpeechとFormattingを選んでいる間、処理対象の音声、文字起こし結果、Prompt、整形結果を外部へ送信しません。
+モデルを取得するときは、Models画面に表示された取得元と通信します。
+
+loopback以外の外部Endpointを設定すると、アプリは送信するデータと接続先を確認してから利用します。
+外部の平文HTTP Endpointを設定した場合は、通信が暗号化されないことを表示します。
+API KeyはKeychainへ保存し、UserDefaultsや通常ログには記録しません。
+
+## メニューバーから開ける画面
+
+- **Settings**：ショートカット、Speech、Formatting、Outputなどを設定
+- **Models**：モデルを取得、選択、削除
+- **Runtime Monitor**：Worker、モデル、処理時間などの診断情報を表示
+- **終了**：録音と進行中の処理を止め、Workerのモデルを解放してアプリを終了
+
+メニューバーの表示は、待機中、録音中、文字起こし中、整形中、出力中、エラーを区別します。
+
+## 期待した結果にならないとき
+
+- 録音が始まらない場合は、出力方式とSpeechモデルが選択されているか確認する
+- マイクを使用できない場合は、システム設定の「プライバシーとセキュリティ」でKotodamaVoiceのマイクを許可する
+- Auto InsertではなくClipboardへ出力された場合は、録音開始時の入力欄、選択範囲、Accessibility権限を確認する
+- ショートカットが反応しない場合は、SettingsのGeneralで登録内容と競合エラーを確認する
+- モデル取得が中断した場合は、Models画面から再試行する
+- 外部Engineを利用できない場合は、Endpoint、API方式、モデル、API Keyを確認して接続テストを行う
+
+## 開発者向け情報
+
+ソースコードの構成、ビルド、署名、テストについては[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)を参照してください。
+AIエージェントが開発時に守るプロジェクト固有のルールは[AGENTS.md](AGENTS.md)に記載しています。
