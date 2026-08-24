@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import KotodamaCore
 import Security
@@ -6,6 +7,19 @@ import Testing
 
 @Test func applicationModuleLoads() {
     #expect(true)
+}
+
+@Test @MainActor
+func bundledMenuBarIconLoadsAsATemplateImage() throws {
+    let image = try #require(NSImage(named: "MenuBarIcon"))
+
+    #expect(image.isTemplate)
+}
+
+@Test
+func bundledApplicationIconIsConfigured() {
+    #expect(Bundle.main.object(forInfoDictionaryKey: "CFBundleIconName") as? String == "AppIcon")
+    #expect(Bundle.main.url(forResource: "AppIcon", withExtension: "icns") != nil)
 }
 
 @Test func signedHostAllowsMicrophoneInput() throws {

@@ -31,7 +31,11 @@ struct KotodamaVoiceApp: App {
                 .environment(store)
                 .environment(runtime)
         } label: {
-            Label(store.state.title, systemImage: store.state.systemImage)
+            if store.state == .ready {
+                Label(store.state.title, image: "MenuBarIcon")
+            } else {
+                Label(store.state.title, systemImage: store.state.systemImage)
+            }
         }
         .menuBarExtraStyle(.menu)
 

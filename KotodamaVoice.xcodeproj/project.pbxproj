@@ -79,6 +79,7 @@
 		9B9BDC90596EBB5C6754874A /* ExternalSpeechAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC103383789138860E7DF5A /* ExternalSpeechAdapters.swift */; };
 		9EA32DF5C5D509C9266ECA9E /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95952C9E4529C496BDA938B /* AudioRecordingService.swift */; };
 		A01D8CCBBEC574619C778DA1 /* ExternalPipelineAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57ABA303685B4F7D46DC230 /* ExternalPipelineAdapters.swift */; };
+		A11C0A7A1C0A7A1C0A7A1C0A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A11C0B7B1C0B7B1C0B7B1C0B /* Assets.xcassets */; };
 		A1B67994B2BDB1363FC031D2 /* ModelWorkerUnloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11BB1CFF6A074E17DA1435F /* ModelWorkerUnloader.swift */; };
 		A294710DB7F3A6153FB6BE0A /* ExternalEngineSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02912027904EE01F3799E9AD /* ExternalEngineSettings.swift */; };
 		A59E16B231D25AA7BC376A5E /* SpeechRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899F1D4B44468D6B3A03AE6 /* SpeechRuntime.swift */; };
@@ -363,6 +364,7 @@
 		9DC103383789138860E7DF5A /* ExternalSpeechAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSpeechAdapters.swift; sourceTree = "<group>"; };
 		A0F90A0C2DC66D8FD33B8402 /* ClipboardOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardOutput.swift; sourceTree = "<group>"; };
 		A109991F1F9EDAB8AFB2A88C /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = .build/runtimes/artifacts/llama.xcframework; sourceTree = "<group>"; };
+		A11C0B7B1C0B7B1C0B7B1C0B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A5475E047C8F88E145361FEC /* FormatterWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatterWorkerTests.swift; sourceTree = "<group>"; };
 		A5A044366E623A71BFE9CB84 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A656038F127099AAAAF5D31B /* KeychainAPIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAPIKeyStore.swift; sourceTree = "<group>"; };
@@ -530,6 +532,7 @@
 		4AC2A1DAE616482A512F98CF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A11C0B7B1C0B7B1C0B7B1C0B /* Assets.xcassets */,
 				48959A39EC39FE89DBB3FDE4 /* FormattingPrompt-v1.json */,
 				5476720C032768393BE5582A /* Models.json */,
 			);
@@ -1035,6 +1038,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11C0A7A1C0A7A1C0A7A1C0A /* Assets.xcassets in Resources */,
 				578854F9D3FE3F5EB4331D74 /* FormattingPrompt-v1.json in Resources */,
 				FFBE534090CAEEA608442242 /* Models.json in Resources */,
 			);
