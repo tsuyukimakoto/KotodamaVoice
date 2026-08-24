@@ -10,21 +10,29 @@ struct OpenAIResponsesFormatterAdapter: Sendable {
   let endpointURL: URL
   let model: String
   let apiKey: String?
+  let confirmation: ExternalEndpointConfirmation?
   private let session: URLSession
 
   init(
     endpointURL: URL,
     model: String,
     apiKey: String? = nil,
+    confirmation: ExternalEndpointConfirmation? = nil,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
     self.model = model
     self.apiKey = apiKey
+    self.confirmation = confirmation
     self.session = session
   }
 
   func format(text: String, prompt: String) async throws -> String {
+    try ExternalEndpointPolicy.requireAuthorization(
+      for: endpointURL,
+      purpose: .formatter,
+      confirmation: confirmation
+    )
     let body = RequestBody(
       model: model,
       instructions: prompt,
@@ -101,21 +109,29 @@ struct ChatCompletionsFormatterAdapter: Sendable {
   let endpointURL: URL
   let model: String
   let apiKey: String?
+  let confirmation: ExternalEndpointConfirmation?
   private let session: URLSession
 
   init(
     endpointURL: URL,
     model: String,
     apiKey: String? = nil,
+    confirmation: ExternalEndpointConfirmation? = nil,
     session: URLSession = .shared
   ) {
     self.endpointURL = endpointURL
     self.model = model
     self.apiKey = apiKey
+    self.confirmation = confirmation
     self.session = session
   }
 
   func format(text: String, prompt: String) async throws -> String {
+    try ExternalEndpointPolicy.requireAuthorization(
+      for: endpointURL,
+      purpose: .formatter,
+      confirmation: confirmation
+    )
     let body = RequestBody(
       model: model,
       messages: [
