@@ -44,10 +44,60 @@ final class AppRuntime {
             speech: speechWorkerClient
         )
         let formatterSettings = FormatterSettingsStore(defaults: defaults)
+        let formatterWorkerClient = FormatterWorkerClient(
+            operationGate: modelOperationGate
+        )
+        let modelCatalog = ModelCatalog()
+        let workerUnloader = XPCModelWorkerUnloader(
+            speechClient: speechWorkerClient,
+            formatterClient: formatterWorkerClient
+        )
+        let modelManager: ModelManager
+#if DEBUG
+        if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+            let testRootURL = FileManager.default.temporaryDirectory.appending(
+                path: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)",
+                directoryHint: .isDirectory
+            )
+            modelManager = ModelManager(
+                models: modelCatalog.models,
+                rootURL: testRootURL,
+                defaults: defaults,
+                workerUnloader: workerUnloader,
+                operationGate: modelOperationGate
+            )
+        } else {
+            modelManager = ModelManager(
+                models: modelCatalog.models,
+                workerUnloader: workerUnloader,
+                operationGate: modelOperationGate
+            )
+        }
+#else
+        modelManager = ModelManager(
+            models: modelCatalog.models,
+            workerUnloader: workerUnloader,
+            operationGate: modelOperationGate
+        )
+#endif
+        formatterWorkerClient.configure(
+            modelID: { [weak modelManager] in
+                guard let modelManager,
+                      let model = modelManager.selectedModel(for: .formatter),
+                      modelManager.states[model.id] == .installed
+                else {
+                    return nil
+                }
+                return model.id
+            },
+            prompt: { [weak formatterSettings] in
+                formatterSettings?.activePrompt ?? ""
+            }
+        )
         let textFormattingPipeline = TextFormattingPipeline(
             coordinator: coordinator,
             settings: formatterSettings,
-            builtIn: UnavailableTextFormatter(),
+            builtIn: formatterWorkerClient,
             external: UnavailableTextFormatter()
         )
         let hotKeyBackend: HotKeyRegistering
@@ -72,6 +122,8 @@ final class AppRuntime {
         self.localSpeechPipeline = localSpeechPipeline
         self.formatterSettings = formatterSettings
         self.textFormattingPipeline = textFormattingPipeline
+        self.modelCatalog = modelCatalog
+        self.modelManager = modelManager
         recordingStartCoordinator = RecordingStartCoordinator(
             pipeline: coordinator,
             store: pipelineStore,
@@ -84,41 +136,6 @@ final class AppRuntime {
             backend: MainAppLaunchAtLoginBackend()
         )
         workerDiagnostics = WorkerDiagnostics()
-        let modelCatalog = ModelCatalog()
-        self.modelCatalog = modelCatalog
-#if DEBUG
-        if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
-            let testRootURL = FileManager.default.temporaryDirectory.appending(
-                path: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)",
-                directoryHint: .isDirectory
-            )
-            modelManager = ModelManager(
-                models: modelCatalog.models,
-                rootURL: testRootURL,
-                defaults: defaults,
-                workerUnloader: XPCModelWorkerUnloader(
-                    speechClient: speechWorkerClient
-                ),
-                operationGate: modelOperationGate
-            )
-        } else {
-            modelManager = ModelManager(
-                models: modelCatalog.models,
-                workerUnloader: XPCModelWorkerUnloader(
-                    speechClient: speechWorkerClient
-                ),
-                operationGate: modelOperationGate
-            )
-        }
-#else
-        modelManager = ModelManager(
-            models: modelCatalog.models,
-            workerUnloader: XPCModelWorkerUnloader(
-                speechClient: speechWorkerClient
-            ),
-            operationGate: modelOperationGate
-        )
-#endif
 
         audioRecording.onFailure = { [weak self] error in
             self?.handleAudioRecordingFailure(error)

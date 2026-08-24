@@ -25,27 +25,77 @@ enum FormattingEngine: String, CaseIterable, Identifiable, Sendable {
 @MainActor
 final class FormatterSettingsStore {
     private(set) var engine: FormattingEngine
+    private(set) var promptSource: FormattingPromptSource
+    private(set) var customPrompt: String
+    let defaultPrompt: VersionedFormattingPrompt
 
     @ObservationIgnored
     private let defaults: UserDefaults?
 
     private static let engineKey = "formatter.engine"
+    private static let promptSourceKey = "formatter.prompt.source"
+    private static let customPromptKey = "formatter.prompt.custom"
 
-    init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: UserDefaults = .standard,
+        defaultPrompt: VersionedFormattingPrompt = DefaultFormattingPromptResource
+            .loadRequired()
+    ) {
         self.defaults = defaults
+        self.defaultPrompt = defaultPrompt
         engine = defaults.string(forKey: Self.engineKey)
             .flatMap(FormattingEngine.init(rawValue:))
             ?? .off
+        promptSource = defaults.string(forKey: Self.promptSourceKey)
+            .flatMap(FormattingPromptSource.init(rawValue:))
+            ?? .defaultPrompt
+        customPrompt = defaults.string(forKey: Self.customPromptKey) ?? ""
     }
 
     init(engine: FormattingEngine) {
         defaults = nil
+        defaultPrompt = DefaultFormattingPromptResource.loadRequired()
         self.engine = engine
+        promptSource = .defaultPrompt
+        customPrompt = ""
+    }
+
+    var activePrompt: String {
+        switch promptSource {
+        case .defaultPrompt:
+            defaultPrompt.text
+        case .custom:
+            customPrompt
+        }
     }
 
     func setEngine(_ engine: FormattingEngine) {
         self.engine = engine
         defaults?.set(engine.rawValue, forKey: Self.engineKey)
+    }
+
+    func setPromptSource(_ source: FormattingPromptSource) {
+        promptSource = source
+        defaults?.set(source.rawValue, forKey: Self.promptSourceKey)
+    }
+
+    func setCustomPrompt(_ prompt: String) {
+        customPrompt = prompt
+        defaults?.set(prompt, forKey: Self.customPromptKey)
+    }
+
+    func importDefaultIntoCustom(
+        overwriteConfirmed: Bool = false
+    ) -> DefaultPromptImportResult {
+        let hasModifiedCustom = !customPrompt.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty && customPrompt != defaultPrompt.text
+        guard !hasModifiedCustom || overwriteConfirmed else {
+            return .requiresConfirmation
+        }
+        setCustomPrompt(defaultPrompt.text)
+        setPromptSource(.custom)
+        return .imported
     }
 }
 
@@ -103,9 +153,10 @@ final class TextFormattingPipeline {
                 transcription.text,
                 requestID: transcription.requestID
             )
-            formattedText = candidate.trimmingCharacters(
-                in: .whitespacesAndNewlines
-            ).isEmpty ? nil : candidate
+            formattedText = FormattingOutputValidator.validated(
+                candidate,
+                source: transcription.text
+            )
         } catch {
             formattedText = nil
         }
@@ -120,6 +171,54 @@ final class TextFormattingPipeline {
             )
         }
         return FormattingOutput(text: formattedText, usedFallback: false)
+    }
+}
+
+enum FormattingOutputValidator {
+    private static let absoluteMaximumByteCount = 256 * 1_024
+    private static let minimumRelativeLimit = 1_024
+    private static let explanatoryPrefixes = [
+        "整形しました",
+        "整形後の文章",
+        "以下が整形",
+        "以下のとおり整形",
+        "以下のように整形",
+        "結果は次のとおり",
+        "here is the formatted",
+        "here's the formatted",
+        "the formatted text",
+    ]
+    private static let controlMarkers = [
+        "<start_of_turn>",
+        "<end_of_turn>",
+        "<|begin_of_text|>",
+        "<|end_of_text|>",
+        "<|eot_id|>",
+        "```",
+    ]
+
+    static func validated(_ candidate: String, source: String) -> String? {
+        let trimmed = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let relativeLimit = max(
+            minimumRelativeLimit,
+            source.utf8.count * 2 + 256
+        )
+        guard candidate.utf8.count <= min(
+            absoluteMaximumByteCount,
+            relativeLimit
+        ) else {
+            return nil
+        }
+
+        let lowercased = trimmed.lowercased()
+        guard !explanatoryPrefixes.contains(where: lowercased.hasPrefix),
+              !controlMarkers.contains(where: candidate.contains)
+        else {
+            return nil
+        }
+        return candidate
     }
 }
 

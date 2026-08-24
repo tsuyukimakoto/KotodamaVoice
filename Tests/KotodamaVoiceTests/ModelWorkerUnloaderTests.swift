@@ -42,6 +42,24 @@ func modelWorkerUnloaderReportsWorkerFailure() async {
     }
 }
 
+@Test @MainActor
+func modelWorkerUnloaderUsesTheSharedFormatterClient() async throws {
+    let clientWorker = ModelUnloadWorkerSpy()
+    let fallbackWorker = ModelUnloadWorkerSpy()
+    let formatterClient = FormatterWorkerClient(worker: clientWorker)
+    let unloader = XPCModelWorkerUnloader(
+        formatterClient: formatterClient,
+        formatterWorker: fallbackWorker
+    )
+    let formatter = modelEntry(id: "formatter", purpose: .formatter)
+
+    try await unloader.unload(formatter)
+
+    #expect(clientWorker.requests.map(\.modelID) == [formatter.id])
+    #expect(clientWorker.requests.map(\.operation) == [.unloadModel])
+    #expect(fallbackWorker.requests.isEmpty)
+}
+
 @MainActor
 private final class ModelUnloadWorkerSpy: WorkerRequestPerforming {
     var failure: WorkerFailure?

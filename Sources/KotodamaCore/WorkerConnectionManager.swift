@@ -76,10 +76,7 @@ public final class WorkerConnectionManager {
                 let timeoutTask = Task { [weak self] in
                     try? await Task.sleep(for: timeout)
                     guard !Task.isCancelled else { return }
-                    self?.complete(
-                        requestID,
-                        with: .failure(WorkerConnectionError.timedOut)
-                    )
+                    self?.timeOut(requestID)
                 }
                 pending[requestID] = PendingRequest(
                     operation: request.operation,
@@ -150,6 +147,12 @@ public final class WorkerConnectionManager {
         guard pending[requestID] != nil else { return }
         transport?.cancel(requestID: requestID)
         complete(requestID, with: .failure(CancellationError()))
+    }
+
+    private func timeOut(_ requestID: PipelineRequestID) {
+        guard pending[requestID] != nil else { return }
+        transport?.cancel(requestID: requestID)
+        complete(requestID, with: .failure(WorkerConnectionError.timedOut))
     }
 
     private func handleInterruption(generation: UUID) {

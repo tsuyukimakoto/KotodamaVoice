@@ -13,13 +13,16 @@ enum ModelWorkerUnloadError: Error, Equatable {
 @MainActor
 final class XPCModelWorkerUnloader: ModelWorkerUnloading {
     private let speechClient: SpeechWorkerClient
+    private let formatterClient: FormatterWorkerClient?
     private let formatterWorker: WorkerRequestPerforming
 
     init(
         speechClient: SpeechWorkerClient? = nil,
+        formatterClient: FormatterWorkerClient? = nil,
         formatterWorker: WorkerRequestPerforming? = nil
     ) {
         self.speechClient = speechClient ?? SpeechWorkerClient()
+        self.formatterClient = formatterClient
         self.formatterWorker = formatterWorker ?? Self.makeWorker(for: .formatter)
     }
 
@@ -32,6 +35,14 @@ final class XPCModelWorkerUnloader: ModelWorkerUnloading {
                 throw ModelWorkerUnloadError.workerFailure(code)
             }
         case .formatter:
+            if let formatterClient {
+                do {
+                    try await formatterClient.unloadForDeletion(modelID: model.id)
+                } catch let FormatterWorkerClientError.workerFailure(code) {
+                    throw ModelWorkerUnloadError.workerFailure(code)
+                }
+                return
+            }
             let reply = try await formatterWorker.perform(
                 WorkerRequest(
                     requestID: PipelineRequestID(),

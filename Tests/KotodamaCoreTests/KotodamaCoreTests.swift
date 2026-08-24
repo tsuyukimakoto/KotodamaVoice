@@ -454,6 +454,7 @@ func workerConnectionTimesOutAndIgnoresLateReply() async {
     await #expect(throws: WorkerConnectionError.timedOut) {
         try await manager.perform(request, timeout: .milliseconds(10))
     }
+    #expect(transport.cancelledRequestIDs == [request.requestID])
     transport.reply(to: request.requestID)
     #expect(logger.records.map(\.stage) == [.requested, .timedOut])
 }

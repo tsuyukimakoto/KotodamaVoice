@@ -59,6 +59,7 @@ struct SettingsView: View {
 
 private struct FormattingSettingsView: View {
     let settings: FormatterSettingsStore
+    @State private var showsOverwriteConfirmation = false
 
     var body: some View {
         Form {
@@ -82,8 +83,64 @@ private struct FormattingSettingsView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("formatter-engine-detail")
             }
+
+            Section("Prompt") {
+                Picker(
+                    "使用するPrompt",
+                    selection: Binding(
+                        get: { settings.promptSource },
+                        set: { settings.setPromptSource($0) }
+                    )
+                ) {
+                    ForEach(FormattingPromptSource.allCases) { source in
+                        Text(source.displayName).tag(source)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("prompt-source-picker")
+
+                switch settings.promptSource {
+                case .defaultPrompt:
+                    LabeledContent(
+                        "Resource",
+                        value: "\(settings.defaultPrompt.identifier) v\(settings.defaultPrompt.version)"
+                    )
+                    .accessibilityIdentifier("default-prompt-version")
+                    Text(settings.defaultPrompt.text)
+                        .textSelection(.enabled)
+                        .accessibilityIdentifier("default-prompt-text")
+                case .custom:
+                    TextEditor(
+                        text: Binding(
+                            get: { settings.customPrompt },
+                            set: { settings.setCustomPrompt($0) }
+                        )
+                    )
+                    .font(.body)
+                    .frame(minHeight: 110)
+                    .accessibilityIdentifier("custom-prompt-editor")
+                }
+
+                Button("DefaultをCustomへ読み込む") {
+                    if settings.importDefaultIntoCustom() == .requiresConfirmation {
+                        showsOverwriteConfirmation = true
+                    }
+                }
+                .accessibilityIdentifier("default-prompt-import-button")
+            }
         }
         .formStyle(.grouped)
+        .alert(
+            "Custom Promptを上書きしますか？",
+            isPresented: $showsOverwriteConfirmation
+        ) {
+            Button("キャンセル", role: .cancel) {}
+            Button("上書き", role: .destructive) {
+                _ = settings.importDefaultIntoCustom(overwriteConfirmed: true)
+            }
+        } message: {
+            Text("現在のCustom Promptは失われます。")
+        }
     }
 
     private var detail: String {

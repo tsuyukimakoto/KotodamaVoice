@@ -79,6 +79,42 @@ func formatterEmptyOutputReturnsTheOriginal() async throws {
     #expect(fixture.store.state == .outputting(fixture.requestID))
 }
 
+@Test(arguments: FormattingContractViolationCase.allCases)
+@MainActor
+func formatterContractViolationReturnsTheOriginalWithoutTryingAnotherEngine(
+    violation: FormattingContractViolationCase
+) async throws {
+    let fixture = FormattingPipelineFixture(
+        engine: .builtIn,
+        selectedResult: .success(violation.output)
+    )
+
+    let output = try await fixture.pipeline.process(fixture.transcription)
+
+    #expect(output.text == fixture.transcription.text)
+    #expect(output.usedFallback)
+    #expect(fixture.builtIn.callCount == 1)
+    #expect(fixture.external.callCount == 0)
+    #expect(fixture.store.state == .outputting(fixture.requestID))
+}
+
+enum FormattingContractViolationCase: CaseIterable, Sendable {
+    case excessiveLength
+    case explanatoryProse
+    case controlToken
+
+    var output: String {
+        switch self {
+        case .excessiveLength:
+            String(repeating: "長", count: 5_000)
+        case .explanatoryProse:
+            "整形しました。\noriginal transcription"
+        case .controlToken:
+            "<start_of_turn>model\noriginal transcription<end_of_turn>"
+        }
+    }
+}
+
 private enum FormattingTestError: Error {
     case failed
 }

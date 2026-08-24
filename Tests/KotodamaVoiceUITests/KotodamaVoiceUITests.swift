@@ -9,8 +9,9 @@ final class KotodamaVoiceUITests: XCTestCase {
         application.activate()
         application.typeKey(",", modifierFlags: .command)
 
-        let settingsWindow = application.windows["General"]
+        let settingsWindow = application.windows.firstMatch
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["General"].click()
         XCTAssertEqual(
             settingsWindow.staticTexts["activation-policy"].value as? String,
             "accessory"
@@ -76,6 +77,41 @@ final class KotodamaVoiceUITests: XCTestCase {
         XCTAssertTrue(
             application.windows["Runtime Monitor"].waitForExistence(timeout: 3)
         )
+    }
+
+    @MainActor
+    func testDefaultPromptRemainsUnchangedAfterConfirmedCustomOverwrite() {
+        let application = XCUIApplication()
+        application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
+        application.launch()
+        application.activate()
+        application.typeKey(",", modifierFlags: .command)
+
+        let settingsWindow = application.windows.firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.buttons["Formatting"].click()
+        settingsWindow.radioButtons["Default"].click()
+
+        let defaultText = settingsWindow.staticTexts["default-prompt-text"]
+        XCTAssertTrue(defaultText.waitForExistence(timeout: 3))
+        let originalDefault = defaultText.value as? String
+        XCTAssertFalse(originalDefault?.isEmpty ?? true)
+
+        settingsWindow.radioButtons["Custom"].click()
+        let editor = settingsWindow.textViews["custom-prompt-editor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3))
+        editor.click()
+        editor.typeKey("a", modifierFlags: .command)
+        editor.typeText("変更済みCustom Prompt")
+        settingsWindow.buttons["default-prompt-import-button"].click()
+
+        let confirmationSheet = settingsWindow.sheets.firstMatch
+        XCTAssertTrue(confirmationSheet.waitForExistence(timeout: 3))
+        confirmationSheet.buttons["上書き"].click()
+
+        settingsWindow.radioButtons["Default"].click()
+        XCTAssertTrue(defaultText.waitForExistence(timeout: 3))
+        XCTAssertEqual(defaultText.value as? String, originalDefault)
     }
 
     @MainActor
