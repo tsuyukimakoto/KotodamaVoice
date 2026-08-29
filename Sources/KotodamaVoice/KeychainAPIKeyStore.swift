@@ -19,7 +19,7 @@ enum KeychainAPIKeyStoreError: Error, Equatable {
 struct KeychainAPIKeyStore: APIKeyStoring {
   private let service: String
 
-  init(service: String = "jp.tsuyuki.KotodamaVoice.external-engine-api-key") {
+  init(service: String = "com.tsuyukimakoto.KotodamaVoice.external-engine-api-key") {
     self.service = service
   }
 

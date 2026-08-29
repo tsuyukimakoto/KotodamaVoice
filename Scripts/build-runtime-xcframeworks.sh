@@ -119,7 +119,7 @@ MODULEMAP
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key><string>$runtime</string>
-  <key>CFBundleIdentifier</key><string>jp.tsuyuki.KotodamaVoice.$runtime</string>
+  <key>CFBundleIdentifier</key><string>com.tsuyukimakoto.KotodamaVoice.$runtime</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleName</key><string>$runtime</string>
   <key>CFBundlePackageType</key><string>FMWK</string>

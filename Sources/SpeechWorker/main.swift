@@ -9,7 +9,7 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
         component: .speechWorker,
         diagnosticFixtureMapper: {
             try WorkerDiagnosticFixture.map(
-                appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+                appGroupIdentifier: "group.com.tsuyukimakoto.KotodamaVoice"
             )
         }
     )
@@ -29,7 +29,7 @@ final class SpeechWorkerDelegate: NSObject, NSXPCListenerDelegate {
 
 private func resolveSpeechModelURL(modelID: String) throws -> URL {
     guard let containerURL = FileManager.default.containerURL(
-        forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+        forSecurityApplicationGroupIdentifier: "group.com.tsuyukimakoto.KotodamaVoice"
     ) else {
         throw WorkerRuntimeError.processingFailed
     }

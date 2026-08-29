@@ -61,7 +61,7 @@ struct EmbeddedWorkerIntegrationTests {
         let containerURL = try #require(
             fileManager.containerURL(
                 forSecurityApplicationGroupIdentifier:
-                    "group.jp.tsuyuki.KotodamaVoice"
+                    "group.com.tsuyukimakoto.KotodamaVoice"
             )
         )
         let directoryURL = containerURL.appending(
@@ -95,7 +95,7 @@ struct EmbeddedWorkerIntegrationTests {
             path: "EmbeddedWorkerModelDeletion-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
-        let suiteName = "jp.tsuyuki.EmbeddedWorkerModelDeletion.\(UUID().uuidString)"
+        let suiteName = "com.tsuyukimakoto.EmbeddedWorkerModelDeletion.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suiteName))
         defer {
             try? fileManager.removeItem(at: rootURL)

@@ -185,7 +185,7 @@ private final class DownloadIntegrationFixture {
             path: "ModelDownloadHTTPIntegrationTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
-        defaultsSuiteName = "jp.tsuyuki.ModelDownloadHTTPIntegrationTests.\(UUID().uuidString)"
+        defaultsSuiteName = "com.tsuyukimakoto.ModelDownloadHTTPIntegrationTests.\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: defaultsSuiteName) else {
             throw URLError(.cannotCreateFile)
         }

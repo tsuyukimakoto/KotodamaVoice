@@ -64,7 +64,7 @@ final class ModelManager {
         self.workerUnloader = workerUnloader
         self.operationGate = operationGate
         let rootURL = fileManager.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+            forSecurityApplicationGroupIdentifier: "group.com.tsuyukimakoto.KotodamaVoice"
         )?.appending(path: "Models", directoryHint: .isDirectory)
         self.rootURL = rootURL
         configure(models: models, rootURL: rootURL, fileManager: fileManager)

@@ -176,7 +176,7 @@ struct LocalSpeechOfflineIntegrationTests {
         let containerURL = try #require(
             FileManager.default.containerURL(
                 forSecurityApplicationGroupIdentifier:
-                    "group.jp.tsuyuki.KotodamaVoice"
+                    "group.com.tsuyukimakoto.KotodamaVoice"
             )
         )
         let directoryURL = containerURL

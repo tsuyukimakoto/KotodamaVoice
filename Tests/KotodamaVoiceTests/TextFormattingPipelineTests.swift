@@ -5,7 +5,7 @@ import Testing
 
 @Test @MainActor
 func formatterSelectionDefaultsToOffAndPersistsChanges() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
 
@@ -19,7 +19,7 @@ func formatterSelectionDefaultsToOffAndPersistsChanges() throws {
 
 @Test @MainActor
 func builtInFormatterSelectionStaysPendingUntilItsModelIsReady() throws {
-    let suiteName = "jp.tsuyuki.FormatterSelectionTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.FormatterSelectionTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let settings = FormatterSettingsStore(defaults: defaults)

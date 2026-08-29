@@ -161,7 +161,7 @@ private final class ModelManagerFixture {
             path: "ModelManagerSelectionTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
-        suiteName = "jp.tsuyuki.ModelManagerSelectionTests.\(UUID().uuidString)"
+        suiteName = "com.tsuyukimakoto.ModelManagerSelectionTests.\(UUID().uuidString)"
         defaults = try #require(UserDefaults(suiteName: suiteName))
     }
 

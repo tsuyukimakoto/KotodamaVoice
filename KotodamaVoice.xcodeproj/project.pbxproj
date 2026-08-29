@@ -1398,7 +1398,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorkerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.FormatterWorkerTests;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -1414,7 +1414,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.Tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KotodamaVoice.app/Contents/MacOS/KotodamaVoice";
 			};
@@ -1430,7 +1430,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path";
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterEvaluator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.FormatterEvaluator;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -1450,7 +1450,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorkerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.SpeechWorkerTests;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -1470,7 +1470,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechWorkerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.SpeechWorkerTests;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1490,7 +1490,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.worker.formatter;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.worker.formatter;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1507,7 +1507,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path";
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechEvaluator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.SpeechEvaluator;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -1585,7 +1585,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.CoreTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.CoreTests;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1601,7 +1601,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.Tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KotodamaVoice.app/Contents/MacOS/KotodamaVoice";
 			};
@@ -1688,7 +1688,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 			};
@@ -1710,7 +1710,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Core;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.Core;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1728,7 +1728,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.UITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.UITests;
 				SDKROOT = macosx;
 				TEST_TARGET_NAME = KotodamaVoice;
 			};
@@ -1747,7 +1747,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 			};
@@ -1763,7 +1763,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path";
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterEvaluator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.FormatterEvaluator;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1779,7 +1779,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.UITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.UITests;
 				SDKROOT = macosx;
 				TEST_TARGET_NAME = KotodamaVoice;
 			};
@@ -1795,7 +1795,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path";
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.SpeechEvaluator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.SpeechEvaluator;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1815,7 +1815,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.worker.formatter;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.worker.formatter;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1833,7 +1833,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.CoreTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.CoreTests;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -1853,7 +1853,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.FormatterWorkerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.FormatterWorkerTests;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1873,7 +1873,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.worker.speech;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.worker.speech;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1895,7 +1895,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.worker.speech;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.worker.speech;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1918,7 +1918,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = jp.tsuyuki.KotodamaVoice.Core;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsuyukimakoto.KotodamaVoice.Core;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";

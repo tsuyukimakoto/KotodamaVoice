@@ -61,7 +61,7 @@ public struct OSLogDiagnosticLogger: DiagnosticLogging {
 
     public init(component: DiagnosticComponent) {
         logger = Logger(
-            subsystem: "jp.tsuyuki.KotodamaVoice",
+            subsystem: "com.tsuyukimakoto.KotodamaVoice",
             category: component.rawValue
         )
     }

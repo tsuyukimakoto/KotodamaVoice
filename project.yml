@@ -1,6 +1,6 @@
 name: KotodamaVoice
 options:
-  bundleIdPrefix: jp.tsuyuki
+  bundleIdPrefix: com.tsuyukimakoto
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
@@ -32,7 +32,7 @@ targets:
         CFBundlePackageType: FMWK
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.Core
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.Core
         DEFINES_MODULE: YES
         SKIP_INSTALL: YES
     preBuildScripts:
@@ -63,10 +63,10 @@ targets:
       path: Config/SpeechWorker.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.jp.tsuyuki.KotodamaVoice
+          - group.com.tsuyukimakoto.KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.worker.speech
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.worker.speech
         ENABLE_HARDENED_RUNTIME: YES
         REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
@@ -81,7 +81,7 @@ targets:
       - framework: .build/runtimes/artifacts/whisper.xcframework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechEvaluator
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.SpeechEvaluator
         GENERATE_INFOPLIST_FILE: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
   FormatterEvaluator:
@@ -95,7 +95,7 @@ targets:
       - framework: .build/runtimes/artifacts/llama.xcframework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterEvaluator
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.FormatterEvaluator
         GENERATE_INFOPLIST_FILE: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
   FormatterWorker:
@@ -122,10 +122,10 @@ targets:
       path: Config/FormatterWorker.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.jp.tsuyuki.KotodamaVoice
+          - group.com.tsuyukimakoto.KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.worker.formatter
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.worker.formatter
         ENABLE_HARDENED_RUNTIME: YES
         REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
@@ -161,11 +161,11 @@ targets:
       path: Config/KotodamaVoice.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.jp.tsuyuki.KotodamaVoice
+          - group.com.tsuyukimakoto.KotodamaVoice
         com.apple.security.device.audio-input: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice
         ENABLE_HARDENED_RUNTIME: YES
         LD_GENERATE_MAP_FILE: YES
         REGISTER_APP_GROUPS: YES
@@ -178,7 +178,7 @@ targets:
       - target: KotodamaCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.CoreTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.CoreTests
         GENERATE_INFOPLIST_FILE: YES
   KotodamaVoiceTests:
     type: bundle.unit-test
@@ -189,7 +189,7 @@ targets:
       - target: KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.Tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.Tests
         GENERATE_INFOPLIST_FILE: YES
   SpeechWorkerTests:
     type: bundle.unit-test
@@ -202,7 +202,7 @@ targets:
       - framework: .build/runtimes/artifacts/whisper.xcframework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.SpeechWorkerTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.SpeechWorkerTests
         GENERATE_INFOPLIST_FILE: YES
     preBuildScripts:
       - name: Prepare speech test fixtures
@@ -219,7 +219,7 @@ targets:
       - framework: .build/runtimes/artifacts/llama.xcframework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.FormatterWorkerTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.FormatterWorkerTests
         GENERATE_INFOPLIST_FILE: YES
   KotodamaVoiceUITests:
     type: bundle.ui-testing
@@ -230,7 +230,7 @@ targets:
       - target: KotodamaVoice
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: jp.tsuyuki.KotodamaVoice.UITests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.UITests
         GENERATE_INFOPLIST_FILE: YES
 schemes:
   KotodamaVoice:

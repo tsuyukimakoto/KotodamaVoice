@@ -10,9 +10,9 @@ enum WorkerEndpoint: CaseIterable, Hashable {
     var serviceName: String {
         switch self {
         case .speech:
-            "jp.tsuyuki.KotodamaVoice.worker.speech"
+            "com.tsuyukimakoto.KotodamaVoice.worker.speech"
         case .formatter:
-            "jp.tsuyuki.KotodamaVoice.worker.formatter"
+            "com.tsuyukimakoto.KotodamaVoice.worker.formatter"
         }
     }
 }

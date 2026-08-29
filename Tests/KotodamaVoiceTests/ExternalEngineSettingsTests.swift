@@ -8,7 +8,7 @@ struct ExternalEngineSettingsTests {
   @Test
   func keychainAPIKeyRoundTripsUpdatesAndDeletes() throws {
     let store = KeychainAPIKeyStore(
-      service: "jp.tsuyuki.KotodamaVoice.Tests.\(UUID().uuidString)"
+      service: "com.tsuyukimakoto.KotodamaVoice.Tests.\(UUID().uuidString)"
     )
     let reference = APIKeyReference(rawValue: UUID().uuidString)
     defer { try? store.delete(reference) }
@@ -26,7 +26,7 @@ struct ExternalEngineSettingsTests {
 
   @Test @MainActor
   func APIKeyIsExcludedFromDefaultsExportAndDiagnosticEvents() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let apiKeys = APIKeyStoreSpy()
@@ -68,7 +68,7 @@ struct ExternalEngineSettingsTests {
 
   @Test @MainActor
   func removingConfigurationDeletesItsKeychainItem() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let apiKeys = APIKeyStoreSpy()

@@ -110,7 +110,7 @@ protocol ExternalEngineSettingsLogging: Sendable {
 
 struct OSLogExternalEngineSettingsLogger: ExternalEngineSettingsLogging {
   private let logger = Logger(
-    subsystem: "jp.tsuyuki.KotodamaVoice",
+    subsystem: "com.tsuyukimakoto.KotodamaVoice",
     category: "network"
   )
 

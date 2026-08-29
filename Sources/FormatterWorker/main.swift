@@ -9,7 +9,7 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
         component: .formatterWorker,
         diagnosticFixtureMapper: {
             try WorkerDiagnosticFixture.map(
-                appGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+                appGroupIdentifier: "group.com.tsuyukimakoto.KotodamaVoice"
             )
         }
     )
@@ -29,7 +29,7 @@ final class FormatterWorkerDelegate: NSObject, NSXPCListenerDelegate {
 
 private func resolveFormatterModelURL(modelID: String) throws -> URL {
     guard let containerURL = FileManager.default.containerURL(
-        forSecurityApplicationGroupIdentifier: "group.jp.tsuyuki.KotodamaVoice"
+        forSecurityApplicationGroupIdentifier: "group.com.tsuyukimakoto.KotodamaVoice"
     ) else {
         throw WorkerRuntimeError.processingFailed
     }

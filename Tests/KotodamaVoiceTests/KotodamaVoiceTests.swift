@@ -35,7 +35,7 @@ func bundledApplicationIconIsConfigured() {
 
 @Test @MainActor
 func hotKeyPreferenceRoundTripsDescriptor() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let preference = UserDefaultsHotKeyPreference(defaults: defaults)

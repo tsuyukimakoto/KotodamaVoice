@@ -34,7 +34,7 @@ import Testing
 
 @Test @MainActor
 func customFormattingPromptPersistsWithoutChangingDefaultResource() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let defaultPrompt = VersionedFormattingPrompt(
@@ -63,7 +63,7 @@ func customFormattingPromptPersistsWithoutChangingDefaultResource() throws {
 
 @Test @MainActor
 func importingDefaultRequiresConfirmationBeforeReplacingModifiedCustomPrompt() throws {
-    let suiteName = "jp.tsuyuki.KotodamaVoiceTests.\(UUID().uuidString)"
+    let suiteName = "com.tsuyukimakoto.KotodamaVoiceTests.\(UUID().uuidString)"
     let defaults = try #require(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
     let defaultPrompt = VersionedFormattingPrompt(
