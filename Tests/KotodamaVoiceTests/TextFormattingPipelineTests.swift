@@ -211,6 +211,7 @@ private func formatterSelectionModel() -> ModelManifestEntry {
         byteCount: 1_024,
         sha256: String(repeating: "b", count: 64),
         licenseName: "Apache-2.0",
+        licenseFile: "Apache-2.0.txt",
         licenseURL: URL(string: "https://example.com/license")!,
         runtime: .llama
     )

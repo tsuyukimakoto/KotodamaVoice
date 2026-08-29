@@ -73,6 +73,32 @@ temporary_dmg_path="$working_directory/KotodamaVoice.dmg"
 
 "$script_directory/verify-direct-distribution.sh" "$payload_directory/KotodamaVoice.app"
 /bin/ln -s /Applications "$payload_directory/Applications"
+/bin/cp "$script_directory/../LICENSE" "$payload_directory/LICENSE"
+/bin/cp \
+    "$script_directory/../THIRD_PARTY_NOTICES.md" \
+    "$payload_directory/THIRD_PARTY_NOTICES.md"
+/bin/cp \
+    "$script_directory/../Resources/ThirdPartyComponents.json" \
+    "$payload_directory/ThirdPartyComponents.json"
+/bin/mkdir "$payload_directory/Licenses"
+
+component_index=0
+manifest_path="$script_directory/../Resources/ThirdPartyComponents.json"
+while component_id=$(/usr/bin/plutil -extract "components.$component_index.id" raw -o - "$manifest_path" 2>/dev/null); do
+    scopes=$(/usr/bin/plutil -extract "components.$component_index.scopes" json -o - "$manifest_path")
+    if [[ $scopes == *'"diskImage"'* ]]; then
+        license_file=$(/usr/bin/plutil -extract "components.$component_index.licenseFile" raw -o - "$manifest_path")
+        /bin/cp \
+            "$script_directory/../$license_file" \
+            "$payload_directory/Licenses/${license_file:t}"
+    fi
+    (( component_index += 1 ))
+done
+
+"$script_directory/verify-license-compliance.sh" \
+    --repository "$script_directory/.." \
+    --app "$payload_directory/KotodamaVoice.app" \
+    --dmg-root "$payload_directory"
 
 /usr/bin/hdiutil create \
     -volname KotodamaVoice \
@@ -87,6 +113,7 @@ temporary_dmg_path="$working_directory/KotodamaVoice.dmg"
     --identifier "$bundle_identifier.distribution-dmg" \
     "$temporary_dmg_path"
 /usr/bin/codesign --verify --verbose=2 "$temporary_dmg_path"
+"$script_directory/verify-direct-distribution-dmg.sh" "$temporary_dmg_path"
 /bin/mv "$temporary_dmg_path" "$dmg_path"
 
 print "created: $dmg_path"

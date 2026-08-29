@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ModelsView: View {
     @Environment(AppRuntime.self) private var runtime
+    private let licenseCatalog = try? LicenseCatalog()
 
     var body: some View {
         Group {
@@ -22,6 +23,9 @@ struct ModelsView: View {
                             isSelected: runtime.modelManager
                                 .selectedModel(for: model.purpose)?.id == model.id,
                             deletionError: runtime.modelManager.deletionErrors[model.id],
+                            licenseDocument: licenseCatalog?.documents.first {
+                                $0.licenseFile == model.licenseFile
+                            },
                             install: { runtime.modelManager.install(model) },
                             select: { try? runtime.modelManager.select(model) },
                             delete: { runtime.requestModelDeletion(model) }
@@ -58,9 +62,11 @@ private struct ModelRow: View {
     let state: ModelAvailability
     let isSelected: Bool
     let deletionError: String?
+    let licenseDocument: LicenseDocument?
     let install: () -> Void
     let select: () -> Void
     let delete: () -> Void
+    @State private var showsBundledLicense = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -93,12 +99,37 @@ private struct ModelRow: View {
                     .accessibilityIdentifier("model-\(model.id)-size")
             }
             LabeledContent("取得元") {
-                Text(model.sourceURL.host() ?? "-")
-                    .accessibilityIdentifier("model-\(model.id)-source")
+                HStack {
+                    Text(model.sourceURL.host() ?? "-")
+                        .accessibilityIdentifier("model-\(model.id)-source")
+                    Link("開く", destination: model.sourceURL)
+                        .accessibilityIdentifier(
+                            "model-\(model.id)-source-link"
+                        )
+                }
+            }
+            LabeledContent("Revision") {
+                Text(model.revision)
+                    .textSelection(.enabled)
+                    .accessibilityIdentifier("model-\(model.id)-revision")
             }
             LabeledContent("ライセンス") {
-                Text(model.licenseName)
-                    .accessibilityIdentifier("model-\(model.id)-license")
+                HStack {
+                    Text(model.licenseName)
+                        .accessibilityIdentifier("model-\(model.id)-license")
+                    if licenseDocument != nil {
+                        Button("同梱文書を表示") {
+                            showsBundledLicense = true
+                        }
+                        .accessibilityIdentifier(
+                            "model-\(model.id)-bundled-license"
+                        )
+                    }
+                    Link("公式ページ", destination: model.licenseURL)
+                        .accessibilityIdentifier(
+                            "model-\(model.id)-official-license"
+                        )
+                }
             }
             if case let .downloading(progress) = state {
                 ProgressView(value: progress)
@@ -123,6 +154,21 @@ private struct ModelRow: View {
             }
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showsBundledLicense) {
+            if let licenseDocument {
+                NavigationStack {
+                    ScrollView {
+                        Text(licenseDocument.text)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                    }
+                    .navigationTitle(licenseDocument.displayName)
+                    .frame(minWidth: 620, minHeight: 480)
+                }
+            }
+        }
     }
 
     private var purposeName: String {

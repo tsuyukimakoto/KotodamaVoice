@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "whisper.cpp",
+      "displayName": "whisper.cpp",
+      "sourceURL": "https://github.com/ggml-org/whisper.cpp",
+      "version": "371b5a7561823ab2bb32142d2751e35e7534727b",
+      "licenseName": "MIT",
+      "licenseFile": "Licenses/whisper.cpp-LICENSE.txt",
+      "licenseSHA256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "scopes": [
+        "sourceRepository",
+        "application",
+        "diskImage"
+      ],
+      "runtimeID": "whisper"
+    },
+    {
+      "id": "llama.cpp",
+      "displayName": "llama.cpp",
+      "sourceURL": "https://github.com/ggml-org/llama.cpp",
+      "version": "bb4caa7540188872173c44d161602d9271386413",
+      "licenseName": "MIT",
+      "licenseFile": "Licenses/llama.cpp-LICENSE.txt",
+      "licenseSHA256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "scopes": [
+        "sourceRepository",
+        "application",
+        "diskImage"
+      ],
+      "runtimeID": "llama"
+    },
+    {
+      "id": "openspec-skills",
+      "displayName": "OpenSpec skills",
+      "sourceURL": "https://github.com/Fission-AI/OpenSpec",
+      "version": "1.10.0",
+      "licenseName": "MIT",
+      "licenseFile": "Licenses/OpenSpec-LICENSE.txt",
+      "licenseSHA256": "df2a58221f6cc979c0e27309d3b422d6936e13db7664333579e97056a1eeb366",
+      "scopes": [
+        "sourceRepository"
+      ]
+    },
+    {
+      "id": "openai-whisper-models",
+      "displayName": "OpenAI Whisper models",
+      "sourceURL": "https://huggingface.co/ggerganov/whisper.cpp",
+      "version": "5359861c739e955e79d9a303bcbc70fb988958b1",
+      "licenseName": "MIT",
+      "licenseFile": "Licenses/OpenAI-Whisper-LICENSE.txt",
+      "licenseSHA256": "b5d65a59060e68c4ff940e1eddfa6f94b2d68fdf58ed7f4dd57721c997e35e9d",
+      "scopes": [
+        "sourceRepository",
+        "application",
+        "diskImage",
+        "modelCatalog"
+      ],
+      "modelIDs": [
+        "whisper-large-v3-turbo-f16",
+        "whisper-large-v3-turbo-q5-0"
+      ]
+    },
+    {
+      "id": "gemma-4-e4b-it-qat-q4-0",
+      "displayName": "Gemma 4 E4B IT QAT Q4_0 model",
+      "sourceURL": "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf",
+      "version": "4b4a2c1d584be7264f87aac328a1bc739ce81b6c",
+      "licenseName": "Apache-2.0",
+      "licenseFile": "Licenses/Apache-2.0.txt",
+      "licenseSHA256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "scopes": [
+        "sourceRepository",
+        "application",
+        "diskImage",
+        "modelCatalog"
+      ],
+      "modelIDs": [
+        "gemma-4-e4b-it-qat-q4-0"
+      ]
+    }
+  ]
+}

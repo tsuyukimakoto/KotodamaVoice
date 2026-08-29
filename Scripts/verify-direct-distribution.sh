@@ -8,10 +8,15 @@ if (( $# != 1 )); then
 fi
 
 app_path=$1
+script_directory=${0:A:h}
 if [[ ! -d $app_path ]]; then
     print -u2 "app bundle not found: $app_path"
     exit 66
 fi
+
+"$script_directory/verify-license-compliance.sh" \
+    --repository "$script_directory/.." \
+    --app "$app_path"
 
 appledouble_path=$(/usr/bin/find "$app_path" -name '._*' -print -quit)
 if [[ -n $appledouble_path ]]; then

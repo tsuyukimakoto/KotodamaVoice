@@ -214,6 +214,7 @@ private final class DownloadIntegrationFixture {
                 .map { String(format: "%02x", $0) }
                 .joined(),
             licenseName: "MIT",
+            licenseFile: "MIT-LICENSE.txt",
             licenseURL: URL(string: "https://example.com/license")!,
             runtime: .whisper
         )

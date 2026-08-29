@@ -27,6 +27,10 @@ brew install xcodegen cmake
 - `Tools`：SpeechモデルとFormatterモデルの評価用コマンド
 - `Tests`：Core、App、Worker、UIのテスト
 - `Resources/Models.json`：モデルの版、容量、取得元、SHA-256、ライセンス
+- `Resources/ThirdPartyComponents.json`：第三者成果物、固定revision、ライセンス文書、配布対象範囲
+- `Licenses`：第三者ライセンスの追跡対象原文
+- `LICENSE`：KotodamaVoice本体のMIT License
+- `THIRD_PARTY_NOTICES.md`：第三者成果物の用途、取得元、固定revision、ライセンス索引
 - `Resources/FormattingPrompt-v1.json`：内蔵Formatterで使用する版付きPrompt
 - `Config/runtime-lock.json`：推論Runtimeの固定revisionと生成物のhash
 - `Scripts`：Runtime生成、fixture準備、配布物の作成と検証
@@ -127,14 +131,34 @@ xcodebuild \
 取得したモデルはManifestのファイルサイズとSHA-256で検証してからApp Group containerへ移動します。
 
 whisper.cppとllama.cppのrevision、生成条件、成果物hashは`Config/runtime-lock.json`で固定します。
-Runtimeを更新する場合は、固定revisionからXCFrameworkを再生成し、互換性、ライセンス、推論結果、リソース使用量を確認します。
+Runtimeまたはモデルを更新する場合は、`Resources/ThirdPartyComponents.json`のrevision、ライセンス原文SHA-256、適用範囲も更新します。
+固定revisionからXCFrameworkを再生成し、互換性、ライセンス、推論結果、リソース使用量を確認します。
+
+台帳、Runtime lock、Models Manifest、App Bundle、DMGの対応は次のfixtureテストで確認できます。
+
+```sh
+./Tests/DistributionLicenseTests.sh
+```
 
 ## 配布物
 
 直接配布版はDeveloper ID Applicationで署名し、Hardened Runtimeを有効にします。
 App、Framework、dylib、Speech Worker、Formatter Workerを同じ配布物として検証します。
 
-`Scripts/verify-direct-distribution.sh`は、署名、Hardened Runtime、secure timestamp、entitlementsを検査します。
-`Scripts/create-direct-distribution-dmg.sh`は検証済みのアプリから署名付きDMGを作成します。
+`Scripts/verify-license-compliance.sh`は、第三者台帳、Runtime lock、Models Manifest、ライセンス原文SHA-256、App Bundle、mount済みDMGの対応を検査します。
+`Scripts/verify-direct-distribution.sh`は、その検査に加えて署名、Hardened Runtime、secure timestamp、entitlementsを検査します。
+`Scripts/create-direct-distribution-dmg.sh`は、検証済みのアプリ、本体ライセンス、第三者通知、配布対象のライセンス原文から署名付きDMGを作成します。
+`Scripts/verify-direct-distribution-dmg.sh`はDMGを読み取り専用でmountし、ライセンス文書と内包アプリを検査してからdetachします。
+
+```sh
+./Scripts/verify-direct-distribution.sh /path/to/KotodamaVoice.app
+./Scripts/create-direct-distribution-dmg.sh \
+  /path/to/KotodamaVoice.app \
+  /path/to/KotodamaVoice.dmg
+./Scripts/verify-direct-distribution-dmg.sh /path/to/KotodamaVoice.dmg
+```
+
+配布用アプリとDMGにはモデルファイルを同梱しません。
+アプリに同梱するModels Manifestとライセンス文書を検証し、モデル本体は利用者の取得操作後に固定URLから取得します。
 
 Notarizationに使う認証情報や証明書の秘密鍵は、ソースコードや設定ファイルへ書き込みません。

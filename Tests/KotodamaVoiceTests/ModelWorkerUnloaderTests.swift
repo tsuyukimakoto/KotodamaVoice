@@ -89,6 +89,7 @@ private func modelEntry(
         byteCount: 1,
         sha256: String(repeating: "b", count: 64),
         licenseName: "MIT",
+        licenseFile: "MIT-LICENSE.txt",
         licenseURL: URL(string: "https://example.com/license")!,
         runtime: purpose == .speech ? .whisper : .llama
     )

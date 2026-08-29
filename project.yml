@@ -136,6 +136,12 @@ targets:
       - Sources/KotodamaVoice
       - path: Resources
         buildPhase: resources
+      - path: LICENSE
+        buildPhase: resources
+      - path: THIRD_PARTY_NOTICES.md
+        buildPhase: resources
+      - path: Licenses
+        buildPhase: resources
     dependencies:
       - target: KotodamaCore
       - target: SpeechWorker

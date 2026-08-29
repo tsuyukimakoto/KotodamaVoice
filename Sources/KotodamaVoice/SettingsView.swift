@@ -48,9 +48,58 @@ struct SettingsView: View {
                     .accessibilityIdentifier("output-settings")
             }
 
+            LicenseSettingsView()
+                .tabItem {
+                    Label("Licenses", systemImage: "doc.text")
+                        .accessibilityIdentifier("license-settings")
+                }
+
         }
         .padding(20)
         .frame(width: 680, height: 560)
+    }
+}
+
+private struct LicenseSettingsView: View {
+    private let result: Result<LicenseCatalog, Error>
+
+    init(bundle: Bundle = .main) {
+        result = Result { try LicenseCatalog(bundle: bundle) }
+    }
+
+    var body: some View {
+        switch result {
+        case let .success(catalog):
+            List(catalog.documents) { document in
+                DisclosureGroup {
+                    ScrollView {
+                        Text(document.text)
+                            .font(.system(.caption, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                    }
+                    .frame(minHeight: 180, maxHeight: 280)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(document.displayName)
+                            .accessibilityIdentifier(
+                                "license-\(document.id)-name"
+                            )
+                        Text(document.licenseName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .accessibilityIdentifier("license-document-list")
+        case .failure:
+            ContentUnavailableView(
+                "ライセンス文書を読み込めません",
+                systemImage: "exclamationmark.triangle",
+                description: Text("同梱文書を確認してください。")
+            )
+        }
     }
 }
 
@@ -351,6 +400,7 @@ private struct OutputSelectionView: View {
 }
 
 private struct FormattingSettingsView: View {
+    @Environment(\.openURL) private var openURL
     let settings: FormatterSettingsStore
     let externalSettings: ExternalEngineSettingsStore
     let engineSelection: FormatterEngineSelectionCoordinator
@@ -464,6 +514,11 @@ private struct FormattingSettingsView: View {
             Button("キャンセル", role: .cancel) {
                 engineSelection.cancelPendingModelAcquisition()
             }
+            Button("公式ライセンスを開く") {
+                if let model = engineSelection.pendingModel {
+                    openURL(model.licenseURL)
+                }
+            }
             Button("取得して内蔵を使用") {
                 beginModelAcquisition()
             }
@@ -492,6 +547,7 @@ private struct FormattingSettingsView: View {
         \(model.displayName)
         容量: \(ByteCountFormatter.string(fromByteCount: model.byteCount, countStyle: .file))
         取得元: \(model.sourceURL.host() ?? "-")
+        Revision: \(model.revision)
         ライセンス: \(model.licenseName)
         """
     }
@@ -846,6 +902,7 @@ private struct GeneralSettingsView: View {
                         set: { runtime.debugLogSettings.setEnabled($0) }
                     )
                 )
+                .toggleStyle(.switch)
                 .accessibilityIdentifier("debug-logging-toggle")
                 Text("問題の発生箇所やエラー種別を記録します。入力内容、文字起こし結果、クリップボード内容、API Keyは記録しません。")
                     .font(.caption)

@@ -26,6 +26,7 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
     public let byteCount: Int64
     public let sha256: String
     public let licenseName: String
+    public let licenseFile: String
     public let licenseURL: URL
     public let runtime: ModelRuntime
     public let isDefault: Bool
@@ -41,6 +42,7 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
         byteCount: Int64,
         sha256: String,
         licenseName: String,
+        licenseFile: String,
         licenseURL: URL,
         runtime: ModelRuntime,
         isDefault: Bool = false
@@ -55,6 +57,7 @@ public struct ModelManifestEntry: Codable, Equatable, Identifiable, Sendable {
         self.byteCount = byteCount
         self.sha256 = sha256
         self.licenseName = licenseName
+        self.licenseFile = licenseFile
         self.licenseURL = licenseURL
         self.runtime = runtime
         self.isDefault = isDefault
@@ -159,7 +162,13 @@ public enum ModelManifestLoader {
         guard model.sha256.wholeMatch(of: shaPattern) != nil else {
             throw ModelManifestError.invalidSHA256(model.id)
         }
+        let normalizedLicenseFile = (model.licenseFile as NSString)
+            .lastPathComponent
         guard !model.licenseName.isEmpty,
+              normalizedLicenseFile == model.licenseFile,
+              !model.licenseFile.isEmpty,
+              !model.licenseFile.hasPrefix("."),
+              (model.licenseFile as NSString).pathExtension == "txt",
               isHTTPSURL(model.licenseURL)
         else {
             throw ModelManifestError.invalidLicense(model.id)

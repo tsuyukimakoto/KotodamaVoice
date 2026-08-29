@@ -132,6 +132,7 @@ private func modelEntry(byteCount: Int64) -> ModelManifestEntry {
         byteCount: byteCount,
         sha256: String(repeating: "a", count: 64),
         licenseName: "MIT",
+        licenseFile: "MIT-LICENSE.txt",
         licenseURL: URL(string: "https://example.invalid/license")!,
         runtime: .whisper
     )

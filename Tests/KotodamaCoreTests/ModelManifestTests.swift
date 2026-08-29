@@ -36,6 +36,15 @@ import Testing
     }
 }
 
+@Test func modelManifestRejectsMissingBundledLicenseDocument() {
+    var entry = validModelEntry()
+    entry["licenseFile"] = ""
+
+    #expect(throws: ModelManifestError.invalidLicense("speech-fixture")) {
+        try ModelManifestLoader.decode(manifestData(entries: [entry]))
+    }
+}
+
 @Test func modelManifestRejectsDuplicateID() {
     let entry = validModelEntry()
 
@@ -74,6 +83,7 @@ private func validModelEntry() -> [String: Any] {
         "byteCount": 1_024,
         "sha256": String(repeating: "a", count: 64),
         "licenseName": "MIT",
+        "licenseFile": "OpenAI-Whisper-LICENSE.txt",
         "licenseURL": "https://example.invalid/licenses/mit",
         "runtime": "whisper",
         "isDefault": true,

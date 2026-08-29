@@ -23,6 +23,7 @@ final class KotodamaVoiceUITests: XCTestCase {
             "Speech",
             "Formatting",
             "Output",
+            "Licenses",
         ] {
             XCTAssertTrue(settingsWindow.buttons[title].exists)
         }
@@ -36,6 +37,19 @@ final class KotodamaVoiceUITests: XCTestCase {
         settingsWindow.buttons["Formatting"].click()
         settingsWindow.radioButtons["外部"].click()
         XCTAssertTrue(settingsWindow.textFields["external-endpoint"].exists)
+
+        settingsWindow.buttons["Licenses"].click()
+        XCTAssertTrue(
+            settingsWindow.staticTexts["license-KotodamaVoice-name"].exists
+        )
+        XCTAssertTrue(
+            settingsWindow.staticTexts["license-whisper.cpp-name"].exists
+        )
+        XCTAssertTrue(
+            settingsWindow.staticTexts[
+                "license-gemma-4-e4b-it-qat-q4-0-name"
+            ].exists
+        )
 
         settingsWindow.buttons["General"].click()
 
@@ -51,6 +65,22 @@ final class KotodamaVoiceUITests: XCTestCase {
             source: "huggingface.co",
             license: "MIT",
             status: "未導入"
+        )
+        XCTAssertEqual(
+            modelsWindow.staticTexts[
+                "model-gemma-4-e4b-it-qat-q4-0-revision"
+            ].value as? String,
+            "4b4a2c1d584be7264f87aac328a1bc739ce81b6c"
+        )
+        XCTAssertTrue(
+            modelsWindow.buttons[
+                "model-gemma-4-e4b-it-qat-q4-0-bundled-license"
+            ].exists
+        )
+        XCTAssertTrue(
+            modelsWindow.links[
+                "model-gemma-4-e4b-it-qat-q4-0-official-license"
+            ].exists
         )
         XCTAssertFalse(
             modelsWindow.staticTexts[
@@ -98,7 +128,11 @@ final class KotodamaVoiceUITests: XCTestCase {
             path: "KotodamaVoiceUITestLogs-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
-        defer { try? FileManager.default.removeItem(at: logsURL) }
+        defer {
+            if FileManager.default.fileExists(atPath: logsURL.path) {
+                try? FileManager.default.removeItem(at: logsURL)
+            }
+        }
 
         let application = XCUIApplication()
         application.launchEnvironment["KOTODAMA_UI_TESTING"] = "1"
@@ -114,10 +148,19 @@ final class KotodamaVoiceUITests: XCTestCase {
 
         let toggle = settingsWindow.switches["debug-logging-toggle"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 3))
-        XCTAssertEqual(toggle.value as? String, "0")
+        settingsWindow.scrollViews.firstMatch.swipeUp()
+        XCTAssertFalse(switchIsOn(toggle))
         toggle.click()
-        XCTAssertEqual(toggle.value as? String, "1")
-        XCTAssertTrue(settingsWindow.buttons["debug-log-folder-button"].exists)
+        let enabled = NSPredicate { object, _ in
+            guard let element = object as? XCUIElement else { return false }
+            return self.switchIsOn(element)
+        }
+        expectation(for: enabled, evaluatedWith: toggle)
+        waitForExpectations(timeout: 3)
+        XCTAssertTrue(
+            settingsWindow.buttons["debug-log-folder-button"]
+                .waitForExistence(timeout: 3)
+        )
 
         let files = try FileManager.default.contentsOfDirectory(
             at: logsURL,
@@ -194,6 +237,14 @@ final class KotodamaVoiceUITests: XCTestCase {
             )
         ).firstMatch
         XCTAssertTrue(modelDetails.exists)
+        let revisionDetails = confirmation.staticTexts.matching(
+            NSPredicate(
+                format: "value CONTAINS %@",
+                "4b4a2c1d584be7264f87aac328a1bc739ce81b6c"
+            )
+        ).firstMatch
+        XCTAssertTrue(revisionDetails.exists)
+        XCTAssertTrue(confirmation.buttons["公式ライセンスを開く"].exists)
         XCTAssertEqual(
             application.staticTexts["formatter-engine-value"].value as? String,
             "Off"
@@ -313,6 +364,14 @@ final class KotodamaVoiceUITests: XCTestCase {
             selectionWindow.buttons["choose-clipboard-output"].click()
             XCTAssertTrue(selectionWindow.waitForNonExistence(timeout: 3))
         }
+    }
+
+    @MainActor
+    private func switchIsOn(_ element: XCUIElement) -> Bool {
+        if let number = element.value as? NSNumber {
+            return number.boolValue
+        }
+        return element.value as? String == "1"
     }
 
     @MainActor
