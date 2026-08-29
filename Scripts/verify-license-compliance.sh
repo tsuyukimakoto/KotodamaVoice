@@ -134,7 +134,9 @@ while component_id=$(manifest_value "components.$component_index.id" "$manifest_
             "$app_resources/${license_file:t}" \
             "app license for $component_id"
     fi
-    if [[ -n $dmg_root && $scopes == *'"diskImage"'* ]]; then
+    # The complete notice is included in the DMG, so all of its referenced
+    # license documents must be available beside it.
+    if [[ -n $dmg_root ]]; then
         require_matching_file \
             "$tracked_license" \
             "$dmg_root/Licenses/${license_file:t}" \

@@ -24,5 +24,5 @@
 
 - [x] 4.1 関連するUnit Test、UI Test、配布fixtureテスト、全Test suiteを実行し、ライセンス対応による失敗がないことを確認する
 - [x] 4.2 `openspec validate add-license-compliance --strict`を実行し、proposal、spec、design、tasksの整合性検証が成功することを確認する
-- [ ] 4.3 Release archiveから新しいDeveloper ID配布物を作り、App、Framework、XPC Service、DMGの署名、Hardened Runtime、secure timestamp、ライセンス文書を検査する
-- [ ] 4.4 公開候補DMGを公証してticketをstapleし、`stapler validate`、`spctl --assess`、DMG内ライセンス文書の目視確認がすべて成功した成果物だけを公開対象にする
+- [x] 4.3 Release archiveから新しいDeveloper ID配布物を作り、App、Framework、XPC Service、DMGの署名、Hardened Runtime、secure timestamp、ライセンス文書を検査する
+- [x] 4.4 公開候補DMGを公証してticketをstapleし、`stapler validate`、`spctl --assess`、DMG内ライセンス文書の目視確認がすべて成功した成果物だけを公開対象にする

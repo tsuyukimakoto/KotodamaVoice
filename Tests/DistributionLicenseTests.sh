@@ -89,6 +89,10 @@ expect_failure "missing app license"
 expect_failure "missing DMG license"
 /bin/cp "$fixture_repository/Licenses/OpenAI-Whisper-LICENSE.txt" "$dmg_root/Licenses/OpenAI-Whisper-LICENSE.txt"
 
+/bin/rm "$dmg_root/Licenses/OpenSpec-LICENSE.txt"
+expect_failure "missing license referenced by DMG notices"
+/bin/cp "$fixture_repository/Licenses/OpenSpec-LICENSE.txt" "$dmg_root/Licenses/OpenSpec-LICENSE.txt"
+
 print "tampered" >> "$app_resources/whisper.cpp-LICENSE.txt"
 expect_failure "license hash mismatch"
 /bin/cp "$fixture_repository/Licenses/whisper.cpp-LICENSE.txt" "$app_resources/whisper.cpp-LICENSE.txt"

@@ -85,13 +85,10 @@ temporary_dmg_path="$working_directory/KotodamaVoice.dmg"
 component_index=0
 manifest_path="$script_directory/../Resources/ThirdPartyComponents.json"
 while component_id=$(/usr/bin/plutil -extract "components.$component_index.id" raw -o - "$manifest_path" 2>/dev/null); do
-    scopes=$(/usr/bin/plutil -extract "components.$component_index.scopes" json -o - "$manifest_path")
-    if [[ $scopes == *'"diskImage"'* ]]; then
-        license_file=$(/usr/bin/plutil -extract "components.$component_index.licenseFile" raw -o - "$manifest_path")
-        /bin/cp \
-            "$script_directory/../$license_file" \
-            "$payload_directory/Licenses/${license_file:t}"
-    fi
+    license_file=$(/usr/bin/plutil -extract "components.$component_index.licenseFile" raw -o - "$manifest_path")
+    /bin/cp \
+        "$script_directory/../$license_file" \
+        "$payload_directory/Licenses/${license_file:t}"
     (( component_index += 1 ))
 done
 
