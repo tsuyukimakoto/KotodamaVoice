@@ -18,6 +18,8 @@ settings:
     ONLY_ACTIVE_ARCH: NO
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "2"
     DEVELOPMENT_TEAM: B7VP34NYD2
     CODE_SIGN_STYLE: Automatic
 targets:
@@ -30,6 +32,8 @@ targets:
       path: Config/KotodamaCore-Info.plist
       properties:
         CFBundlePackageType: FMWK
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.Core
@@ -56,6 +60,8 @@ targets:
       properties:
         CFBundleDisplayName: KotodamaVoice Speech Worker
         CFBundlePackageType: XPC!
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         XPCService:
           ServiceType: Application
           RunLoopType: dispatch_main
@@ -115,6 +121,8 @@ targets:
       properties:
         CFBundleDisplayName: KotodamaVoice Formatter Worker
         CFBundlePackageType: XPC!
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         XPCService:
           ServiceType: Application
           RunLoopType: dispatch_main
@@ -154,6 +162,8 @@ targets:
         CFBundleDisplayName: KotodamaVoice
         CFBundleName: KotodamaVoice
         CFBundlePackageType: APPL
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSMinimumSystemVersion: "14.0"
         LSUIElement: true
         NSMicrophoneUsageDescription: 音声を文字に変換するためにマイクを使用します。
