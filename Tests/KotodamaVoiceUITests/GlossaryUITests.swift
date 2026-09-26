@@ -21,8 +21,8 @@ final class GlossaryUITests: XCTestCase {
         app.activate()
         app.typeKey(",", modifierFlags: .command)
         let window = app.windows.firstMatch
-        XCTAssertTrue(window.buttons["用語集"].waitForExistence(timeout: 5))
-        window.buttons["用語集"].click()
+        XCTAssertTrue(window.buttons["Glossary"].waitForExistence(timeout: 5))
+        window.buttons["Glossary"].click()
         XCTAssertTrue(window.buttons["glossary-add"].waitForExistence(timeout: 3))
         window.buttons["glossary-add"].click()
         let sheet = window.sheets.firstMatch
@@ -41,7 +41,7 @@ final class GlossaryUITests: XCTestCase {
         app.activate()
         app.typeKey(",", modifierFlags: .command)
         let restored = app.windows.firstMatch
-        restored.buttons["用語集"].click()
+        restored.buttons["Glossary"].click()
         XCTAssertTrue(restored.staticTexts["Codex"].waitForExistence(timeout: 3))
         XCTAssertEqual((restored.switches["glossary-speech"].value as? NSNumber)?.boolValue, true)
         XCTAssertTrue(restored.buttons["glossary-open-logs"].exists)
@@ -60,7 +60,7 @@ final class GlossaryUITests: XCTestCase {
         XCTAssertTrue(restored.staticTexts["KotodamaVoice"].waitForNonExistence(timeout: 3))
         restored.buttons["Speech"].click()
         restored.radioButtons["外部"].click()
-        restored.buttons["用語集"].click()
+        restored.buttons["Glossary"].click()
         XCTAssertTrue(restored.staticTexts["glossary-speech-unsupported"].exists)
         restored.buttons["Formatting"].click()
         restored.radioButtons["外部"].click()
@@ -73,7 +73,7 @@ final class GlossaryUITests: XCTestCase {
         restored.scrollViews.firstMatch.scroll(byDeltaX: 0, deltaY: -200)
         restored.buttons["external-save"].click()
         restored.sheets.firstMatch.buttons["許可して保存"].click()
-        restored.buttons["用語集"].click()
+        restored.buttons["Glossary"].click()
         XCTAssertTrue(restored.staticTexts["glossary-consent-missing"].waitForExistence(timeout: 3))
         restored.buttons["glossary-consent"].click()
         restored.sheets.firstMatch.buttons["許可"].click()
@@ -107,7 +107,7 @@ final class GlossaryErrorUITests: XCTestCase {
         app.activate()
         app.typeKey(",", modifierFlags: .command)
         let window = app.windows.firstMatch
-        window.buttons["用語集"].click()
+        window.buttons["Glossary"].click()
         XCTAssertTrue(window.staticTexts["glossary-error"].waitForExistence(timeout: 3))
         XCTAssertFalse(window.buttons["glossary-add"].isEnabled)
         window.switches["glossary-diagnostics"].click()

@@ -44,7 +44,7 @@ struct SettingsView: View {
 
             GlossarySettingsView(runtime: runtime)
                 .tabItem {
-                    Label("用語集", systemImage: "text.book.closed").accessibilityIdentifier(
+                    Label("Glossary", systemImage: "text.book.closed").accessibilityIdentifier(
                         "glossary-settings")
                 }
 
