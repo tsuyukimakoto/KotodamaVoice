@@ -124,3 +124,7 @@ schemaVersion 1、matchingVersion 1とし、1段階につき1行をserial writer
 AppとWorkerを同じbuildで配布し、契約の版と拒否動作を検証する。
 READMEに利用方法・ログ項目と保存場所、PROJECT_STRUCTUREに契約・集計・テストを反映する。
 機能を停止するときは両利用設定と記録をOffにする。用語集ファイルと既存ログは勝手に削除しない。
+
+### 設定タブの表記
+
+用語集タブの表示名は`Glossary`とし、General・Speech・Formattingなど既存のタブ名と統一する。画面内の説明と操作ラベルは既存画面と同様に日本語を使用する。

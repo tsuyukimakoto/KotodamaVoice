@@ -38,3 +38,7 @@
 - [x] 6.1 読み付き用語のSpeech要求とdecoderヒントに読み・補助の括弧を含めず、登録表記と採用IDを保持する失敗テストを確認してから修正する。Formatterには読み・説明が残ることを確認する。
 - [x] 6.2 Vroma Studio Trackを含む固定音声をFormatter Offで実Workerに渡し、読み・補助の括弧が出力に混入しないことを確認する。既存4設定比較とUnit・統合・UIテスト、OpenSpec strict検証を通す。
 - [x] 6.3 READMEとPROJECT_STRUCTUREのヒント内容・Worker契約の説明を実装に合わせる。
+
+## 7. 設定タブの表記統一
+
+- [ ] 7.1 既存UIテストをGlossaryタブ名で検証するよう変更し、旧表示で失敗することを確認してからタブ表示とREADMEを修正する。用語集UIテストとOpenSpec strict検証を通す。
