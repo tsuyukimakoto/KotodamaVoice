@@ -117,3 +117,20 @@ func glossaryDiagnosticsRotatesAndSessionRecordsEachStageOnlyOnce() throws {
     denied.setEnabled(true)
     #expect(denied.errorMessage != nil)
 }
+
+@Test
+func speechHintsExcludeReadingsAndPreserveCanonicalPunctuation() throws {
+    let entries = [
+        GlossaryEntry(term: "Vroma Studio Track", reading: "ブロマ スタジオ トラック", note: "音声作品の制作アプリ"),
+        GlossaryEntry(term: "Tool (Pro)", reading: "つーるぷろ"),
+    ]
+    let hints = entries.map(SpeechGlossaryHint.init)
+    let selected = SpeechHintSelection.select(hints, budget: 100, tokenCount: { $0.count })
+    #expect(selected.prompt == "Vroma Studio Track、Tool (Pro)")
+    #expect(selected.entryIDs == entries.map(\.id))
+    let wire = String(decoding: try JSONEncoder().encode(hints), as: UTF8.self)
+    #expect(!wire.contains("reading") && !wire.contains("ブロマ"))
+    let formatterPrompt = try GlossaryPrompt.compose(base: "BASE", entries: entries)
+    #expect(formatterPrompt.contains("ブロマ スタジオ トラック"))
+    #expect(formatterPrompt.contains("音声作品の制作アプリ"))
+}

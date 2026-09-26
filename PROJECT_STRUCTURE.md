@@ -174,8 +174,8 @@ Notarizationに使う認証情報や証明書の秘密鍵は、ソースコー�
 `GlossarySession`は録音開始時の用語集と利用設定を保持し、SpeechとFormatterで同じ版を参照します。
 診断記録をオフにすると現在の記録世代を無効にし、再度オンにしても古い要求を書き込みません。
 
-Worker契約はversion 2です。
-Speech要求の `options.glossary` には表記と読みを持つJSONを渡し、この要求への応答は本文と実際に採用した用語IDを持つ `SpeechGlossaryResult` です。
+Worker契約はversion 3です。
+Speech要求の `options.glossary` にはIDと正しい表記だけを持つJSONを渡し、この要求への応答は本文と実際に採用した用語IDを持つ `SpeechGlossaryResult` です。
 ヒントを渡さない要求の応答本文はUTF-8のままです。
 版不一致は既存のprotocol mismatchとして拒否します。
 
@@ -186,9 +186,10 @@ Speech要求の `options.glossary` には表記と読みを持つJSONを渡し�
 Formatterの検証済み出力だけを成功として集計し、Off・fallback・cancel・未実行を区別します。
 
 関連するUnit・HTTP統合テストは `KotodamaVoiceUnitTests`、UIとWorkerを含む全テストは `KotodamaVoice` schemeで実行します。
-実モデル比較は、`term.caf`、`homophone.caf`、`plain.caf` の16 kHz・mono音声fixtureがあるディレクトリを指定して実行します。
-fixtureの発話内容は順に「ことだまぼいすで音声を入力します。数値は123です。」「橋を渡ってから、箸でご飯を食べます。」「明日の会議は午後3時です。」です。
+実モデル比較は、`term.caf`、`homophone.caf`、`plain.caf`、`vroma.caf` の16 kHz・mono音声fixtureがあるディレクトリを指定して実行します。
+fixtureの発話内容は順に「ことだまぼいすで音声を入力します。数値は123です。」「橋を渡ってから、箸でご飯を食べます。」「明日の会議は午後3時です。」「ブロマスタジオトラックもちゃんと認識できるか、もう一回確認したい。」です。
 Whisperの固定モデルは `.build/speech-evaluation/models/`、Gemmaの固定モデルは `.build/test-fixtures/` に用意します。
+`vroma.caf`はSpeechだけで処理し、正しい表記を認識して読みや補助の括弧が混入しないことを検証します。
 テストはManifestのSHA-256を検証して実Workerで処理し、4通りの利用設定の回数・処理時間・WorkerのRSSを `results.json` に出力します。
 
 ```sh

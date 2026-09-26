@@ -296,7 +296,7 @@ private final class WorkerRuntimeSpy: WorkerRuntimeManaging {
 }
 
 @Test func protocolVersionSupportsGlossaryContract() {
-    #expect(KotodamaCore.protocolVersion == 2)
+    #expect(KotodamaCore.protocolVersion == 3)
 }
 
 @Test func rejectsInvalidTransition() {

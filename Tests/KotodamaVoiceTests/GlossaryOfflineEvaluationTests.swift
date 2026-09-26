@@ -145,6 +145,45 @@ struct GlossaryOfflineEvaluationTests {
         if let formatterCopy { try FileManager.default.removeItem(at: formatterCopy) }
     }
 
+    @Test func speechOnlyDoesNotAppendGlossaryReading() async throws {
+        guard let rootPath = ProcessInfo.processInfo.environment["KOTODAMA_GLOSSARY_EVALUATION"],
+            !rootPath.isEmpty, !rootPath.hasPrefix("$(")
+        else { return }
+        let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let model = try #require(
+            ModelCatalog().models.first { $0.purpose == .speech && $0.isDefault })
+        let ownedCopy = try install(
+            repository.appending(path: ".build/speech-evaluation/models/\(model.fileName)"),
+            model: model)
+        let speech = SpeechWorkerClient()
+        let entry = GlossaryEntry(term: "Vroma Studio Track", reading: "ブロマ スタジオ トラック")
+        let root = URL(fileURLWithPath: rootPath)
+        let buffer = try audio(root.appending(path: "vroma.caf"))
+        let temporary = TemporaryAudioStore()
+        do {
+            let id = PipelineRequestID()
+            let lease = try temporary.createLease(requestID: id, buffer: buffer)
+            defer { lease.release() }
+            let result = try await speech.transcribe(
+                modelID: model.id, audioInput: lease.audioInput, requestID: id,
+                hints: [SpeechGlossaryHint(entry: entry)])
+            #expect(result.submittedEntryIDs == [entry.id])
+            #expect(result.text.contains(entry.term), "Synthetic fixture: \(result.text)")
+            #expect(
+                !result.text.contains("（") && !result.text.contains("）"),
+                "Synthetic fixture: \(result.text)")
+            #expect(
+                !result.text.contains("ブロマ") && !result.text.contains("トラック"),
+                "Synthetic fixture: \(result.text)")
+            try await speech.unload()
+        } catch {
+            try? await speech.unload()
+            throw error
+        }
+        if let ownedCopy { try FileManager.default.removeItem(at: ownedCopy) }
+    }
+
     private func install(_ source: URL, model: ModelManifestEntry) throws -> URL? {
         let storage = FoundationModelStorage()
         #expect(try storage.fileSize(at: source) == model.byteCount)

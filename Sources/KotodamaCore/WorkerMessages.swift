@@ -736,7 +736,7 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                     hints.count <= 200,
                     Set(hints.map(\.id)).count == hints.count,
                     hints.allSatisfy({
-                        (try? GlossaryEntry(id: $0.id, term: $0.term, reading: $0.reading)
+                        (try? GlossaryEntry(id: $0.id, term: $0.term)
                             .validated()) != nil
                     })
                 else { throw WorkerRuntimeError.invalidInput }

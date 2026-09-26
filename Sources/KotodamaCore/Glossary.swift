@@ -115,11 +115,9 @@ public enum GlossaryPrompt {
 public struct SpeechGlossaryHint: Codable, Equatable, Sendable {
     public let id: UUID
     public let term: String
-    public let reading: String
     public init(entry: GlossaryEntry) {
         id = entry.id
         term = entry.term
-        reading = entry.reading
     }
 }
 
@@ -141,7 +139,7 @@ public struct SpeechHintSelection: Equatable, Sendable {
         var prompt = ""
         var ids: [UUID] = []
         for hint in hints {
-            let item = hint.reading.isEmpty ? hint.term : "\(hint.term)（\(hint.reading)）"
+            let item = hint.term
             let candidate = prompt.isEmpty ? item : prompt + "、" + item
             if try tokenCount(candidate) <= budget {
                 prompt = candidate
