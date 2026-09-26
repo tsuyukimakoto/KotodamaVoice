@@ -28,14 +28,16 @@ final class SpeechWorkerClient {
         operationGate: ModelOperationGate = ModelOperationGate()
     ) {
         self.operationGate = operationGate
-        self.worker = worker ?? WorkerConnectionManager(
-            makeTransport: {
-                NSXPCWorkerTransport(
-                    serviceName: WorkerEndpoint.speech.serviceName
-                )
-            },
-            logger: OSLogDiagnosticLogger(component: .app)
-        )
+        self.worker =
+            worker
+            ?? WorkerConnectionManager(
+                makeTransport: {
+                    NSXPCWorkerTransport(
+                        serviceName: WorkerEndpoint.speech.serviceName
+                    )
+                },
+                logger: OSLogDiagnosticLogger(component: .app)
+            )
     }
 
     func transcribe(
@@ -43,13 +45,19 @@ final class SpeechWorkerClient {
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
     ) async throws -> String {
+        try await transcribe(
+            modelID: modelID, audioInput: audioInput, requestID: requestID, hints: []
+        ).text
+    }
+
+    func transcribe(
+        modelID: String, audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+        hints: [SpeechGlossaryHint]
+    ) async throws -> SpeechGlossaryResult {
         do {
             return try await operationGate.withOperation(for: modelID) {
                 try await self.performTranscription(
-                    modelID: modelID,
-                    audioInput: audioInput,
-                    requestID: requestID
-                )
+                    modelID: modelID, audioInput: audioInput, requestID: requestID, hints: hints)
             }
         } catch let error as WorkerConnectionError {
             loadedModelID = nil
@@ -58,10 +66,9 @@ final class SpeechWorkerClient {
     }
 
     private func performTranscription(
-        modelID: String,
-        audioInput: WorkerAudioInput,
-        requestID: PipelineRequestID
-    ) async throws -> String {
+        modelID: String, audioInput: WorkerAudioInput,
+        requestID: PipelineRequestID, hints: [SpeechGlossaryHint]
+    ) async throws -> SpeechGlossaryResult {
         if loadedModelID != modelID {
             let loadReply = try await worker.perform(
                 WorkerRequest(
@@ -79,6 +86,11 @@ final class SpeechWorkerClient {
             WorkerRequest(
                 requestID: requestID,
                 operation: .transcribe,
+                options: hints.isEmpty
+                    ? [:]
+                    : [
+                        "glossary": String(decoding: try JSONEncoder().encode(hints), as: UTF8.self)
+                    ],
                 audioInput: audioInput
             ),
             timeout: .seconds(300)
@@ -87,10 +99,18 @@ final class SpeechWorkerClient {
         guard let payload = reply.payload else {
             throw SpeechWorkerClientError.missingPayload
         }
+        if !hints.isEmpty {
+            guard let result = try? JSONDecoder().decode(SpeechGlossaryResult.self, from: payload),
+                Set(result.submittedEntryIDs).isSubset(of: Set(hints.map(\.id))),
+                Set(result.submittedEntryIDs).count == result.submittedEntryIDs.count
+            else { throw SpeechWorkerClientError.invalidText }
+            return result
+        }
         guard let text = String(data: payload, encoding: .utf8) else {
+
             throw SpeechWorkerClientError.invalidText
         }
-        return text
+        return SpeechGlossaryResult(text: text)
     }
 
     func unload() async throws {

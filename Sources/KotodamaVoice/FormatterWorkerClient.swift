@@ -27,14 +27,16 @@ final class FormatterWorkerClient: TextFormatting {
         modelID: @escaping @MainActor () -> String? = { nil },
         prompt: @escaping @MainActor () -> String = { "" }
     ) {
-        self.worker = worker ?? WorkerConnectionManager(
-            makeTransport: {
-                NSXPCWorkerTransport(
-                    serviceName: WorkerEndpoint.formatter.serviceName
-                )
-            },
-            logger: OSLogDiagnosticLogger(component: .app)
-        )
+        self.worker =
+            worker
+            ?? WorkerConnectionManager(
+                makeTransport: {
+                    NSXPCWorkerTransport(
+                        serviceName: WorkerEndpoint.formatter.serviceName
+                    )
+                },
+                logger: OSLogDiagnosticLogger(component: .app)
+            )
         self.operationGate = operationGate
         self.loadTimeout = loadTimeout
         self.formattingTimeout = formattingTimeout
@@ -54,10 +56,17 @@ final class FormatterWorkerClient: TextFormatting {
         _ text: String,
         requestID: PipelineRequestID
     ) async throws -> String {
+        try await format(text, requestID: requestID, glossary: [])
+    }
+
+    func format(_ text: String, requestID: PipelineRequestID, glossary: [GlossaryEntry])
+        async throws -> String
+    {
         guard let modelID = modelIDProvider() else {
+
             throw FormatterWorkerClientError.modelUnavailable
         }
-        let prompt = promptProvider()
+        let prompt = try GlossaryPrompt.compose(base: promptProvider(), entries: glossary)
         guard !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw FormatterWorkerClientError.emptyPrompt
         }

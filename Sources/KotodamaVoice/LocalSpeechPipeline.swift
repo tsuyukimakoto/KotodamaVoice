@@ -12,11 +12,30 @@ extension AudioRecordingService: AudioRecordingManaging {}
 
 @MainActor
 protocol SpeechTranscribing: AnyObject {
+    var glossaryEngine: String { get }
+    func transcribe(
+        modelID: String, audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+        hints: [SpeechGlossaryHint]
+    ) async throws -> SpeechGlossaryResult
+
     func transcribe(
         modelID: String,
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
     ) async throws -> String
+}
+
+extension SpeechTranscribing {
+    var glossaryEngine: String { "builtIn" }
+    func transcribe(
+        modelID: String, audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+        hints: [SpeechGlossaryHint]
+    ) async throws -> SpeechGlossaryResult {
+        guard hints.isEmpty else { throw WorkerRuntimeError.invalidInput }
+        return SpeechGlossaryResult(
+            text: try await transcribe(
+                modelID: modelID, audioInput: audioInput, requestID: requestID))
+    }
 }
 
 extension SpeechWorkerClient: SpeechTranscribing {}
@@ -33,23 +52,27 @@ final class LocalSpeechPipeline {
     private let recorder: AudioRecordingManaging
     private let temporaryAudioStore: TemporaryAudioStore
     private let speech: SpeechTranscribing
+    private let glossary: GlossarySession?
 
     init(
         store: PipelineStore,
         coordinator: PipelineCoordinator,
         recorder: AudioRecordingManaging,
         temporaryAudioStore: TemporaryAudioStore,
-        speech: SpeechTranscribing
+        speech: SpeechTranscribing,
+        glossary: GlossarySession? = nil
     ) {
         self.store = store
         self.coordinator = coordinator
         self.recorder = recorder
         self.temporaryAudioStore = temporaryAudioStore
         self.speech = speech
+        self.glossary = glossary
     }
 
     func startRecording() throws {
         try recorder.start()
+        glossary?.begin()
     }
 
     func stopAndTranscribe(modelID: String) async throws -> LocalTranscription {
@@ -62,22 +85,39 @@ final class LocalSpeechPipeline {
         }
 
         let requestID = try coordinator.stopRecording()
+        let snapshot = glossary?.snapshot
+        let engine = speech.glossaryEngine
+        let entries = snapshot?.document.entries ?? []
+        let effective: GlossaryEffective =
+            snapshot?.speech != true
+            ? .disabled
+            : engine != "builtIn" ? .unsupported : entries.isEmpty ? .empty : .applied
+        let hints = effective == .applied ? entries.map(SpeechGlossaryHint.init) : []
+
         do {
             let lease = try temporaryAudioStore.createLease(
                 requestID: requestID,
                 buffer: recording
             )
             defer { lease.release() }
-            let text = try await speech.transcribe(
+            let result = try await speech.transcribe(
                 modelID: modelID,
                 audioInput: lease.audioInput,
-                requestID: requestID
+                requestID: requestID,
+                hints: hints
             )
-            return LocalTranscription(requestID: requestID, text: text)
+            glossary?.record(
+                requestID: requestID, stage: .speech, status: .success, text: result.text,
+                effective: effective, engine: engine, modelID: modelID.isEmpty ? nil : modelID,
+                submitted: result.submittedEntryIDs)
+            return LocalTranscription(requestID: requestID, text: result.text)
+
         } catch is CancellationError {
+            recordFailure(requestID, error: CancellationError(), engine: engine)
             completeCancellation(requestID: requestID)
             throw CancellationError()
         } catch {
+            recordFailure(requestID, error: error, engine: engine)
             _ = try? coordinator.fail(requestID: requestID)
             throw error
         }
@@ -89,6 +129,7 @@ final class LocalSpeechPipeline {
 
     func cancelRecording() {
         recorder.cancel()
+        glossary?.finish()
         guard store.state == .recording else { return }
         do {
             _ = try coordinator.cancel()
@@ -96,6 +137,24 @@ final class LocalSpeechPipeline {
         } catch {
             _ = try? coordinator.fail(requestID: nil)
         }
+    }
+
+    private func recordFailure(_ id: PipelineRequestID, error: Error, engine: String) {
+        let cancelled =
+            error is CancellationError
+            || (error as? SpeechWorkerClientError) == .workerFailure(.cancelled)
+        let timedOut =
+            (error as? WorkerConnectionError) == .timedOut
+            || (error as? SpeechWorkerClientError) == .workerFailure(.timedOut)
+            || (error as? URLError)?.code == .timedOut
+
+        glossary?.record(
+            requestID: id, stage: .speech, status: cancelled ? .cancelled : .failed,
+            text: nil, effective: .unknown, engine: engine,
+            reason: cancelled ? .cancelled : timedOut ? .timedOut : .processingFailed)
+        glossary?.record(
+            requestID: id, stage: .formatting, status: .notRun, text: nil, effective: .notRun)
+        glossary?.finish()
     }
 
     private func completeCancellation(requestID: PipelineRequestID) {

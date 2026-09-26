@@ -9,7 +9,8 @@ import Testing
 func configuredExternalFormatterUsesSavedConfigurationAndAPIKey() async throws {
   let server = try FormatterAdapterFixtureServer(
     responseBody: Data(
-      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"設定経由の整形結果"}]}]}"#.utf8
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"設定経由の整形結果"}]}]}"#
+        .utf8
     )
   )
   let suiteName = "ConfiguredExternalFormatterTests.\(UUID().uuidString)"
@@ -53,7 +54,8 @@ func configuredExternalFormatterUsesSavedConfigurationAndAPIKey() async throws {
 func configuredExternalFormatterTimeoutReturnsOriginalText() async throws {
   let server = try FormatterAdapterFixtureServer(
     responseBody: Data(
-      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"遅すぎる結果"}]}]}"#.utf8
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"遅すぎる結果"}]}]}"#
+        .utf8
     ),
     responseDelayMilliseconds: 500
   )
@@ -218,7 +220,8 @@ func externalFormatterFailureReturnsOriginalWithoutTryingAnotherEndpoint()
   )
   let alternateServer = try FormatterAdapterFixtureServer(
     responseBody: Data(
-      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"unexpected fallback"}]}]}"#.utf8
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"unexpected fallback"}]}]}"#
+        .utf8
     )
   )
   let requestID = PipelineRequestID()
@@ -417,4 +420,40 @@ private final class FormatterAPIKeyStoreSpy: APIKeyStoring,
   func delete(_ reference: APIKeyReference) throws {
     values[reference] = nil
   }
+}
+
+@Test(arguments: [false, true]) @MainActor
+func glossaryExternalFormatterOnlySendsApprovedReference(approved: Bool) async throws {
+  let server = try FormatterAdapterFixtureServer(
+    responseBody: Data(
+      #"{"status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Codex"}]}]}"#
+        .utf8))
+  let suite = "com.tsuyukimakoto.GlossaryHTTP.\(UUID())"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+  let external = ExternalEngineSettingsStore(defaults: defaults, apiKeys: FormatterAPIKeyStoreSpy())
+  try external.save(
+    ExternalEngineConfiguration(
+      id: UUID(), kind: .responses, endpointURL: server.url(path: "/v1/responses"),
+      model: "fixture", timeout: 2))
+  let root = URL(fileURLWithPath: "/private/tmp").appending(path: UUID().uuidString)
+  defer { try? FileManager.default.removeItem(at: root) }
+  let glossary = GlossarySettingsStore(directory: root, defaults: defaults)
+  try glossary.save(GlossaryEntry(term: "Codex", reading: "READING", note: "DESCRIPTION"))
+  glossary.setFormatting(true)
+  let session = GlossarySession(
+    settings: glossary, diagnostics: GlossaryDiagnostics(directory: root.appending(path: "logs")))
+  session.begin()
+  let id = PipelineRequestID()
+  let pipeline = TextFormattingPipeline(
+    coordinator: PipelineCoordinator(store: PipelineStore(initialState: .transcribing(id))),
+    settings: FormatterSettingsStore(engine: .external), builtIn: UnavailableTextFormatter(),
+    external: ConfiguredExternalTextFormatter(settings: external, prompt: { "BASE" }),
+    glossary: session, permitsExternalGlossary: { approved })
+  _ = try await pipeline.process(LocalTranscription(requestID: id, text: "SOURCE"))
+  let body = try #require(server.receivedRequest).body
+  let text = String(decoding: body, as: UTF8.self)
+  #expect(text.contains("READING") == approved)
+  #expect(text.contains("DESCRIPTION") == approved)
+  #expect(text.contains("BASE") && text.contains("SOURCE"))
 }

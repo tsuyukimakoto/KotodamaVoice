@@ -215,7 +215,7 @@ private final class DownloadIntegrationFixture {
                 .joined(),
             licenseName: "MIT",
             licenseFile: "MIT-LICENSE.txt",
-            licenseURL: URL(string: "https://example.com/license")!,
+            licenseURL: URL(string: "https://www.tsuyukimakoto.com/license")!,
             runtime: .whisper
         )
     }

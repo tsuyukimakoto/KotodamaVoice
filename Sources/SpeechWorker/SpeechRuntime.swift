@@ -11,14 +11,28 @@ protocol WhisperBackend: AnyObject {
         language: String,
         isCancelled: @escaping @Sendable () -> Bool
     ) throws -> String
+    func transcribe(
+        model: AnyObject, samples: [Float], language: String, hints: [SpeechGlossaryHint],
+        isCancelled: @escaping @Sendable () -> Bool
+    ) throws -> SpeechGlossaryResult
     func unloadModel(_ model: AnyObject)
 }
 
 extension WhisperBackend {
     var usesMetal: Bool { false }
+    func transcribe(
+        model: AnyObject, samples: [Float], language: String, hints: [SpeechGlossaryHint],
+        isCancelled: @escaping @Sendable () -> Bool
+    ) throws -> SpeechGlossaryResult {
+        guard hints.isEmpty else { throw WorkerRuntimeError.invalidInput }
+        return SpeechGlossaryResult(
+            text: try transcribe(
+                model: model, samples: samples, language: language, isCancelled: isCancelled))
+    }
+
 }
 
-final class SpeechRuntime: SpeechTranscribingRuntime,
+final class SpeechRuntime: GlossarySpeechRuntime,
     WorkerRuntimeMetricsProviding, @unchecked Sendable
 {
     private let condition = NSCondition()
@@ -63,9 +77,18 @@ final class SpeechRuntime: SpeechTranscribingRuntime,
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
     ) throws -> String {
-        guard audioInput.sampleRate == 16_000,
-              audioInput.channelCount == 1,
-              audioInput.sampleCount > 0
+        try transcribe(audioInput: audioInput, requestID: requestID, hints: []).text
+    }
+
+    func transcribe(
+        audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+        hints: [SpeechGlossaryHint]
+    ) throws -> SpeechGlossaryResult {
+        guard
+            audioInput.sampleRate
+                == 16_000,
+            audioInput.channelCount == 1,
+            audioInput.sampleCount > 0
         else {
             throw WorkerRuntimeError.invalidInput
         }
@@ -104,6 +127,7 @@ final class SpeechRuntime: SpeechTranscribingRuntime,
             model: model,
             samples: samples,
             language: language,
+            hints: hints,
             isCancelled: { [weak self] in
                 self?.isCancelled(requestID) ?? true
             }
@@ -179,8 +203,18 @@ final class CWhisperBackend: WhisperBackend {
         language: String,
         isCancelled: @escaping @Sendable () -> Bool
     ) throws -> String {
+        try transcribe(
+            model: model, samples: samples, language: language, hints: [], isCancelled: isCancelled
+        ).text
+    }
+
+    func transcribe(
+        model: AnyObject, samples: [Float], language: String, hints: [SpeechGlossaryHint],
+        isCancelled: @escaping @Sendable () -> Bool
+    ) throws -> SpeechGlossaryResult {
         guard let handle = model as? WhisperContextHandle,
-              let context = handle.context
+
+            let context = handle.context
         else {
             throw SpeechRuntimeBackendError.invalidModelHandle
         }
@@ -201,19 +235,33 @@ final class CWhisperBackend: WhisperBackend {
                 .takeUnretainedValue()
                 .isCancelled()
         }
-        params.abort_callback_user_data = Unmanaged
+        params.abort_callback_user_data =
+            Unmanaged
             .passUnretained(cancellation)
             .toOpaque()
 
-        let result = language.withCString { languagePointer in
-            params.language = languagePointer
-            return samples.withUnsafeBufferPointer { samplesPointer in
-                whisper_full(
-                    context,
-                    params,
-                    samplesPointer.baseAddress,
-                    Int32(samplesPointer.count)
-                )
+        let selection = try SpeechHintSelection.select(
+            hints, budget: Int(whisper_n_text_ctx(context) / 2)
+        ) { text in
+            var tokens = [whisper_token](repeating: 0, count: 1024)
+            let count = text.withCString { pointer in
+                whisper_tokenize(context, pointer, &tokens, Int32(tokens.count))
+            }
+            return Int(count < 0 ? -count : count)
+        }
+        let result = selection.prompt.withCString { promptPointer in
+            params.initial_prompt = selection.prompt.isEmpty ? nil : promptPointer
+            return language.withCString { languagePointer in
+
+                params.language = languagePointer
+                return samples.withUnsafeBufferPointer { samplesPointer in
+                    whisper_full(
+                        context,
+                        params,
+                        samplesPointer.baseAddress,
+                        Int32(samplesPointer.count)
+                    )
+                }
             }
         }
         guard result == 0 else {
@@ -225,15 +273,19 @@ final class CWhisperBackend: WhisperBackend {
 
         var text = ""
         for segment in 0..<whisper_full_n_segments(context) {
-            guard let segmentText = whisper_full_get_segment_text(
-                context,
-                segment
-            ) else {
+            guard
+                let segmentText = whisper_full_get_segment_text(
+                    context,
+                    segment
+                )
+            else {
                 continue
             }
             text += String(cString: segmentText)
         }
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return SpeechGlossaryResult(
+            text: text.trimmingCharacters(in: .whitespacesAndNewlines),
+            submittedEntryIDs: selection.entryIDs)
     }
 
     func unloadModel(_ model: AnyObject) {

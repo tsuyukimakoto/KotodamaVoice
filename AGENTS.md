@@ -25,6 +25,8 @@
 
 ## データと権限
 
+- 試験用のドメイン名が必要な場合は `www.tsuyukimakoto.com` を使用する。`example.com` など別のドメインを使わない。HTTP通信の統合テストにはloopbackのfixture serverを使用する。
+
 - 音声、文字起こし本文、Promptへ連結した本文、整形本文、Clipboard内容を履歴、UserDefaults、通常ログへ保存しない
 - API KeyはKeychainにだけ保存する
 - ローカルのSpeech処理で録音音声を外部へ送信しない

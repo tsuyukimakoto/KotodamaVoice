@@ -25,8 +25,8 @@ func loopbackEndpointsDoNotRequireExternalTransmissionConfirmation(
 }
 
 @Test(arguments: [
-  "https://example.com/v1/responses",
-  "https://localhost.example.com/v1/responses",
+  "https://www.tsuyukimakoto.com/v1/responses",
+  "https://localhost@www.tsuyukimakoto.com/v1/responses",
   "https://192.168.1.10/v1/responses",
   "https://128.0.0.1/v1/responses",
   "https://[::2]/v1/responses",
@@ -55,7 +55,7 @@ func externalEndpointsRequireTransmissionConfirmation(
 @Test
 func externalPlainHTTPRequiresASeparateUnencryptedTransportConfirmation() throws {
   let endpoint = try #require(
-    URL(string: "http://api.example.com/v1/audio/transcriptions")
+    URL(string: "http://www.tsuyukimakoto.com/v1/audio/transcriptions")
   )
   let assessment = try ExternalEndpointPolicy.assess(
     endpoint,
@@ -84,13 +84,13 @@ func externalPlainHTTPRequiresASeparateUnencryptedTransportConfirmation() throws
 
 @Test
 func confirmationIsBoundToTheExactEndpoint() throws {
-  let endpoint = try #require(URL(string: "https://api.example.com/v1/responses"))
+  let endpoint = try #require(URL(string: "https://www.tsuyukimakoto.com/v1/responses"))
   let assessment = try ExternalEndpointPolicy.assess(
     endpoint,
     purpose: .formatter
   )
   let otherEndpointConfirmation = ExternalEndpointConfirmation(
-    endpoint: try #require(URL(string: "https://other.example.com/v1/responses")),
+    endpoint: try #require(URL(string: "https://www.tsuyukimakoto.com/other/v1/responses")),
     accepted: [.externalTransmission]
   )
 
@@ -98,7 +98,7 @@ func confirmationIsBoundToTheExactEndpoint() throws {
 }
 
 @Test(arguments: [
-  "ftp://example.com/inference",
+  "ftp://www.tsuyukimakoto.com/inference",
   "file:///tmp/inference",
 ])
 func unsupportedOrHostlessEndpointsAreRejected(urlString: String) throws {
@@ -112,7 +112,7 @@ func unsupportedOrHostlessEndpointsAreRejected(urlString: String) throws {
 @Test
 func externalSpeechRequestIsNotSentBeforeConfirmation() async throws {
   let endpoint = try #require(
-    URL(string: "https://speech.example.com/v1/audio/transcriptions")
+    URL(string: "https://www.tsuyukimakoto.com/v1/audio/transcriptions")
   )
   let session = ExternalEndpointRecordingURLProtocol.session()
   ExternalEndpointRecordingURLProtocol.reset()
@@ -135,7 +135,7 @@ func externalSpeechRequestIsNotSentBeforeConfirmation() async throws {
 @Test
 func externalFormatterRequestIsSentOnlyAfterExactConfirmation() async throws {
   let endpoint = try #require(
-    URL(string: "https://formatter.example.com/v1/responses")
+    URL(string: "https://www.tsuyukimakoto.com/v1/responses")
   )
   let session = ExternalEndpointRecordingURLProtocol.session()
   ExternalEndpointRecordingURLProtocol.reset()

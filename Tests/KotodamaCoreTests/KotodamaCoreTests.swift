@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import KotodamaCore
 
 @Test func workerMessagesRoundTripWithSecureCoding() throws {
@@ -294,8 +295,8 @@ private final class WorkerRuntimeSpy: WorkerRuntimeManaging {
     }
 }
 
-@Test func protocolVersionStartsAtOne() {
-    #expect(KotodamaCore.protocolVersion == 1)
+@Test func protocolVersionSupportsGlossaryContract() {
+    #expect(KotodamaCore.protocolVersion == 2)
 }
 
 @Test func rejectsInvalidTransition() {
@@ -573,12 +574,14 @@ func workerConnectionTimesOutAndIgnoresLateReply() async {
         )
     ) { _ in }
 
-    #expect(logger.records.map(\.requestID) == [
-        successID, successID, failureID, failureID,
-    ])
-    #expect(logger.records.map(\.stage) == [
-        .accepted, .completed, .accepted, .failed,
-    ])
+    #expect(
+        logger.records.map(\.requestID) == [
+            successID, successID, failureID, failureID,
+        ])
+    #expect(
+        logger.records.map(\.stage) == [
+            .accepted, .completed, .accepted, .failed,
+        ])
     #expect(logger.records.last?.failureCode == .protocolMismatch)
 }
 
@@ -633,7 +636,8 @@ func workerConnectionTimesOutAndIgnoresLateReply() async {
         WorkerRequest(requestID: PipelineRequestID(), operation: .state)
     ) { stateReply = $0 }
     let monitorPayload = try #require(stateReply?.payload)
-    let observableOutput = logger.records.map(\.osLogMessage).joined()
+    let observableOutput =
+        logger.records.map(\.osLogMessage).joined()
         + String(decoding: monitorPayload, as: UTF8.self)
 
     for canary in canaries {
@@ -749,9 +753,10 @@ func connectionFailureDiagnosticsExcludeRequestContent() async {
 
     let messages = logger.records.map(\.osLogMessage).joined()
     #expect(!messages.contains(canary))
-    #expect(Set(logger.records.map(\.stage)).isSuperset(of: [
-        .timedOut, .interrupted, .invalidated, .failed, .cancelled,
-    ]))
+    #expect(
+        Set(logger.records.map(\.stage)).isSuperset(of: [
+            .timedOut, .interrupted, .invalidated, .failed, .cancelled,
+        ]))
 }
 
 @Test @MainActor
@@ -774,12 +779,14 @@ func requestTraceCorrelatesAppWorkersStagesAndElapsedTime() async throws {
     )
 
     let normalTrace = logger.records.filter { $0.requestID == normalID }
-    #expect(normalTrace.map(\.component) == [
-        .app, .speechWorker, .speechWorker, .app,
-    ])
-    #expect(normalTrace.map(\.stage) == [
-        .requested, .accepted, .completed, .completed,
-    ])
+    #expect(
+        normalTrace.map(\.component) == [
+            .app, .speechWorker, .speechWorker, .app,
+        ])
+    #expect(
+        normalTrace.map(\.stage) == [
+            .requested, .accepted, .completed, .completed,
+        ])
     #expect(normalTrace[2].elapsedMilliseconds ?? -1 >= 0)
     #expect(normalTrace[3].elapsedMilliseconds ?? -1 >= 0)
 
@@ -812,9 +819,10 @@ func requestTraceCorrelatesAppWorkersStagesAndElapsedTime() async throws {
 
         let crashTrace = logger.records.filter { $0.requestID == crashID }
         #expect(crashTrace.map(\.component) == [.app, component, .app])
-        #expect(crashTrace.map(\.stage) == [
-            .requested, .accepted, .interrupted,
-        ])
+        #expect(
+            crashTrace.map(\.stage) == [
+                .requested, .accepted, .interrupted,
+            ])
         #expect(crashTrace[2].elapsedMilliseconds ?? -1 >= 0)
     }
 }
@@ -931,9 +939,7 @@ private final class WorkerTransportSpy: WorkerTransport {
     var invalidationHandler: (@MainActor @Sendable () -> Void)?
     private(set) var activationCount = 0
     private(set) var cancelledRequestIDs: [PipelineRequestID] = []
-    private var replies: [
-        PipelineRequestID: @MainActor @Sendable (WorkerReply) -> Void
-    ] = [:]
+    private var replies: [PipelineRequestID: @MainActor @Sendable (WorkerReply) -> Void] = [:]
 
     func activate() {
         activationCount += 1

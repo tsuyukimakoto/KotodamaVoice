@@ -51,7 +51,8 @@ final class FormatterEngineSelectionCoordinator {
         self.isInstalledAndSelected = isInstalledAndSelected
 
         if settings.engine == .builtIn,
-           !formatterModels.contains(where: isInstalledAndSelected) {
+            !formatterModels.contains(where: isInstalledAndSelected)
+        {
             settings.setEngine(.off)
         }
     }
@@ -126,15 +127,18 @@ final class FormatterSettingsStore {
 
     init(
         defaults: UserDefaults = .standard,
-        defaultPrompt: VersionedFormattingPrompt = DefaultFormattingPromptResource
+        defaultPrompt: VersionedFormattingPrompt =
+            DefaultFormattingPromptResource
             .loadRequired()
     ) {
         self.defaults = defaults
         self.defaultPrompt = defaultPrompt
-        engine = defaults.string(forKey: Self.engineKey)
+        engine =
+            defaults.string(forKey: Self.engineKey)
             .flatMap(FormattingEngine.init(rawValue:))
             ?? .off
-        promptSource = defaults.string(forKey: Self.promptSourceKey)
+        promptSource =
+            defaults.string(forKey: Self.promptSourceKey)
             .flatMap(FormattingPromptSource.init(rawValue:))
             ?? .defaultPrompt
         customPrompt = defaults.string(forKey: Self.customPromptKey) ?? ""
@@ -175,9 +179,10 @@ final class FormatterSettingsStore {
     func importDefaultIntoCustom(
         overwriteConfirmed: Bool = false
     ) -> DefaultPromptImportResult {
-        let hasModifiedCustom = !customPrompt.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        ).isEmpty && customPrompt != defaultPrompt.text
+        let hasModifiedCustom =
+            !customPrompt.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            ).isEmpty && customPrompt != defaultPrompt.text
         guard !hasModifiedCustom || overwriteConfirmed else {
             return .requiresConfirmation
         }
@@ -189,10 +194,22 @@ final class FormatterSettingsStore {
 
 @MainActor
 protocol TextFormatting: AnyObject {
+    func format(_ text: String, requestID: PipelineRequestID, glossary: [GlossaryEntry])
+        async throws -> String
+
     func format(
         _ text: String,
         requestID: PipelineRequestID
     ) async throws -> String
+}
+
+extension TextFormatting {
+    func format(_ text: String, requestID: PipelineRequestID, glossary: [GlossaryEntry])
+        async throws -> String
+    {
+        guard glossary.isEmpty else { throw WorkerRuntimeError.invalidInput }
+        return try await format(text, requestID: requestID)
+    }
 }
 
 struct FormattingOutput: Equatable {
@@ -206,28 +223,54 @@ final class TextFormattingPipeline {
     private let settings: FormatterSettingsStore
     private let builtIn: TextFormatting
     private let external: TextFormatting
+    private let glossary: GlossarySession?
+    private let permitsExternalGlossary: () -> Bool
+    private let modelIdentifier: (FormattingEngine) -> String?
 
     init(
         coordinator: PipelineCoordinator,
         settings: FormatterSettingsStore,
         builtIn: TextFormatting,
-        external: TextFormatting
+        external: TextFormatting,
+        glossary: GlossarySession? = nil,
+        permitsExternalGlossary: @escaping () -> Bool = { true },
+        modelIdentifier: @escaping (FormattingEngine) -> String? = { _ in nil }
     ) {
         self.coordinator = coordinator
         self.settings = settings
         self.builtIn = builtIn
         self.external = external
+        self.glossary = glossary
+        self.permitsExternalGlossary = permitsExternalGlossary
+        self.modelIdentifier = modelIdentifier
     }
 
     func process(
         _ transcription: LocalTranscription
     ) async throws -> FormattingOutput {
+        defer { glossary?.finish() }
         let engine = settings.engine
+        let modelID = modelIdentifier(engine)
+        let snapshot = glossary?.snapshot
+        let entries = snapshot?.document.entries ?? []
+        let effective: GlossaryEffective =
+            engine == .off
+            ? .formatterOff
+            : snapshot?.formatting != true
+                ? .disabled
+                : entries.isEmpty
+                    ? .empty
+                    : engine == .external && !permitsExternalGlossary() ? .consentMissing : .applied
+        let submitted = effective == .applied ? entries : []
+
         _ = try coordinator.completeTranscription(
             requestID: transcription.requestID,
             requiresFormatting: engine != .off
         )
         guard engine != .off else {
+            glossary?.record(
+                requestID: transcription.requestID, stage: .formatting, status: .skipped, text: nil,
+                effective: effective, engine: engine.rawValue)
             return FormattingOutput(
                 text: transcription.text,
                 usedFallback: false
@@ -236,18 +279,46 @@ final class TextFormattingPipeline {
 
         let formatter = engine == .builtIn ? builtIn : external
         let formattedText: String?
+        var reason: GlossaryFailureReason?
+        var cancelled = false
+        var usageUnknown = false
         do {
             let candidate = try await formatter.format(
                 transcription.text,
-                requestID: transcription.requestID
+                requestID: transcription.requestID,
+                glossary: submitted
             )
             formattedText = FormattingOutputValidator.validated(
                 candidate,
                 source: transcription.text
             )
+            if formattedText == nil { reason = .invalidOutput }
         } catch {
             formattedText = nil
+            cancelled =
+                error is CancellationError
+                || (error as? FormatterWorkerClientError) == .workerFailure(.cancelled)
+            usageUnknown = true
+            let timedOut =
+                (error as? WorkerConnectionError) == .timedOut
+                || (error as? FormatterWorkerClientError) == .workerFailure(.timedOut)
+                || (error as? URLError)?.code == .timedOut
+            let capacityExceeded =
+                (error as? FormatterWorkerClientError) == .workerFailure(.capacityExceeded)
+            reason =
+                cancelled
+                ? .cancelled
+                : timedOut ? .timedOut : capacityExceeded ? .capacityExceeded : .processingFailed
+
         }
+        glossary?.record(
+            requestID: transcription.requestID, stage: .formatting,
+            status: cancelled ? .cancelled : formattedText == nil ? .fallback : .success,
+            text: formattedText,
+            effective: usageUnknown && effective == .applied ? .unknown : effective,
+            engine: engine.rawValue, modelID: modelID,
+            submitted: usageUnknown ? [] : submitted.map(\.id), reason: reason)
+
         _ = try coordinator.completeFormatting(
             requestID: transcription.requestID
         )
@@ -293,16 +364,19 @@ enum FormattingOutputValidator {
             minimumRelativeLimit,
             source.utf8.count * 2 + 256
         )
-        guard candidate.utf8.count <= min(
-            absoluteMaximumByteCount,
-            relativeLimit
-        ) else {
+        guard
+            candidate.utf8.count
+                <= min(
+                    absoluteMaximumByteCount,
+                    relativeLimit
+                )
+        else {
             return nil
         }
 
         let lowercased = trimmed.lowercased()
         guard !explanatoryPrefixes.contains(where: lowercased.hasPrefix),
-              !controlMarkers.contains(where: candidate.contains)
+            !controlMarkers.contains(where: candidate.contains)
         else {
             return nil
         }

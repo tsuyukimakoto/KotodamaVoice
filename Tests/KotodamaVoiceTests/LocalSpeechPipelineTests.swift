@@ -2,6 +2,7 @@ import AVFoundation
 import Foundation
 import KotodamaCore
 import Testing
+
 @testable import KotodamaVoice
 
 @Test(arguments: [SpeechEngine.builtIn, .external])
@@ -243,4 +244,38 @@ private func mono16kPipelineBuffer() throws -> AVAudioPCMBuffer {
     )
     buffer.frameLength = 16
     return buffer
+}
+
+@Test(arguments: [SpeechOutcome.failure, .cancellation]) @MainActor
+func glossarySpeechFailuresHaveNoCountsAndNeverRunFormatting(outcome: SpeechOutcome) async throws {
+    let root = URL(fileURLWithPath: "/private/tmp").appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let defaults = try #require(
+        UserDefaults(suiteName: "com.tsuyukimakoto.GlossarySpeechFailure.\(UUID())"))
+    let settings = GlossarySettingsStore(directory: root, defaults: defaults)
+    try settings.save(GlossaryEntry(term: "Codex"))
+    settings.setDiagnostics(true)
+    let session = GlossarySession(
+        settings: settings,
+        diagnostics: GlossaryDiagnostics(directory: root.appending(path: "logs")))
+    let store = PipelineStore(initialState: .recording)
+    let recorder = AudioRecorderSpy(stopResult: .success(try mono16kPipelineBuffer()))
+    let pipeline = LocalSpeechPipeline(
+        store: store, coordinator: PipelineCoordinator(store: store), recorder: recorder,
+        temporaryAudioStore: TemporaryAudioStore(rootURL: root.appending(path: "audio")),
+        speech: SpeechTranscriberSpy(outcome: outcome), glossary: session)
+    try pipeline.startRecording()
+    do {
+        _ = try await pipeline.stopAndTranscribe(modelID: "fixture")
+        Issue.record("Expected speech failure")
+    } catch {}
+    let log = try String(contentsOf: #require(session.diagnostics.currentFile), encoding: .utf8)
+    let events = try log.split(separator: "\n").map {
+        try JSONSerialization.jsonObject(with: Data($0.utf8)) as! [String: Any]
+    }
+    #expect(events.count == 2)
+    #expect(events[0]["status"] as? String == (outcome == .cancellation ? "cancelled" : "failed"))
+    #expect(events[1]["status"] as? String == "not_run")
+    #expect(events.allSatisfy { $0["counts"] is NSNull })
+    #expect(session.snapshot == nil)
 }

@@ -12,7 +12,8 @@ struct KotodamaVoiceApp: App {
         #if DEBUG
             if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
                 defaults = UserDefaults(
-                    suiteName: "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)"
+                    suiteName: ProcessInfo.processInfo.environment["KOTODAMA_UI_TEST_SUITE"]
+                        ?? "KotodamaVoiceUITests-\(ProcessInfo.processInfo.processIdentifier)"
                 )!
             } else {
                 defaults = .standard
@@ -102,8 +103,8 @@ private struct MenuBarContent: View {
 
 }
 
-private extension PipelineState {
-    var title: String {
+extension PipelineState {
+    fileprivate var title: String {
         switch self {
         case .ready:
             "待機中"
@@ -122,7 +123,7 @@ private extension PipelineState {
         }
     }
 
-    var systemImage: String {
+    fileprivate var systemImage: String {
         switch self {
         case .ready:
             "waveform"
@@ -135,7 +136,7 @@ private extension PipelineState {
         }
     }
 
-    var isBusy: Bool {
+    fileprivate var isBusy: Bool {
         switch self {
         case .transcribing, .formatting, .outputting, .cancelling:
             true

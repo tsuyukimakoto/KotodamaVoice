@@ -180,14 +180,14 @@ private final class ModelManagerFixture {
             displayName: id,
             purpose: purpose,
             version: "1",
-            sourceURL: URL(string: "https://example.com/\(id).bin")!,
+            sourceURL: URL(string: "https://www.tsuyukimakoto.com/\(id).bin")!,
             revision: String(repeating: "a", count: 40),
             fileName: "\(id).bin",
             byteCount: 1,
             sha256: String(repeating: "b", count: 64),
             licenseName: "MIT",
             licenseFile: "MIT-LICENSE.txt",
-            licenseURL: URL(string: "https://example.com/license")!,
+            licenseURL: URL(string: "https://www.tsuyukimakoto.com/license")!,
             runtime: .whisper,
             isDefault: isDefault
         )

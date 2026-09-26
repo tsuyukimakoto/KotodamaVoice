@@ -126,14 +126,14 @@ private func modelEntry(byteCount: Int64) -> ModelManifestEntry {
         displayName: "Speech Fixture",
         purpose: .speech,
         version: "1",
-        sourceURL: URL(string: "https://example.invalid/model.bin")!,
+        sourceURL: URL(string: "https://www.tsuyukimakoto.com/model.bin")!,
         revision: String(repeating: "0", count: 40),
         fileName: "model.bin",
         byteCount: byteCount,
         sha256: String(repeating: "a", count: 64),
         licenseName: "MIT",
         licenseFile: "MIT-LICENSE.txt",
-        licenseURL: URL(string: "https://example.invalid/license")!,
+        licenseURL: URL(string: "https://www.tsuyukimakoto.com/license")!,
         runtime: .whisper
     )
 }

@@ -242,6 +242,7 @@ schemes:
         FormatterWorker: all
     test:
       environmentVariables:
+        KOTODAMA_GLOSSARY_EVALUATION: "$(KOTODAMA_GLOSSARY_EVALUATION)"
         KOTODAMA_OFFLINE_REQUIRED: "$(KOTODAMA_OFFLINE_REQUIRED)"
         KOTODAMA_OFFLINE_MODEL: "$(KOTODAMA_OFFLINE_MODEL)"
         KOTODAMA_OFFLINE_AUDIO: "$(KOTODAMA_OFFLINE_AUDIO)"
@@ -264,6 +265,8 @@ schemes:
         KotodamaVoice: all
         KotodamaVoiceTests: [test]
     test:
+      environmentVariables:
+        KOTODAMA_GLOSSARY_EVALUATION: "$(KOTODAMA_GLOSSARY_EVALUATION)"
       targets:
         - KotodamaVoiceTests
   SpeechWorker:

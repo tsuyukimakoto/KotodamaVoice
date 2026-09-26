@@ -52,6 +52,20 @@ final class SelectedSpeechTranscriber: SpeechTranscribing {
       requestID: requestID
     )
   }
+  var glossaryEngine: String { settings.engine.rawValue }
+  func transcribe(
+    modelID: String, audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+    hints: [SpeechGlossaryHint]
+  ) async throws -> SpeechGlossaryResult {
+    if settings.engine == .builtIn {
+      return try await builtIn.transcribe(
+        modelID: modelID, audioInput: audioInput, requestID: requestID, hints: hints)
+    }
+    return SpeechGlossaryResult(
+      text: try await external.transcribe(
+        modelID: modelID, audioInput: audioInput, requestID: requestID))
+  }
+
 }
 
 @MainActor
@@ -158,7 +172,15 @@ final class ExternalTextFormatter: TextFormatting {
     _ text: String,
     requestID _: PipelineRequestID
   ) async throws -> String {
-    try await adapter.format(text: text, prompt: prompt())
+    try await format(text, requestID: PipelineRequestID(), glossary: [])
+  }
+
+  func format(_ text: String, requestID: PipelineRequestID, glossary: [GlossaryEntry]) async throws
+    -> String
+  {
+    try await adapter.format(
+      text: text, prompt: GlossaryPrompt.compose(base: prompt(), entries: glossary))
+
   }
 }
 
@@ -179,7 +201,14 @@ final class ConfiguredExternalTextFormatter: TextFormatting {
     _ text: String,
     requestID _: PipelineRequestID
   ) async throws -> String {
+    try await format(text, requestID: PipelineRequestID(), glossary: [])
+  }
+
+  func format(_ text: String, requestID: PipelineRequestID, glossary: [GlossaryEntry]) async throws
+    -> String
+  {
     guard let configuration = settings.configuration(for: .formatter) else {
+
       throw ExternalEngineRuntimeError.notConfigured(.formatter)
     }
     let apiKey = try settings.apiKey(for: configuration.id)
@@ -209,7 +238,8 @@ final class ConfiguredExternalTextFormatter: TextFormatting {
     case .openAIAudioTranscriptions, .whisperCppInference:
       throw ExternalEngineRuntimeError.incompatibleEngineKind
     }
-    return try await adapter.format(text: text, prompt: prompt())
+    return try await adapter.format(
+      text: text, prompt: GlossaryPrompt.compose(base: prompt(), entries: glossary))
   }
 }
 

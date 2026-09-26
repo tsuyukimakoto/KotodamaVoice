@@ -25,6 +25,7 @@ final class AppRuntime {
   let externalEngineSettings: ExternalEngineSettingsStore
   let outputSettings: OutputSettingsStore
   let debugLogSettings: DebugLogSettingsStore
+  let glossarySession: GlossarySession
   private(set) var modelNavigationTargetID: String?
   private var outputSelectionWindow: OutputSelectionWindowPresenter?
   private let clipboardOutput = ClipboardOutput()
@@ -48,6 +49,39 @@ final class AppRuntime {
     )
     let speechSettings = SpeechSettingsStore(defaults: defaults)
     let externalEngineSettings = ExternalEngineSettingsStore(defaults: defaults)
+    let glossarySettings: GlossarySettingsStore
+    let glossaryDiagnostics: GlossaryDiagnostics
+    #if DEBUG
+      if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1" {
+        let directory =
+          ProcessInfo.processInfo.environment["KOTODAMA_UI_TEST_GLOSSARY_DIRECTORY"]
+          .map { URL(fileURLWithPath: $0) }
+          ?? URL(
+            fileURLWithPath:
+              "/private/tmp/KotodamaGlossaryUI-\(ProcessInfo.processInfo.processIdentifier)")
+        glossarySettings = GlossarySettingsStore(directory: directory, defaults: defaults)
+        glossaryDiagnostics = GlossaryDiagnostics(directory: directory.appending(path: "logs"))
+      } else {
+        glossarySettings = GlossarySettingsStore(defaults: defaults)
+        glossaryDiagnostics = GlossaryDiagnostics()
+      }
+    #else
+      glossarySettings = GlossarySettingsStore(defaults: defaults)
+      glossaryDiagnostics = GlossaryDiagnostics()
+    #endif
+    let glossarySession = GlossarySession(
+      settings: glossarySettings, diagnostics: glossaryDiagnostics)
+    #if DEBUG
+      if ProcessInfo.processInfo.environment["KOTODAMA_UI_TESTING"] == "1",
+        ProcessInfo.processInfo.environment["KOTODAMA_UI_TEST_GLOSSARY_OMITTED"] == "1"
+      {
+        glossarySession.begin()
+        glossarySession.record(
+          requestID: PipelineRequestID(), stage: .speech, status: .success,
+          text: "", effective: .applied, engine: "ui_fixture")
+        glossarySession.finish()
+      }
+    #endif
     let selectedSpeech = SelectedSpeechTranscriber(
       settings: speechSettings,
       builtIn: speechWorkerClient,
@@ -60,7 +94,8 @@ final class AppRuntime {
       coordinator: coordinator,
       recorder: audioRecording,
       temporaryAudioStore: TemporaryAudioStore(),
-      speech: selectedSpeech
+      speech: selectedSpeech,
+      glossary: glossarySession
     )
     let formatterSettings = FormatterSettingsStore(defaults: defaults)
     let debugLogSettings: DebugLogSettingsStore
@@ -171,7 +206,19 @@ final class AppRuntime {
         prompt: { [weak formatterSettings] in
           formatterSettings?.activePrompt ?? ""
         }
-      )
+      ),
+      glossary: glossarySession,
+      permitsExternalGlossary: {
+        guard let configuration = externalEngineSettings.configuration(for: .formatter) else {
+          return false
+        }
+        return glossarySettings.permits(configuration.endpointURL)
+      },
+      modelIdentifier: { engine in
+        engine == .builtIn
+          ? modelManager.selectedModel(for: .formatter)?.id
+          : externalEngineSettings.configuration(for: .formatter)?.model
+      }
     )
     let hotKeyBackend: HotKeyRegistering
 
@@ -199,6 +246,7 @@ final class AppRuntime {
     self.externalEngineSettings = externalEngineSettings
     self.outputSettings = outputSettings
     self.debugLogSettings = debugLogSettings
+    self.glossarySession = glossarySession
     self.textFormattingPipeline = textFormattingPipeline
     self.modelCatalog = modelCatalog
     self.modelManager = modelManager
@@ -301,7 +349,8 @@ final class AppRuntime {
                 error: .speechModelUnavailable
               )
             )
-            operationError = speechSettings.engine == .builtIn
+            operationError =
+              speechSettings.engine == .builtIn
               ? "使用するSpeechモデルをモデル画面で取得・選択してください"
               : "外部Speech Engineを設定してください"
             return
@@ -387,8 +436,10 @@ final class AppRuntime {
   }
 
   func beginPendingFormatterModelAcquisition() {
-    guard let model = formatterEngineSelection
-      .beginPendingModelAcquisition()
+    guard
+      let model =
+        formatterEngineSelection
+        .beginPendingModelAcquisition()
     else { return }
     modelNavigationTargetID = model.id
     modelManager.install(

@@ -29,6 +29,7 @@ public enum WorkerFailureCode: Int, Codable, Sendable {
     case cancelled
     case timedOut
     case workerUnavailable
+    case capacityExceeded
 }
 
 public enum WorkerLifecycleState: String, Codable, Sendable {
@@ -128,6 +129,7 @@ public enum WorkerRuntimeError: Error, Equatable, Sendable {
     case invalidInput
     case cancelled
     case processingFailed
+    case capacityExceeded
 }
 
 public protocol SpeechTranscribingRuntime: WorkerRuntimeManaging {
@@ -135,6 +137,13 @@ public protocol SpeechTranscribingRuntime: WorkerRuntimeManaging {
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID
     ) throws -> String
+}
+
+public protocol GlossarySpeechRuntime: SpeechTranscribingRuntime {
+    func transcribe(
+        audioInput: WorkerAudioInput, requestID: PipelineRequestID,
+        hints: [SpeechGlossaryHint]
+    ) throws -> SpeechGlossaryResult
 }
 
 public protocol TextFormattingRuntime: WorkerRuntimeManaging {
@@ -167,10 +176,12 @@ public final class WorkerAudioInput: NSObject, NSSecureCoding, @unchecked Sendab
     }
 
     public required init?(coder: NSCoder) {
-        guard let fileHandle = coder.decodeObject(
-            of: FileHandle.self,
-            forKey: Key.fileHandle
-        ) else {
+        guard
+            let fileHandle = coder.decodeObject(
+                of: FileHandle.self,
+                forKey: Key.fileHandle
+            )
+        else {
             return nil
         }
         self.fileHandle = fileHandle
@@ -222,10 +233,11 @@ public final class WorkerRequest: NSObject, NSSecureCoding, @unchecked Sendable 
     }
 
     public required init?(coder: NSCoder) {
-        guard let requestUUID = coder.decodeObject(
-            of: NSUUID.self,
-            forKey: Key.requestID
-        ),
+        guard
+            let requestUUID = coder.decodeObject(
+                of: NSUUID.self,
+                forKey: Key.requestID
+            ),
             let operation = WorkerOperation(
                 rawValue: coder.decodeInteger(forKey: Key.operation)
             ),
@@ -293,10 +305,11 @@ public final class WorkerEvent: NSObject, NSSecureCoding, @unchecked Sendable {
     }
 
     public required init?(coder: NSCoder) {
-        guard let requestUUID = coder.decodeObject(
-            of: NSUUID.self,
-            forKey: Key.requestID
-        ),
+        guard
+            let requestUUID = coder.decodeObject(
+                of: NSUUID.self,
+                forKey: Key.requestID
+            ),
             let phase = WorkerPhase(
                 rawValue: coder.decodeInteger(forKey: Key.phase)
             ),
@@ -352,9 +365,11 @@ public final class WorkerFailure: NSObject, NSSecureCoding, @unchecked Sendable 
     }
 
     public required init?(coder: NSCoder) {
-        guard let code = WorkerFailureCode(
-            rawValue: coder.decodeInteger(forKey: Key.code)
-        ) else {
+        guard
+            let code = WorkerFailureCode(
+                rawValue: coder.decodeInteger(forKey: Key.code)
+            )
+        else {
             return nil
         }
         self.code = code
@@ -409,10 +424,12 @@ public final class WorkerReply: NSObject, NSSecureCoding, @unchecked Sendable {
     }
 
     public required init?(coder: NSCoder) {
-        guard let requestUUID = coder.decodeObject(
-            of: NSUUID.self,
-            forKey: Key.requestID
-        ) else {
+        guard
+            let requestUUID = coder.decodeObject(
+                of: NSUUID.self,
+                forKey: Key.requestID
+            )
+        else {
             return nil
         }
         let payload = coder.decodeObject(of: NSData.self, forKey: Key.payload) as Data?
@@ -547,8 +564,8 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             let canTranscribe = lifecycleState == .loaded
             lock.unlock()
             guard canTranscribe,
-                  let speechRuntime,
-                  let audioInput = request.audioInput
+                let speechRuntime,
+                let audioInput = request.audioInput
             else {
                 return invalidRequestReply(for: request.requestID)
             }
@@ -556,7 +573,8 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             let reply = transcribe(
                 audioInput: audioInput,
                 requestID: request.requestID,
-                runtime: speechRuntime
+                runtime: speechRuntime,
+                glossary: request.options["glossary"]
             )
             recordRequest(
                 requestID: request.requestID,
@@ -571,11 +589,11 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
             let canFormat = lifecycleState == .loaded
             lock.unlock()
             guard canFormat,
-                  let formatterRuntime,
-                  let text = request.options["text"],
-                  let prompt = request.options["prompt"],
-                  !text.isEmpty,
-                  !prompt.isEmpty
+                let formatterRuntime,
+                let text = request.options["text"],
+                let prompt = request.options["prompt"],
+                !text.isEmpty,
+                !prompt.isEmpty
             else {
                 return invalidRequestReply(for: request.requestID)
             }
@@ -633,8 +651,8 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
 
         case .loadModel:
             guard lifecycleState != .shutDown,
-                  let modelID = request.modelID,
-                  !modelID.isEmpty
+                let modelID = request.modelID,
+                !modelID.isEmpty
             else {
                 return invalidRequestReply(for: request.requestID)
             }
@@ -663,8 +681,9 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 return invalidRequestReply(for: request.requestID)
             }
             if let requestedModelID = request.modelID,
-               let modelID,
-               requestedModelID != modelID {
+                let modelID,
+                requestedModelID != modelID
+            {
                 return WorkerReply(requestID: request.requestID)
             }
             runtime.cancelAll()
@@ -706,10 +725,27 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
     private func transcribe(
         audioInput: WorkerAudioInput,
         requestID: PipelineRequestID,
-        runtime: SpeechTranscribingRuntime
+        runtime: SpeechTranscribingRuntime,
+        glossary: String?
     ) -> WorkerReply {
         do {
+            if let glossary {
+                guard let runtime = runtime as? GlossarySpeechRuntime,
+                    let hints = try? JSONDecoder().decode(
+                        [SpeechGlossaryHint].self, from: Data(glossary.utf8)),
+                    hints.count <= 200,
+                    Set(hints.map(\.id)).count == hints.count,
+                    hints.allSatisfy({
+                        (try? GlossaryEntry(id: $0.id, term: $0.term, reading: $0.reading)
+                            .validated()) != nil
+                    })
+                else { throw WorkerRuntimeError.invalidInput }
+                let result = try runtime.transcribe(
+                    audioInput: audioInput, requestID: requestID, hints: hints)
+                return WorkerReply(requestID: requestID, payload: try JSONEncoder().encode(result))
+            }
             let text = try runtime.transcribe(
+
                 audioInput: audioInput,
                 requestID: requestID
             )
@@ -755,7 +791,12 @@ public final class WorkerService: NSObject, WorkerServiceProtocol {
                 requestID: requestID,
                 payload: Data(formattedText.utf8)
             )
+        } catch WorkerRuntimeError.capacityExceeded {
+            return WorkerReply(
+                requestID: requestID,
+                failure: WorkerFailure(code: .capacityExceeded, isRetryable: false))
         } catch WorkerRuntimeError.cancelled {
+
             return WorkerReply(
                 requestID: requestID,
                 failure: WorkerFailure(code: .cancelled, isRetryable: true)

@@ -42,11 +42,17 @@ struct SettingsView: View {
                     .accessibilityIdentifier("formatting-settings")
             }
 
+            GlossarySettingsView(runtime: runtime)
+                .tabItem {
+                    Label("用語集", systemImage: "text.book.closed").accessibilityIdentifier(
+                        "glossary-settings")
+                }
+
             OutputSettingsView(settings: runtime.outputSettings)
-            .tabItem {
-                Label("Output", systemImage: "clipboard")
-                    .accessibilityIdentifier("output-settings")
-            }
+                .tabItem {
+                    Label("Output", systemImage: "clipboard")
+                        .accessibilityIdentifier("output-settings")
+                }
 
             LicenseSettingsView()
                 .tabItem {
@@ -69,7 +75,7 @@ private struct LicenseSettingsView: View {
 
     var body: some View {
         switch result {
-        case let .success(catalog):
+        case .success(let catalog):
             List(catalog.documents) { document in
                 DisclosureGroup {
                     ScrollView {
@@ -462,7 +468,8 @@ private struct FormattingSettingsView: View {
                 case .defaultPrompt:
                     LabeledContent(
                         "Resource",
-                        value: "\(settings.defaultPrompt.identifier) v\(settings.defaultPrompt.version)"
+                        value:
+                            "\(settings.defaultPrompt.identifier) v\(settings.defaultPrompt.version)"
                     )
                     .accessibilityIdentifier("default-prompt-version")
                     Text(settings.defaultPrompt.text)
@@ -544,12 +551,12 @@ private struct FormattingSettingsView: View {
             return "Formatterモデルの情報を確認できません。"
         }
         return """
-        \(model.displayName)
-        容量: \(ByteCountFormatter.string(fromByteCount: model.byteCount, countStyle: .file))
-        取得元: \(model.sourceURL.host() ?? "-")
-        Revision: \(model.revision)
-        ライセンス: \(model.licenseName)
-        """
+            \(model.displayName)
+            容量: \(ByteCountFormatter.string(fromByteCount: model.byteCount, countStyle: .file))
+            取得元: \(model.sourceURL.host() ?? "-")
+            Revision: \(model.revision)
+            ライセンス: \(model.licenseName)
+            """
     }
 
     private var detail: String {
@@ -575,8 +582,7 @@ private struct ExternalEngineEditor: View {
     @State private var timeout: String
     @State private var apiKey = ""
     @State private var pendingConfiguration: ExternalEngineConfiguration?
-    @State private var confirmationRequirements:
-        Set<ExternalEndpointConfirmationRequirement> = []
+    @State private var confirmationRequirements: Set<ExternalEndpointConfirmationRequirement> = []
     @State private var showsConfirmation = false
     @State private var statusMessage: String?
     @State private var isTesting = false
@@ -732,7 +738,8 @@ private struct ExternalEngineEditor: View {
                 let result = await ExternalEngineConnectionTester().test(
                     try connection(configuration: configuration, apiKey: key)
                 )
-                statusMessage = result == .ready
+                statusMessage =
+                    result == .ready
                     ? "接続できました"
                     : "Endpointの契約を確認できませんでした"
             } catch {
@@ -743,12 +750,12 @@ private struct ExternalEngineEditor: View {
     }
 }
 
-private extension ExternalEndpointPurpose {
-    var engineKinds: [ExternalEngineKind] {
+extension ExternalEndpointPurpose {
+    fileprivate var engineKinds: [ExternalEngineKind] {
         ExternalEngineKind.allCases.filter { $0.purpose == self }
     }
 
-    var defaultEngineKind: ExternalEngineKind {
+    fileprivate var defaultEngineKind: ExternalEngineKind {
         switch self {
         case .speech: .openAIAudioTranscriptions
         case .formatter: .responses
@@ -756,8 +763,8 @@ private extension ExternalEndpointPurpose {
     }
 }
 
-private extension ExternalEngineKind {
-    var displayName: String {
+extension ExternalEngineKind {
+    fileprivate var displayName: String {
         switch self {
         case .openAIAudioTranscriptions: "OpenAI Audio Transcriptions"
         case .whisperCppInference: "whisper.cpp /inference"
@@ -766,7 +773,7 @@ private extension ExternalEngineKind {
         }
     }
 
-    var requiresModel: Bool {
+    fileprivate var requiresModel: Bool {
         self != .whisperCppInference
     }
 }
@@ -775,7 +782,8 @@ private func connection(
     configuration: ExternalEngineConfiguration,
     apiKey: String?
 ) throws -> ExternalEngineConnection {
-    let confirmation = configuration.acceptedConfirmations.isEmpty
+    let confirmation =
+        configuration.acceptedConfirmations.isEmpty
         ? nil
         : ExternalEndpointConfirmation(
             endpoint: configuration.endpointURL,

@@ -141,6 +141,11 @@
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
+            key = "KOTODAMA_GLOSSARY_EVALUATION"
+            value = "$(KOTODAMA_GLOSSARY_EVALUATION)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "KOTODAMA_OFFLINE_AUDIO"
             value = "$(KOTODAMA_OFFLINE_AUDIO)"
             isEnabled = "YES">

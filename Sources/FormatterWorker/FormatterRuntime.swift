@@ -216,7 +216,7 @@ final class CLlamaBackend: LlamaBackend {
         isCancelled: @escaping @Sendable () -> Bool
     ) throws -> String {
         guard let handle = model as? LlamaModelHandle,
-              let modelPointer = handle.model
+            let modelPointer = handle.model
         else {
             throw FormatterRuntimeBackendError.invalidModelHandle
         }
@@ -235,7 +235,7 @@ final class CLlamaBackend: LlamaBackend {
         let promptTokens = try tokenize(fullPrompt, vocabulary: vocabulary)
         let requiredContext = promptTokens.count + Int(maximumOutputTokens)
         guard requiredContext <= 8_192 else {
-            throw FormatterRuntimeBackendError.promptTooLong
+            throw WorkerRuntimeError.capacityExceeded
         }
 
         var contextParameters = llama_context_default_params()

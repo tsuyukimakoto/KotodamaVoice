@@ -162,3 +162,41 @@ App、Framework、dylib、Speech Worker、Formatter Workerを同じ配布物と�
 アプリに同梱するModels Manifestとライセンス文書を検証し、モデル本体は利用者の取得操作後に固定URLから取得します。
 
 Notarizationに使う認証情報や証明書の秘密鍵は、ソースコードや設定ファイルへ書き込みません。
+
+## 用語集と段階別診断
+
+`KotodamaCore/Glossary.swift`は用語モデル、入力検証、NFC正規化した表記の集計、Promptへの参考データ追加を担当します。
+集計は大文字小文字・全半角を区別する部分文字列一致で、同じ用語内では非重複、異なる用語間では独立して数えます。
+読みからの一致判定は行いません。
+
+用語集はApplication Supportの `com.tsuyukimakoto.KotodamaVoice/Glossary/glossary.json` へ版付きJSONとして保存します。
+登録表記は必須、読みと説明は任意で、最大200項目です。
+`GlossarySession`は録音開始時の用語集と利用設定を保持し、SpeechとFormatterで同じ版を参照します。
+診断記録をオフにすると現在の記録世代を無効にし、再度オンにしても古い要求を書き込みません。
+
+Worker契約はversion 2です。
+Speech要求の `options.glossary` には表記と読みを持つJSONを渡し、この要求への応答は本文と実際に採用した用語IDを持つ `SpeechGlossaryResult` です。
+ヒントを渡さない要求の応答本文はUTF-8のままです。
+版不一致は既存のprotocol mismatchとして拒否します。
+
+`GlossaryDiagnostics`は許可した診断フィールドだけをJSONLへ直列に書き込みます。
+用語の表記は保存済みの用語集から取り、本文の該当範囲はコピーしません。
+診断の `applied` は用語情報の受け渡しを示し、推論の正しさを示しません。
+受け渡しを確認できない失敗は `unknown` とします。
+Formatterの検証済み出力だけを成功として集計し、Off・fallback・cancel・未実行を区別します。
+
+関連するUnit・HTTP統合テストは `KotodamaVoiceUnitTests`、UIとWorkerを含む全テストは `KotodamaVoice` schemeで実行します。
+実モデル比較は、`term.caf`、`homophone.caf`、`plain.caf` の16 kHz・mono音声fixtureがあるディレクトリを指定して実行します。
+fixtureの発話内容は順に「ことだまぼいすで音声を入力します。数値は123です。」「橋を渡ってから、箸でご飯を食べます。」「明日の会議は午後3時です。」です。
+Whisperの固定モデルは `.build/speech-evaluation/models/`、Gemmaの固定モデルは `.build/test-fixtures/` に用意します。
+テストはManifestのSHA-256を検証して実Workerで処理し、4通りの利用設定の回数・処理時間・WorkerのRSSを `results.json` に出力します。
+
+```sh
+xcodebuild \
+  -project KotodamaVoice.xcodeproj \
+  -scheme KotodamaVoiceUnitTests \
+  -destination 'platform=macOS,arch=arm64' \
+  -only-testing:KotodamaVoiceTests/GlossaryOfflineEvaluationTests \
+  KOTODAMA_GLOSSARY_EVALUATION=/absolute/path/to/fixtures \
+  test
+```

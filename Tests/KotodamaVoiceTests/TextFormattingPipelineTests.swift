@@ -205,14 +205,14 @@ private func formatterSelectionModel() -> ModelManifestEntry {
         displayName: "Formatter Model",
         purpose: .formatter,
         version: "1",
-        sourceURL: URL(string: "https://example.com/formatter.gguf")!,
+        sourceURL: URL(string: "https://www.tsuyukimakoto.com/formatter.gguf")!,
         revision: String(repeating: "a", count: 40),
         fileName: "formatter.gguf",
         byteCount: 1_024,
         sha256: String(repeating: "b", count: 64),
         licenseName: "Apache-2.0",
         licenseFile: "Apache-2.0.txt",
-        licenseURL: URL(string: "https://example.com/license")!,
+        licenseURL: URL(string: "https://www.tsuyukimakoto.com/license")!,
         runtime: .llama
     )
 }

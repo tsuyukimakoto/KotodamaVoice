@@ -41,7 +41,7 @@ struct ExternalEngineSettingsTests {
       id: UUID(),
       kind: .openAIAudioTranscriptions,
       endpointURL: try #require(
-        URL(string: "https://speech.example.com/v1/audio/transcriptions")
+        URL(string: "https://www.tsuyukimakoto.com/v1/audio/transcriptions")
       ),
       model: "speech-model",
       timeout: 30
@@ -80,7 +80,7 @@ struct ExternalEngineSettingsTests {
       id: UUID(),
       kind: .responses,
       endpointURL: try #require(
-        URL(string: "https://formatter.example.com/v1/responses")
+        URL(string: "https://www.tsuyukimakoto.com/v1/responses")
       ),
       model: "formatter-model",
       timeout: 45
