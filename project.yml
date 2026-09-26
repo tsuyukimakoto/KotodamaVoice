@@ -38,6 +38,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tsuyukimakoto.KotodamaVoice.Core
         DEFINES_MODULE: YES
+        CURRENT_PROJECT_VERSION: "$(inherited)"
         SKIP_INSTALL: YES
     preBuildScripts:
       - name: Verify Core dependencies
