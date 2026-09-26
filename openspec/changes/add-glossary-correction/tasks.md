@@ -32,3 +32,9 @@
 - [x] 5.1 CoreとAppの関連Unit Test、署名済みXPC統合テスト、HTTP統合テスト、UI TestをPROJECT_STRUCTURE記載のschemeで実行し、失敗を解決して全件通過を確認する。構成を変更した場合はproject.ymlからXcodeGenで再生成する。
 - [x] 5.2 固定音声fixtureと固定モデルで利用設定4通りを比較し、用語あり・似た音の一般語・用語なしの各fixtureについて両段階の期待出現回数とログを照合する。少なくとも事前指定した誤認識fixtureの改善と、無関係語・数値の保持を確認し、処理時間・メモリも測定する。満たさない場合は方式を調整して再検証する。
 - [x] 5.3 `openspec validate add-glossary-correction --strict`と`openspec validate --all --strict`を実行し、全件通過と各タスクの確認根拠を揃えてから実装タスクを完了にする。
+
+## 6. 音声認識への読み・括弧の混入を防ぐ
+
+- [ ] 6.1 読み付き用語のSpeech要求とdecoderヒントに読み・補助の括弧を含めず、登録表記と採用IDを保持する失敗テストを確認してから修正する。Formatterには読み・説明が残ることを確認する。
+- [ ] 6.2 Vroma Studio Trackを含む固定音声をFormatter Offで実Workerに渡し、読み・補助の括弧が出力に混入しないことを確認する。既存4設定比較とUnit・統合・UIテスト、OpenSpec strict検証を通す。
+- [ ] 6.3 READMEとPROJECT_STRUCTUREのヒント内容・Worker契約の説明を実装に合わせる。

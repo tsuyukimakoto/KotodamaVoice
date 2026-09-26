@@ -49,15 +49,15 @@ Formatter Offや外部Speech未対応などの実効状態を各設定の近く�
 
 版付きSpeech要求に用語ヒント用のデータを追加し、AppとSpeech Workerを同時更新する。
 版不一致は既存の型付き契約エラーとして処理し、黙ってヒントなしに成功扱いしない。
-Worker側で登録順の表記と読みから短いヒントを作り、モデルのtokenizerで予算を検査する。
+Worker側で登録順の正しい表記だけから短いヒントを作り、モデルのtokenizerで予算を検査する。
 上限は固定revisionのAPIが定義する`whisper_n_text_ctx()/2`とし、項目途中では切らず、入らない項目は飛ばして以降を検査する。
-ヒントに説明文は加えない。実際に採用した項目IDと未採用件数を版付き応答に含める。
+読み・説明と補助の括弧はSpeech要求に含めない。Worker契約はversion 3へ更新する。登録表記自体の記号は保持する。実際に採用した項目IDと未採用件数を版付き応答に含める。
 `initial_prompt`のC文字列の寿命を推論完了まで保持し、`no_context`との組み合わせでヒントが実際にdecoderへ渡ることを固定ソースと統合テストで検証する。
 ヒント設定Off時は既存処理と同一にする。
 外部Speechへは今回ヒントを渡さず、設定画面と診断で`unsupported`を示す。
 
 根拠: [固定revisionのwhisper.h](https://github.com/ggml-org/whisper.cpp/blob/371b5a7561823ab2bb32142d2751e35e7534727b/include/whisper.h)に`initial_prompt`とtoken上限が定義されている。
-発音辞書として強制できる仕組みではなく、読みの与え方による品質差は実モデルfixtureで測る。
+発音辞書として強制できる仕組みではなく、ヒントの書式も出力へ影響し得る。読みを括弧で付記する形式は採用せず、読みと説明はFormatterだけに渡す。正しい表記のみのヒントを実モデルfixtureで検証する。
 
 ### 4. Formatterへの参考情報
 
